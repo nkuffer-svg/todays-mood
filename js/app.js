@@ -10,7 +10,7 @@ import { enregistrerPhoto, supprimerPhoto, photoAffichable } from './photos.js';
 import { ouvrirReglages } from './ecran-reglages.js';
 import { traiterPartage } from './ecran-partage.js';
 
-export const VERSION = 'etape3-v1';
+export const VERSION = 'etape3-v2';
 
 const etat = {
   aujourdhui: null, // jour courant selon l'heure de bascule

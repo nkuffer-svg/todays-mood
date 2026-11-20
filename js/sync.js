@@ -91,7 +91,9 @@ export async function appeler(action, donnees = {}, config = {}) {
   }
   if (!json.ok) {
     let message = json.erreur || 'Erreur inconnue côté Apps Script.';
-    if (/^Action inconnue/.test(message)) {
+    if (/DriveApp|auth\/drive/.test(message)) {
+      message = 'Le script n’a pas encore l’autorisation Google Drive : dans l’éditeur Apps Script, lance « initialiser » et accepte l’accès à Drive.';
+    } else if (/^Action inconnue/.test(message)) {
       message = 'Le script Apps Script n’est pas à jour : recolle Code.gs puis publie une nouvelle version du déploiement.';
     }
     const e = new Error(message);

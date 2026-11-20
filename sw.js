@@ -4,7 +4,7 @@
 'use strict';
 importScripts('./db.js');
 
-const VERSION = 'etape3-v1';
+const VERSION = 'etape3-v2';
 const CACHE = 'todays-mood-' + VERSION;
 const CACHE_POLICES = 'todays-mood-polices';
 const FICHIERS = [
