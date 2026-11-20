@@ -104,6 +104,11 @@ autorisation, en plus de la mise à jour habituelle :
    Ton jeton ne change pas.
 3. **Déployer → Gérer les déploiements** → **crayon** → Version : **Nouvelle version** → **Déployer**.
 
+## Mise à jour de l'étape 4 (marches)
+
+Pas de nouvelle autorisation cette fois : recopie le nouveau `Code.gs`, enregistre, puis
+**Déployer → Gérer les déploiements → crayon → Nouvelle version → Déployer**.
+
 ## En cas de problème
 
 | Message dans l'app | Que faire |

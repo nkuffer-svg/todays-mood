@@ -5,6 +5,7 @@ import { el, svg, icone, carte, choixPastilles, segments, bascule, texteExtensib
 import { creerJauge } from './jauge.js';
 import { LIBELLES, APPRECIATIONS, BILAN, ACCORDS, NIVEAUX_ACCORD, RESSENTIS } from './donnees.js';
 import { decrireCode } from './meteo.js';
+import { cartesCompteurs } from './compteurs.js';
 
 function aVenir(titre, texte, etape) {
   return el('section', { class: 'carte a-venir' },
@@ -158,8 +159,7 @@ function matin(ctx) {
 
 function journee(ctx) {
   return [
-    aVenir('Quoi dans le goulot ?', 'Eau avec jauge de carburant, café, déca, bière, verre de vin.', 4),
-    aVenir('Comment t’as bougé ton Q ?', 'Nombre de pas, marches et natation.', 4),
+    ...cartesCompteurs(ctx),
     cartePhoto(ctx, 'photo_jour', 'Photo du jour'),
   ];
 }

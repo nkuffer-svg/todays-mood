@@ -8,12 +8,13 @@
    - reglages  : réglages locaux (clé, valeur) — dont l'URL et le jeton, qui ne quittent jamais le téléphone
    - pastilles : catégories d'événement (clé : nom)
    - partages  : derniers partages reçus de l'Enregistreur (5 au maximum)
-   - photos    : photos compressées (clé : "AAAA-MM-JJ:photo_ciel"), en attente d'envoi ou copie locale */
+   - photos    : photos compressées (clé : "AAAA-MM-JJ:photo_ciel"), en attente d'envoi ou copie locale
+   - marches   : une marche (clé : id), plusieurs par jour possibles */
 (function (global) {
   'use strict';
 
   const NOM_BASE = 'todays-mood';
-  const VERSION = 2;
+  const VERSION = 3;
   const MAX_PARTAGES = 5;
   let ouverture = null;
 
@@ -32,6 +33,7 @@
         creer('pastilles', { keyPath: 'nom' });
         creer('partages', { keyPath: 'id', autoIncrement: true });
         creer('photos', { keyPath: 'cle' });
+        creer('marches', { keyPath: 'id' });
       };
       req.onsuccess = () => {
         const db = req.result;
@@ -250,7 +252,63 @@
     return fin(tx);
   }
 
+  /* ---------- Marches ---------- */
+
+  async function ajouterMarche(marche) {
+    const db = await ouvrir();
+    const tx = db.transaction(['marches', 'file'], 'readwrite');
+    tx.objectStore('marches').put(marche);
+    tx.objectStore('file').put({ cle: 'marche:' + marche.id, type: 'marche', id: marche.id, op: 'ajout' });
+    return fin(tx);
+  }
+
+  async function supprimerMarche(id) {
+    const db = await ouvrir();
+    const tx = db.transaction(['marches', 'file'], 'readwrite');
+    tx.objectStore('marches').delete(id);
+    tx.objectStore('file').put({ cle: 'marche:' + id, type: 'marche', id, op: 'suppression' });
+    return fin(tx);
+  }
+
+  /** Retire une entrée de la file seulement si elle n'a pas changé de nature pendant l'envoi. */
+  async function retirerMarcheDeLaFile(id, op) {
+    const db = await ouvrir();
+    const tx = db.transaction('file', 'readwrite');
+    const file = tx.objectStore('file');
+    file.get('marche:' + id).onsuccess = (e) => {
+      if (e.target.result && e.target.result.op === op) file.delete('marche:' + id);
+    };
+    return fin(tx);
+  }
+
+  /** Aligne les marches locales sur celles du Sheet, sauf celles qui attendent d'être envoyées. */
+  async function fusionnerMarches(distantes) {
+    const db = await ouvrir();
+    const tx = db.transaction(['marches', 'file'], 'readwrite');
+    const magasin = tx.objectStore('marches');
+    let change = false;
+    tx.objectStore('file').getAll().onsuccess = (e) => {
+      const enAttente = new Set(e.target.result.filter((x) => x.type === 'marche').map((x) => x.id));
+      const parId = new Map(distantes.map((m) => [m.id, m]));
+      magasin.getAll().onsuccess = (e2) => {
+        for (const locale of e2.target.result) {
+          if (enAttente.has(locale.id)) continue;
+          const d = parId.get(locale.id);
+          if (!d) { magasin.delete(locale.id); change = true; }
+          else if (d.date !== locale.date || d.km !== locale.km) { magasin.put(d); change = true; }
+          parId.delete(locale.id);
+        }
+        for (const d of parId.values()) {
+          if (!enAttente.has(d.id)) { magasin.put(d); change = true; }
+        }
+      };
+    };
+    await fin(tx);
+    return change;
+  }
+
   global.TMDB = {
+    ajouterMarche, supprimerMarche, retirerMarcheDeLaFile, fusionnerMarches,
     enregistrerPhotoLocale, marquerPhotoEnvoyee, supprimerPhotoLocale, mettreALaCorbeille, purgerPhotos,
     lire, tout, ecrire, supprimer,
     modifierFiche, retirerFicheDeLaFile, fusionnerFicheDistante, enregistrerPastilles, remplacerPastilles, ajouterPartage,

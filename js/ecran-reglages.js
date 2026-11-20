@@ -105,6 +105,16 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies }) {
     reglagesModifies();
   });
 
+  const choixEau = el('select', { id: 'reglage-eau', class: 'champ' });
+  for (let ml = 1000; ml <= 4000; ml += 250) {
+    choixEau.append(el('option', { value: String(ml) }, new Intl.NumberFormat('fr-CH', { maximumFractionDigits: 2 }).format(ml / 1000) + ' L'));
+  }
+  choixEau.value = String(Number(reglage('objectifEau')) || 2000);
+  choixEau.addEventListener('change', async () => {
+    await definirReglage('objectifEau', Number(choixEau.value));
+    reglagesModifies();
+  });
+
   /* --- Météo --- */
   const modeGps = reglage('meteoMode') !== 'fixe';
   const champNom = el('input', { id: 'reglage-lieu-nom', class: 'champ', type: 'text', maxlength: '40', value: reglage('lieuNom') || LIEU_DEFAUT.nom });
@@ -164,7 +174,9 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies }) {
     carte('Journée',
       el('label', { class: 'sous-titre-champ', for: 'reglage-bascule' }, 'Heure de bascule du jour'),
       choixBascule,
-      el('p', { class: 'discret' }, 'Avant cette heure, une saisie compte encore pour la veille.')),
+      el('p', { class: 'discret' }, 'Avant cette heure, une saisie compte encore pour la veille.'),
+      el('label', { class: 'sous-titre-champ', for: 'reglage-eau' }, 'Objectif d’eau par jour'),
+      choixEau),
     carte('Météo',
       el('p', { class: 'sous-titre-champ' }, 'Position'),
       choixMode,

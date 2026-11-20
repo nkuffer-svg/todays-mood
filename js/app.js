@@ -2,15 +2,16 @@
 import { el, icone } from './ui.js';
 import { COLONNES, ONGLETS, PASTILLES_DEFAUT } from './donnees.js';
 import { jourCourant, decaler, formatLong, relatif } from './jour.js';
-import { chargerReglages, reglage } from './reglages.js';
+import { chargerReglages, reglage, definirReglage } from './reglages.js';
 import { synchroniser, planifier, surEtat, surDonnees, surPhotoEnvoyee } from './sync.js';
 import { rendreOnglet, carteMeteo } from './onglets.js';
 import { chercherMeteo } from './meteo.js';
 import { enregistrerPhoto, supprimerPhoto, photoAffichable } from './photos.js';
+import { calculerTotaux } from './stats.js';
 import { ouvrirReglages } from './ecran-reglages.js';
 import { traiterPartage } from './ecran-partage.js';
 
-export const VERSION = 'etape3-v2';
+export const VERSION = 'etape4-v1';
 
 const etat = {
   aujourdhui: null, // jour courant selon l'heure de bascule
@@ -115,8 +116,46 @@ async function meteoAutomatique() {
   actualiserMeteo(date, { auto: true });
 }
 
+/* ---------- Eau : pile des ajouts du jour (pour « annuler le dernier ajout ») ---------- */
+
+const cleAjoutsEau = (date) => 'eauAjouts:' + date;
+const ajoutsEau = (date) => reglage(cleAjoutsEau(date)) || [];
+
 const ctx = {
   get fiche() { return etat.fiche; },
+  get objectifEau() { return Number(reglage('objectifEau')) || 2000; },
+  async totaux() {
+    await viderSaisieEnAttente();
+    return calculerTotaux(etat.date);
+  },
+  eau: {
+    ajouts: () => ajoutsEau(etat.date),
+    async ajouter(ml) {
+      const date = etat.date;
+      await definirReglage(cleAjoutsEau(date), [...ajoutsEau(date), ml]);
+      return appliquerChamps(date, { eau_ml: (etat.fiche.eau_ml || 0) + ml });
+    },
+    async annuler() {
+      const date = etat.date;
+      const pile = ajoutsEau(date);
+      if (!pile.length) return;
+      const ml = pile[pile.length - 1];
+      await definirReglage(cleAjoutsEau(date), pile.slice(0, -1));
+      const reste = Math.max(0, (etat.fiche.eau_ml || 0) - ml);
+      return appliquerChamps(date, { eau_ml: reste === 0 ? null : reste });
+    },
+  },
+  marches: {
+    async ajouter(km) {
+      const id = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+      await TMDB.ajouterMarche({ id, date: etat.date, km });
+      planifier();
+    },
+    async supprimer(id) {
+      await TMDB.supprimerMarche(id);
+      planifier();
+    },
+  },
   get meteo() { return meteoEtat.date === etat.date ? meteoEtat : { etat: 'repos' }; },
   actualiserMeteo: () => actualiserMeteo(etat.date),
   photo: {
@@ -274,14 +313,18 @@ function construireEntete() {
 /* ---------- Synchronisation ---------- */
 
 async function apresSynchro(resultat) {
-  if (resultat.pastillesModifiees) await chargerPastilles();
-  const ficheAffecteeEnCours = resultat.datesModifiees.has(etat.date);
-  if (ficheAffecteeEnCours && !texteEnAttente) {
-    etat.fiche = await chargerFiche(etat.date);
-    rendre();
-  } else if (resultat.pastillesModifiees) {
-    rendre();
+  if (texteEnAttente) return; // ne pas effacer une saisie en cours ; la suite viendra à la prochaine synchro
+  let redessiner = false;
+  if (resultat.pastillesModifiees) {
+    await chargerPastilles();
+    redessiner = true;
   }
+  if (resultat.datesModifiees.has(etat.date)) {
+    etat.fiche = await chargerFiche(etat.date);
+    redessiner = true;
+  }
+  if (resultat.marchesModifiees && etat.onglet === 'journee') redessiner = true;
+  if (redessiner) rendre();
 }
 
 export async function synchroComplete() {
@@ -301,8 +344,7 @@ function verifierChangementDeJour() {
 }
 
 export function reglagesModifies() {
-  verifierChangementDeJour();
-  majEntete();
+  if (!verifierChangementDeJour()) rendre();
 }
 
 async function demarrer() {

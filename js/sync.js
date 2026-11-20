@@ -125,7 +125,7 @@ export function synchroniser({ tirer = false } = {}) {
 }
 
 async function executer(tirer) {
-  const resultat = { datesModifiees: new Set(), pastillesModifiees: false };
+  const resultat = { datesModifiees: new Set(), pastillesModifiees: false, marchesModifiees: false };
   const attente = await compterAttente();
   if (!reglage('url') || !reglage('jeton')) {
     publier({ code: 'config', message: 'Synchronisation à configurer' });
@@ -150,7 +150,7 @@ async function executer(tirer) {
   } catch (err) {
     publier({ code: err.code === 'jeton' ? 'jeton' : 'erreur', message: err.message });
   }
-  if (resultat.datesModifiees.size || resultat.pastillesModifiees) {
+  if (resultat.datesModifiees.size || resultat.pastillesModifiees || resultat.marchesModifiees) {
     for (const fn of ecouteursDonnees) await fn(resultat);
   }
   return resultat;
@@ -194,7 +194,7 @@ async function envoyerPhotos() {
 async function envoyer() {
   await envoyerPhotos();
   const file = await TMDB.tout('file');
-  if (file.filter((e) => e.type === 'fiche' || e.type === 'pastilles').length === 0) return 0;
+  if (file.filter((e) => ['fiche', 'pastilles', 'marche'].includes(e.type)).length === 0) return 0;
   // Chaque fiche part avec ses seuls champs modifiés : le Sheet garde les autres
   // (saisis par exemple sur un autre appareil).
   const fiches = [];
@@ -213,12 +213,28 @@ async function envoyer() {
   }
   const avecPastilles = file.some((e) => e.type === 'pastilles');
   const donnees = { fiches };
+
+  // Marches : ajouts et suppressions.
+  const entreesMarches = file.filter((e) => e.type === 'marche');
+  const marches = [];
+  const marchesSupprimees = [];
+  for (const e of entreesMarches) {
+    if (e.op === 'suppression') { marchesSupprimees.push(e.id); continue; }
+    const m = await TMDB.lire('marches', e.id);
+    if (m) marches.push(m);
+    else marchesSupprimees.push(e.id);
+  }
+  if (entreesMarches.length) {
+    donnees.marches = marches;
+    donnees.marchesSupprimees = marchesSupprimees;
+  }
   if (avecPastilles) donnees.pastilles = await TMDB.tout('pastilles');
 
   const rep = await appeler('enregistrer', donnees);
 
   for (const f of fiches) await TMDB.retirerFicheDeLaFile(f.date, f.modifie_le);
   if (avecPastilles) await TMDB.supprimer('file', 'pastilles');
+  for (const e of entreesMarches) await TMDB.retirerMarcheDeLaFile(e.id, e.op);
   return (rep.ignorees || []).length;
 }
 
@@ -227,6 +243,9 @@ async function recevoir(resultat) {
   for (const distante of rep.fiches || []) {
     if (!distante.date) continue;
     if (await TMDB.fusionnerFicheDistante(distante)) resultat.datesModifiees.add(distante.date);
+  }
+  if (Array.isArray(rep.marches) && await TMDB.fusionnerMarches(rep.marches)) {
+    resultat.marchesModifiees = true;
   }
   const fileActuelle = await TMDB.tout('file');
   const pastillesEnAttente = fileActuelle.some((e) => e.type === 'pastilles');

@@ -1,5 +1,5 @@
 /**
- * Today's Mood — Web App Apps Script (étape 3).
+ * Today's Mood — Web App Apps Script (étape 4).
  *
  * À coller dans l'éditeur Apps Script du classeur « Today's Mood – données »
  * (Extensions → Apps Script). Voir apps-script/INSTALLATION.md.
@@ -8,7 +8,7 @@
  * et rangé dans les Propriétés du script.
  */
 
-const VERSION = 'etape3-v1';
+const VERSION = 'etape4-v1';
 
 const COLONNES_FICHES = [
   'date', 'modifie_le', 'pensee_id',
@@ -137,10 +137,13 @@ function traiter_(requete) {
     case 'enregistrer': {
       const resultat = enregistrerFiches_(ss, Array.isArray(requete.fiches) ? requete.fiches : []);
       if (Array.isArray(requete.pastilles)) enregistrerPastilles_(ss, requete.pastilles);
+      if (Array.isArray(requete.marches) || Array.isArray(requete.marchesSupprimees)) {
+        enregistrerMarches_(ss, requete.marches || [], requete.marchesSupprimees || []);
+      }
       return { ok: true, enregistrees: resultat.enregistrees, ignorees: resultat.ignorees };
     }
     case 'lire':
-      return { ok: true, fiches: lireFiches_(ss), pastilles: lirePastilles_(ss) };
+      return { ok: true, fiches: lireFiches_(ss), pastilles: lirePastilles_(ss), marches: lireMarches_(ss) };
     case 'envoyerPhoto':
       return envoyerPhoto_(requete);
     case 'lirePhoto':
@@ -261,6 +264,68 @@ function depuisCellule_(colonne, valeur, tz) {
   if (typeof valeur === 'number') return valeur;
   const n = Number(String(valeur).replace(',', '.'));
   return isFinite(n) ? n : null;
+}
+
+/* =====================================================================
+   Marches (plusieurs par jour) : id, date, km
+   ===================================================================== */
+
+function enregistrerMarches_(ss, ajouts, suppressions) {
+  const feuille = onglet_(ss, 'Marches');
+  const entetes = entetes_(feuille);
+  const iId = entetes.indexOf('id');
+  const derniere = feuille.getLastRow();
+  const valeurs = derniere >= 2 ? feuille.getRange(2, 1, derniere - 1, entetes.length).getValues() : [];
+  const ligneParId = {};
+  valeurs.forEach(function (l, k) {
+    const id = String(l[iId]).trim();
+    if (id) ligneParId[id] = k + 2;
+  });
+
+  const nouvelles = [];
+  ajouts.forEach(function (m) {
+    if (!m || !m.id || !/^\d{4}-\d{2}-\d{2}$/.test(String(m.date))) return;
+    const km = Number(m.km);
+    if (!isFinite(km) || km <= 0) return;
+    const ligne = entetes.map(function (h, i) {
+      if (h === 'id') return "'" + String(m.id);
+      if (h === 'date') return "'" + m.date;
+      if (h === 'km') return km;
+      return ligneParId[m.id] ? valeurs[ligneParId[m.id] - 2][i] : '';
+    });
+    if (ligneParId[m.id]) feuille.getRange(ligneParId[m.id], 1, 1, entetes.length).setValues([ligne]);
+    else nouvelles.push(ligne);
+  });
+
+  // Suppressions : du bas vers le haut pour ne pas décaler les lignes restantes.
+  suppressions
+    .map(function (id) { return ligneParId[String(id)]; })
+    .filter(function (n) { return n; })
+    .sort(function (a, b) { return b - a; })
+    .forEach(function (n) { feuille.deleteRow(n); });
+
+  if (nouvelles.length) {
+    const debut = Math.max(feuille.getLastRow(), 1) + 1;
+    feuille.getRange(debut, 1, nouvelles.length, entetes.length).setValues(nouvelles);
+    feuille.getRange(2, 1, feuille.getLastRow() - 1, feuille.getLastColumn()).sort(entetes.indexOf('date') + 1);
+  }
+}
+
+function lireMarches_(ss) {
+  const feuille = onglet_(ss, 'Marches');
+  const entetes = entetes_(feuille);
+  const tz = ss.getSpreadsheetTimeZone();
+  const derniere = feuille.getLastRow();
+  if (derniere < 2) return [];
+  const iId = entetes.indexOf('id');
+  const iDate = entetes.indexOf('date');
+  const iKm = entetes.indexOf('km');
+  return feuille.getRange(2, 1, derniere - 1, entetes.length).getValues()
+    .map(function (l) {
+      const km = typeof l[iKm] === 'number' ? l[iKm] : Number(String(l[iKm]).replace(',', '.'));
+      return { id: String(l[iId]).trim(), date: texteDate_(l[iDate], tz), km: km };
+    })
+    .filter(function (m) { return m.id && m.date && isFinite(m.km) && m.km > 0; });
 }
 
 /* =====================================================================
