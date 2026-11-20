@@ -1,0 +1,183 @@
+/* Synchronisation avec la Web App Apps Script.
+   - Envoi : la file (magasin « file ») est envoyée dès que possible ; une fiche n'en sort
+     que si elle n'a pas été modifiée pendant l'envoi.
+   - Réception : au démarrage (et sur demande), toutes les fiches du Sheet sont relues ; une fiche
+     distante remplace la locale si elle est plus récente et que la locale n'attend pas d'envoi. */
+import { reglage, definirReglage } from './reglages.js';
+
+const ecouteurs = new Set();
+const ecouteursDonnees = new Set();
+let etat = { code: 'inconnu', attente: 0, message: '' };
+let minuteur = null;
+let enCours = null;
+let aRefaire = null;
+
+export function surEtat(fn) {
+  ecouteurs.add(fn);
+  fn(etat);
+  return () => ecouteurs.delete(fn);
+}
+
+/** Appelé quand des données venues du Sheet ont modifié les fiches ou les pastilles locales. */
+export function surDonnees(fn) {
+  ecouteursDonnees.add(fn);
+}
+
+function publier(modif) {
+  etat = { ...etat, ...modif };
+  for (const fn of ecouteurs) fn(etat);
+}
+
+export function etatSynchro() {
+  return etat;
+}
+
+async function compterAttente() {
+  const n = (await TMDB.tout('file')).length;
+  publier({ attente: n });
+  return n;
+}
+
+/** Programme un envoi un peu plus tard (regroupe les saisies rapprochées). */
+export function planifier(delai = 2500) {
+  clearTimeout(minuteur);
+  minuteur = setTimeout(() => synchroniser(), delai);
+  compterAttente();
+}
+
+/** Appelle la Web App. Lève une erreur en français en cas de problème. */
+export async function appeler(action, donnees = {}, config = {}) {
+  const url = (config.url ?? reglage('url') ?? '').trim();
+  const jeton = (config.jeton ?? reglage('jeton') ?? '').trim();
+  if (!url || !jeton) {
+    const e = new Error('Adresse de la Web App ou jeton manquant (voir Réglages).');
+    e.code = 'config';
+    throw e;
+  }
+  const controle = new AbortController();
+  const delai = setTimeout(() => controle.abort(), 30000);
+  let reponse;
+  try {
+    reponse = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, jeton, ...donnees }),
+      signal: controle.signal,
+      redirect: 'follow',
+    });
+  } catch (err) {
+    const e = new Error(err.name === 'AbortError'
+      ? 'Pas de réponse du serveur (délai dépassé).'
+      : 'Connexion impossible : vérifie le réseau, l’adresse de la Web App et que son accès est « Tout le monde ».');
+    e.code = 'reseau';
+    throw e;
+  } finally {
+    clearTimeout(delai);
+  }
+  const texte = await reponse.text();
+  let json;
+  try {
+    json = JSON.parse(texte);
+  } catch {
+    const e = new Error('Réponse inattendue du serveur : vérifie l’adresse (elle finit par /exec) et que l’accès du déploiement est « Tout le monde ».');
+    e.code = 'reponse';
+    throw e;
+  }
+  if (!json.ok) {
+    const e = new Error(json.erreur || 'Erreur inconnue côté Apps Script.');
+    e.code = json.code || 'serveur';
+    throw e;
+  }
+  return json;
+}
+
+/**
+ * Envoie la file puis, si demandé, relit tout le Sheet.
+ * Renvoie { datesModifiees: Set, pastillesModifiees: bool } (données venues du Sheet).
+ */
+export function synchroniser({ tirer = false } = {}) {
+  clearTimeout(minuteur);
+  if (enCours) {
+    aRefaire = { tirer: tirer || (aRefaire && aRefaire.tirer) };
+    return enCours;
+  }
+  enCours = executer(tirer).finally(() => {
+    enCours = null;
+    if (aRefaire) {
+      const suite = aRefaire;
+      aRefaire = null;
+      synchroniser(suite);
+    }
+  });
+  return enCours;
+}
+
+async function executer(tirer) {
+  const resultat = { datesModifiees: new Set(), pastillesModifiees: false };
+  const attente = await compterAttente();
+  if (!reglage('url') || !reglage('jeton')) {
+    publier({ code: 'config', message: 'Synchronisation à configurer' });
+    return resultat;
+  }
+  if (!navigator.onLine) {
+    publier({ code: 'horsligne', message: 'Hors ligne' });
+    return resultat;
+  }
+  if (attente === 0 && !tirer) {
+    publier({ code: 'ok', message: 'À jour' });
+    return resultat;
+  }
+  publier({ code: 'encours', message: 'Synchronisation…' });
+  try {
+    const ignorees = await envoyer();
+    // Le Sheet avait une version plus récente de certaines fiches : on la récupère.
+    if (tirer || ignorees > 0) await recevoir(resultat);
+    await definirReglage('derniereSynchro', new Date().toISOString());
+    const reste = await compterAttente();
+    publier({ code: reste ? 'attente' : 'ok', message: reste ? 'Envoi en attente' : 'À jour' });
+  } catch (err) {
+    publier({ code: err.code === 'jeton' ? 'jeton' : 'erreur', message: err.message });
+  }
+  if (resultat.datesModifiees.size || resultat.pastillesModifiees) {
+    for (const fn of ecouteursDonnees) await fn(resultat);
+  }
+  return resultat;
+}
+
+async function envoyer() {
+  const file = await TMDB.tout('file');
+  if (file.length === 0) return 0;
+  const fiches = [];
+  for (const entree of file.filter((e) => e.type === 'fiche')) {
+    const f = await TMDB.lire('fiches', entree.date);
+    if (f) fiches.push(f);
+    else await TMDB.supprimer('file', entree.cle);
+  }
+  const avecPastilles = file.some((e) => e.type === 'pastilles');
+  const donnees = { fiches };
+  if (avecPastilles) donnees.pastilles = await TMDB.tout('pastilles');
+
+  const rep = await appeler('enregistrer', donnees);
+
+  for (const f of fiches) await TMDB.retirerFicheDeLaFile(f.date, f.modifie_le);
+  if (avecPastilles) await TMDB.supprimer('file', 'pastilles');
+  return (rep.ignorees || []).length;
+}
+
+async function recevoir(resultat) {
+  const rep = await appeler('lire');
+  for (const distante of rep.fiches || []) {
+    if (!distante.date) continue;
+    if (await TMDB.fusionnerFicheDistante(distante)) resultat.datesModifiees.add(distante.date);
+  }
+  const fileActuelle = await TMDB.tout('file');
+  const pastillesEnAttente = fileActuelle.some((e) => e.type === 'pastilles');
+  if (!pastillesEnAttente && Array.isArray(rep.pastilles) && rep.pastilles.length) {
+    const locales = await TMDB.tout('pastilles');
+    const cle = (l) => JSON.stringify([...l].sort((a, b) => a.ordre - b.ordre).map((p) => [p.nom, p.ordre, p.visible]));
+    if (cle(locales) !== cle(rep.pastilles)) {
+      await TMDB.remplacerPastilles(rep.pastilles);
+      resultat.pastillesModifiees = true;
+    }
+  }
+}
