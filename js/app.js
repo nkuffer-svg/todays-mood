@@ -11,8 +11,10 @@ import { calculerTotaux } from './stats.js';
 import { ouvrirReglages } from './ecran-reglages.js';
 import { traiterPartage } from './ecran-partage.js';
 import * as verrou from './verrou.js';
+import { tirerPensee, definirFavori } from './pensees.js';
+import { afficherPensee, ouvrirFavoris } from './ecran-pensee.js';
 
-export const VERSION = 'etape5-v1';
+export const VERSION = 'etape6-v1';
 
 const etat = {
   aujourdhui: null, // jour courant selon l'heure de bascule
@@ -122,10 +124,45 @@ async function meteoAutomatique() {
 const cleAjoutsEau = (date) => 'eauAjouts:' + date;
 const ajoutsEau = (date) => reglage(cleAjoutsEau(date)) || [];
 
+/* ---------- Pensée du jour ---------- */
+
+const dureePensee = () => Number(reglage('dureePensee')) || 30;
+
+let penseeEnCours = null;
+
+/** À la première ouverture du jour : tire la pensée (si la fiche n'en a pas) et l'affiche une fois. */
+function penseeDuJour() {
+  if (!penseeEnCours) penseeEnCours = executerPenseeDuJour().finally(() => { penseeEnCours = null; });
+  return penseeEnCours;
+}
+
+async function executerPenseeDuJour() {
+  const date = etat.aujourdhui;
+  try {
+    let id = (etat.fiche && etat.fiche.date === date ? etat.fiche : await chargerFiche(date)).pensee_id;
+    if (!id) {
+      id = await tirerPensee(date);
+      await appliquerChamps(date, { pensee_id: id });
+      planifier();
+      if (etat.date === date && etat.onglet === 'matin') rendre();
+    }
+    if (reglage('penseeAfficheeLe') === date) return;
+    await definirReglage('penseeAfficheeLe', date);
+    await afficherPensee({ id, duree: dureePensee(), surFavori: () => planifier() });
+  } catch (err) {
+    console.warn('Pensée du jour :', err);
+  }
+}
+
 let demandeEmpreinte = false;
 
 const ctx = {
   get fiche() { return etat.fiche; },
+  pensee: {
+    revoir: (id) => afficherPensee({ id, duree: dureePensee(), surFavori: () => { planifier(); rendre(); } }),
+    async favori(id, v) { await definirFavori(id, v); planifier(); },
+    ouvrirFavoris: () => ouvrirFavoris({ surChangement: () => { planifier(); if (etat.onglet === 'matin') rendre(); } }),
+  },
   /** Vrai une seule fois juste après un appui sur l'onglet Perso : l'empreinte est alors demandée tout de suite. */
   consommerDemandeEmpreinte() {
     const d = demandeEmpreinte;
@@ -335,6 +372,7 @@ async function apresSynchro(resultat) {
     redessiner = true;
   }
   if (resultat.marchesModifiees && etat.onglet === 'journee') redessiner = true;
+  if (resultat.penseesModifiees && etat.onglet === 'matin') redessiner = true;
   if (redessiner) rendre();
 }
 
@@ -377,7 +415,8 @@ async function demarrer() {
   await allerA(etat.aujourdhui, { onglet: ongletSelonHeure() });
 
   const params = new URLSearchParams(location.search);
-  if (params.has('partage') || params.has('erreur-partage')) {
+  const ouvertParPartage = params.has('partage') || params.has('erreur-partage');
+  if (ouvertParPartage) {
     history.replaceState(null, '', location.pathname);
     await traiterPartage({
       id: Number(params.get('partage')),
@@ -396,8 +435,13 @@ async function demarrer() {
     });
   }
 
-  // D'abord relire le Sheet (la météo du jour y est peut-être déjà), puis la météo automatique.
-  synchroComplete().finally(meteoAutomatique);
+  // D'abord relire le Sheet (la météo et la pensée du jour y sont peut-être déjà), puis la météo
+  // automatique. La pensée n'attend la synchro que 3 s au plus, pour s'afficher dès l'ouverture.
+  const premiereSynchro = synchroComplete();
+  premiereSynchro.finally(meteoAutomatique);
+  if (!ouvertParPartage) {
+    Promise.race([premiereSynchro, new Promise((r) => setTimeout(r, 3000))]).then(penseeDuJour);
+  }
 
   // Les copies locales des photos de plus de 60 jours sont effacées (elles restent sur Drive).
   TMDB.purgerPhotos(decaler(etat.aujourdhui, -60)).catch(() => {});
@@ -410,9 +454,10 @@ async function demarrer() {
       if (!verrou.authentificationActive() && verrou.estDeverrouille()) verrou.verrouiller();
       viderSaisieEnAttente().then(() => synchroniser());
     } else {
-      verifierChangementDeJour();
+      const nouveauJour = verifierChangementDeJour();
       synchroComplete();
       meteoAutomatique();
+      if (nouveauJour || reglage('penseeAfficheeLe') !== etat.aujourdhui) penseeDuJour();
     }
   });
   window.addEventListener('pagehide', () => { viderSaisieEnAttente(); });

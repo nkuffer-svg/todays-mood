@@ -109,6 +109,12 @@ autorisation, en plus de la mise à jour habituelle :
 Pas de nouvelle autorisation cette fois : recopie le nouveau `Code.gs`, enregistre, puis
 **Déployer → Gérer les déploiements → crayon → Nouvelle version → Déployer**.
 
+## Mise à jour de l'étape 6 (pensées)
+
+Pas de nouvelle autorisation : recopie le nouveau `Code.gs`, enregistre, puis
+**Déployer → Gérer les déploiements → crayon → Nouvelle version → Déployer**.
+L'onglet `Pensees` du classeur se remplit tout seul (favoris et pensées déjà vues).
+
 ## En cas de problème
 
 | Message dans l'app | Que faire |

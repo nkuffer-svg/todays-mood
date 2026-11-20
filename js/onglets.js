@@ -7,6 +7,7 @@ import { LIBELLES, APPRECIATIONS, BILAN, ACCORDS, NIVEAUX_ACCORD, RESSENTIS } fr
 import { decrireCode } from './meteo.js';
 import { cartesCompteurs } from './compteurs.js';
 import { cartesPerso } from './perso.js';
+import { trouverPensee, estFavori, definirFavori } from './pensees.js';
 
 function aVenir(titre, texte, etape) {
   return el('section', { class: 'carte a-venir' },
@@ -143,10 +144,36 @@ function cartePhoto(ctx, champ, titre) {
     el('h2', {}, titre), zone, statut, boutons, camera, galerie);
 }
 
+/* ---------- Pensée du jour ---------- */
+
+function cartePensee(ctx) {
+  const contenu = el('div', { class: 'pensee-carte' }, el('p', { class: 'discret' }, '…'));
+  const actions = el('div', { class: 'rangee-boutons' });
+  const boutonFavoris = el('button', { type: 'button', class: 'bouton petit discret', onClick: () => ctx.pensee.ouvrirFavoris() }, 'Mes pensées favorites');
+  (async () => {
+    const id = ctx.fiche.pensee_id;
+    const p = id ? await trouverPensee(id).catch(() => null) : null;
+    if (!p) {
+      contenu.replaceChildren(el('p', { class: 'etat-vide' }, 'Pas de pensée enregistrée pour ce jour.'));
+      actions.replaceChildren(boutonFavoris);
+      return;
+    }
+    contenu.replaceChildren(
+      el('blockquote', {}, `« ${p.texte} »`),
+      el('p', { class: 'pensee-auteur' }, p.auteur));
+    actions.replaceChildren(
+      el('button', { type: 'button', class: 'bouton', onClick: () => ctx.pensee.revoir(id) }, 'Revoir la pensée'),
+      bascule({ nomIcone: 'etoile', libelle: 'Favori', actif: await estFavori(id), onChange: (v) => ctx.pensee.favori(id, v) }),
+      boutonFavoris);
+  })();
+  return el('section', { class: 'carte', id: 'carte-pensee' }, el('h2', {}, 'Pensée du jour'), contenu, actions);
+}
+
 /* ---------- Matin ---------- */
 
 function matin(ctx) {
   return [
+    cartePensee(ctx),
     carteMeteo(ctx),
     carteRessenti(ctx),
     cartePhoto(ctx, 'photo_ciel', 'Photo du ciel'),

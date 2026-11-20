@@ -16,11 +16,11 @@ function fermerSansHistorique() {
 }
 
 /** Ouvre un écran. Renvoie { corps, fermer }. */
-export function ouvrirEcran({ titre, surFermeture, fermable = true }) {
+export function ouvrirEcran({ titre, surFermeture, fermable = true, classe = '' }) {
   if (courant) fermerSansHistorique();
   const corps = el('div', { class: 'ecran-corps' });
   const fermer = () => { if (courant && courant.noeud === noeud) history.back(); };
-  const noeud = el('div', { class: 'ecran', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'ecran-titre' },
+  const noeud = el('div', { class: ('ecran ' + classe).trim(), role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'ecran-titre' },
     el('div', { class: 'ecran-tete' },
       el('h2', { id: 'ecran-titre' }, titre),
       fermable ? el('button', { type: 'button', class: 'bouton-icone', 'aria-label': 'Fermer', onClick: fermer }, icone('fermer')) : null),

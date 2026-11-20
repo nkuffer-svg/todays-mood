@@ -9,12 +9,13 @@
    - pastilles : catégories d'événement (clé : nom)
    - partages  : derniers partages reçus de l'Enregistreur (5 au maximum)
    - photos    : photos compressées (clé : "AAAA-MM-JJ:photo_ciel"), en attente d'envoi ou copie locale
-   - marches   : une marche (clé : id), plusieurs par jour possibles */
+   - marches   : une marche (clé : id), plusieurs par jour possibles
+   - pensees   : état d'une citation (clé : id) : favori, dernière apparition */
 (function (global) {
   'use strict';
 
   const NOM_BASE = 'todays-mood';
-  const VERSION = 3;
+  const VERSION = 4;
   const MAX_PARTAGES = 5;
   let ouverture = null;
 
@@ -34,6 +35,7 @@
         creer('partages', { keyPath: 'id', autoIncrement: true });
         creer('photos', { keyPath: 'cle' });
         creer('marches', { keyPath: 'id' });
+        creer('pensees', { keyPath: 'id' });
       };
       req.onsuccess = () => {
         const db = req.result;
@@ -307,7 +309,59 @@
     return change;
   }
 
+  /* ---------- Pensées ---------- */
+
+  /** Modifie l'état d'une citation (favori, dernière apparition) et la place dans la file. */
+  async function modifierPensee(id, modifs) {
+    const db = await ouvrir();
+    const tx = db.transaction(['pensees', 'file'], 'readwrite');
+    const magasin = tx.objectStore('pensees');
+    magasin.get(id).onsuccess = (e) => {
+      magasin.put(Object.assign(e.target.result || { id, favori: false, derniere: null }, modifs));
+    };
+    tx.objectStore('file').put({ cle: 'pensee:' + id, type: 'pensee', id });
+    return fin(tx);
+  }
+
+  /** Retire une citation de la file si son état n'a pas changé depuis l'envoi. */
+  async function retirerPenseeDeLaFile(envoyee) {
+    const db = await ouvrir();
+    const tx = db.transaction(['pensees', 'file'], 'readwrite');
+    tx.objectStore('pensees').get(envoyee.id).onsuccess = (e) => {
+      const p = e.target.result;
+      if (!p || (p.favori === envoyee.favori && p.derniere === envoyee.derniere)) {
+        tx.objectStore('file').delete('pensee:' + envoyee.id);
+      }
+    };
+    return fin(tx);
+  }
+
+  /** Intègre l'état des citations venu du Sheet (sauf celles qui attendent d'être envoyées). */
+  async function fusionnerPensees(distantes) {
+    const db = await ouvrir();
+    const tx = db.transaction(['pensees', 'file'], 'readwrite');
+    const magasin = tx.objectStore('pensees');
+    let change = false;
+    tx.objectStore('file').getAll().onsuccess = (e) => {
+      const enAttente = new Set(e.target.result.filter((x) => x.type === 'pensee').map((x) => x.id));
+      magasin.getAll().onsuccess = (e2) => {
+        const locales = new Map(e2.target.result.map((p) => [p.id, p]));
+        for (const d of distantes) {
+          if (enAttente.has(d.id)) continue;
+          const l = locales.get(d.id);
+          if (!l || l.favori !== d.favori || l.derniere !== d.derniere) {
+            magasin.put({ id: d.id, favori: !!d.favori, derniere: d.derniere || null });
+            change = true;
+          }
+        }
+      };
+    };
+    await fin(tx);
+    return change;
+  }
+
   global.TMDB = {
+    modifierPensee, retirerPenseeDeLaFile, fusionnerPensees,
     ajouterMarche, supprimerMarche, retirerMarcheDeLaFile, fusionnerMarches,
     enregistrerPhotoLocale, marquerPhotoEnvoyee, supprimerPhotoLocale, mettreALaCorbeille, purgerPhotos,
     lire, tout, ecrire, supprimer,

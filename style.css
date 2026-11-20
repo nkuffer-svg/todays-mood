@@ -841,3 +841,50 @@ select.champ { appearance: auto; }
 .biscotte-totaux dt { font-family: var(--etroit); text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px; color: var(--texte-discret); }
 .biscotte-totaux dd { margin: 2px 0 0; font-weight: 600; color: var(--texte); }
 .totaux-somme { grid-template-columns: 1fr 1fr; margin-top: 0; }
+
+/* ---------- Pensée du jour (étape 6) ---------- */
+
+.ecran-pensee .ecran-corps {
+  min-height: calc(100dvh - 90px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-bottom: 24px;
+}
+.pensee-categorie {
+  font-family: var(--etroit);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 12px;
+  color: var(--laiton);
+  text-align: center;
+  margin: 0 0 18px;
+}
+.pensee { margin: 0; cursor: pointer; }
+.pensee blockquote {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.45;
+  color: var(--texte);
+  text-align: center;
+  text-wrap: balance;
+}
+.pensee figcaption { margin-top: 22px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.pensee-auteur { font-family: var(--titre); font-size: 22px; letter-spacing: 0.1em; color: var(--laiton-clair); margin: 0; }
+.pensee-source { font-size: 13px; color: var(--texte-discret); }
+.pensee-actions { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px; margin-top: 28px; }
+.pensee-progression { height: 3px; margin-top: 28px; background: var(--bordure); border-radius: 2px; overflow: hidden; }
+.pensee-progression span {
+  display: block;
+  height: 100%;
+  background: var(--laiton);
+  transform-origin: left center;
+  transition-property: transform;
+  transition-timing-function: linear;
+}
+.carte-favori .pensee blockquote { font-size: 18px; }
+.carte-favori .pensee { cursor: default; }
+.carte-favori .pensee-actions { margin-top: 14px; }
+
+.pensee-carte blockquote { margin: 0; font-size: 17px; line-height: 1.5; color: var(--texte); }
+.pensee-carte .pensee-auteur { font-size: 19px; margin-top: 8px; }

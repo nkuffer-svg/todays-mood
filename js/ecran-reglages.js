@@ -116,6 +116,11 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies }) {
     reglagesModifies();
   });
 
+  const choixDuree = el('select', { id: 'reglage-duree-pensee', class: 'champ' });
+  for (const sec of [10, 15, 20, 30, 45, 60, 90, 120]) choixDuree.append(el('option', { value: String(sec) }, `${sec} s`));
+  choixDuree.value = String(Number(reglage('dureePensee')) || 30);
+  choixDuree.addEventListener('change', () => definirReglage('dureePensee', Number(choixDuree.value)));
+
   /* --- Météo --- */
   const modeGps = reglage('meteoMode') !== 'fixe';
   const champNom = el('input', { id: 'reglage-lieu-nom', class: 'champ', type: 'text', maxlength: '40', value: reglage('lieuNom') || LIEU_DEFAUT.nom });
@@ -204,6 +209,10 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies }) {
       el('p', { class: 'discret' }, 'Avant cette heure, une saisie compte encore pour la veille.'),
       el('label', { class: 'sous-titre-champ', for: 'reglage-eau' }, 'Objectif d’eau par jour'),
       choixEau),
+    carte('Pensée du jour',
+      el('label', { class: 'sous-titre-champ', for: 'reglage-duree-pensee' }, 'Durée d’affichage à l’ouverture'),
+      choixDuree,
+      el('p', { class: 'discret' }, 'Tu peux toujours la refermer avant.')),
     carte('Empreinte (onglet Perso)',
       etatEmpreinte,
       el('div', { class: 'rangee-boutons' }, boutonEmpreinte),

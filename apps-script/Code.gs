@@ -1,5 +1,5 @@
 /**
- * Today's Mood — Web App Apps Script (étape 4).
+ * Today's Mood — Web App Apps Script (étape 6).
  *
  * À coller dans l'éditeur Apps Script du classeur « Today's Mood – données »
  * (Extensions → Apps Script). Voir apps-script/INSTALLATION.md.
@@ -8,7 +8,7 @@
  * et rangé dans les Propriétés du script.
  */
 
-const VERSION = 'etape4-v1';
+const VERSION = 'etape6-v1';
 
 const COLONNES_FICHES = [
   'date', 'modifie_le', 'pensee_id',
@@ -140,10 +140,11 @@ function traiter_(requete) {
       if (Array.isArray(requete.marches) || Array.isArray(requete.marchesSupprimees)) {
         enregistrerMarches_(ss, requete.marches || [], requete.marchesSupprimees || []);
       }
+      if (Array.isArray(requete.pensees)) enregistrerPensees_(ss, requete.pensees);
       return { ok: true, enregistrees: resultat.enregistrees, ignorees: resultat.ignorees };
     }
     case 'lire':
-      return { ok: true, fiches: lireFiches_(ss), pastilles: lirePastilles_(ss), marches: lireMarches_(ss) };
+      return { ok: true, fiches: lireFiches_(ss), pastilles: lirePastilles_(ss), marches: lireMarches_(ss), pensees: lirePensees_(ss) };
     case 'envoyerPhoto':
       return envoyerPhoto_(requete);
     case 'lirePhoto':
@@ -326,6 +327,59 @@ function lireMarches_(ss) {
       return { id: String(l[iId]).trim(), date: texteDate_(l[iDate], tz), km: km };
     })
     .filter(function (m) { return m.id && m.date && isFinite(m.km) && m.km > 0; });
+}
+
+/* =====================================================================
+   Pensées : id, favori (oui/non), dernière apparition
+   ===================================================================== */
+
+function enregistrerPensees_(ss, pensees) {
+  const feuille = onglet_(ss, 'Pensees');
+  const entetes = entetes_(feuille);
+  const iId = entetes.indexOf('id');
+  const derniere = feuille.getLastRow();
+  const valeurs = derniere >= 2 ? feuille.getRange(2, 1, derniere - 1, entetes.length).getValues() : [];
+  const ligneParId = {};
+  valeurs.forEach(function (l, k) {
+    const id = String(l[iId]).trim();
+    if (id) ligneParId[id] = k + 2;
+  });
+  const nouvelles = [];
+  pensees.forEach(function (p) {
+    if (!p || !p.id) return;
+    const dateValide = /^\d{4}-\d{2}-\d{2}$/.test(String(p.derniere || ''));
+    const ligne = entetes.map(function (h, i) {
+      if (h === 'id') return "'" + String(p.id);
+      if (h === 'favori') return p.favori ? 'oui' : 'non';
+      if (h === 'derniere_apparition') return dateValide ? "'" + p.derniere : '';
+      return ligneParId[p.id] ? valeurs[ligneParId[p.id] - 2][i] : '';
+    });
+    if (ligneParId[p.id]) feuille.getRange(ligneParId[p.id], 1, 1, entetes.length).setValues([ligne]);
+    else nouvelles.push(ligne);
+  });
+  if (nouvelles.length) {
+    feuille.getRange(Math.max(derniere, 1) + 1, 1, nouvelles.length, entetes.length).setValues(nouvelles);
+  }
+}
+
+function lirePensees_(ss) {
+  const feuille = onglet_(ss, 'Pensees');
+  const entetes = entetes_(feuille);
+  const tz = ss.getSpreadsheetTimeZone();
+  const derniere = feuille.getLastRow();
+  if (derniere < 2) return [];
+  const iId = entetes.indexOf('id');
+  const iFav = entetes.indexOf('favori');
+  const iDer = entetes.indexOf('derniere_apparition');
+  return feuille.getRange(2, 1, derniere - 1, entetes.length).getValues()
+    .filter(function (l) { return String(l[iId]).trim() !== ''; })
+    .map(function (l) {
+      return {
+        id: String(l[iId]).trim(),
+        favori: l[iFav] === true || String(l[iFav]).toLowerCase() === 'oui',
+        derniere: texteDate_(l[iDer], tz) || null,
+      };
+    });
 }
 
 /* =====================================================================

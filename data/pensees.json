@@ -1,0 +1,2207 @@
+[
+ {
+  "id": "ant-001",
+  "categorie": "Antiquité",
+  "texte": "Ce qui trouble les hommes, ce ne sont pas les choses, mais les jugements qu’ils portent sur les choses.",
+  "auteur": "Épictète",
+  "source": "Manuel, V"
+ },
+ {
+  "id": "ant-002",
+  "categorie": "Antiquité",
+  "texte": "Il y a ce qui dépend de nous, et ce qui ne dépend pas de nous.",
+  "auteur": "Épictète",
+  "source": "Manuel, I"
+ },
+ {
+  "id": "ant-003",
+  "categorie": "Antiquité",
+  "texte": "Ne demande pas que ce qui arrive arrive comme tu le veux ; mais veuille que les choses arrivent comme elles arrivent, et tu seras heureux.",
+  "auteur": "Épictète",
+  "source": "Manuel, VIII"
+ },
+ {
+  "id": "ant-004",
+  "categorie": "Antiquité",
+  "texte": "Si tu veux progresser, accepte de passer pour un sot en ce qui concerne les choses extérieures.",
+  "auteur": "Épictète",
+  "source": "Manuel, XIII"
+ },
+ {
+  "id": "ant-005",
+  "categorie": "Antiquité",
+  "texte": "Dès l’aurore, dis-toi d’avance : je rencontrerai un indiscret, un ingrat, un insolent… Mais moi, je ne puis être lésé par aucun d’eux.",
+  "auteur": "Marc Aurèle",
+  "source": "Pensées, II, 1"
+ },
+ {
+  "id": "ant-006",
+  "categorie": "Antiquité",
+  "texte": "Nulle part on ne trouve de retraite plus tranquille et plus paisible que dans sa propre âme.",
+  "auteur": "Marc Aurèle",
+  "source": "Pensées, IV, 3"
+ },
+ {
+  "id": "ant-007",
+  "categorie": "Antiquité",
+  "texte": "L’univers est changement ; la vie est opinion.",
+  "auteur": "Marc Aurèle",
+  "source": "Pensées, IV, 3"
+ },
+ {
+  "id": "ant-008",
+  "categorie": "Antiquité",
+  "texte": "Ne te conduis pas comme si tu devais vivre dix mille ans. L’inévitable est suspendu sur toi. Tant que tu vis, tant que cela est possible, deviens homme de bien.",
+  "auteur": "Marc Aurèle",
+  "source": "Pensées, IV, 17"
+ },
+ {
+  "id": "ant-009",
+  "categorie": "Antiquité",
+  "texte": "La meilleure manière de se venger, c’est de ne pas imiter celui qui t’a fait du tort.",
+  "auteur": "Marc Aurèle",
+  "source": "Pensées, VI, 6"
+ },
+ {
+  "id": "ant-010",
+  "categorie": "Antiquité",
+  "texte": "Creuse au-dedans de toi : au-dedans est la source du bien, une source qui peut jaillir sans cesse si tu creuses toujours.",
+  "auteur": "Marc Aurèle",
+  "source": "Pensées, VII, 59"
+ },
+ {
+  "id": "ant-011",
+  "categorie": "Antiquité",
+  "texte": "Ce qui n’est pas utile à l’essaim n’est pas utile non plus à l’abeille.",
+  "auteur": "Marc Aurèle",
+  "source": "Pensées, VI, 54"
+ },
+ {
+  "id": "ant-012",
+  "categorie": "Antiquité",
+  "texte": "Il ne faut plus du tout discuter sur ce que doit être l’homme de bien, mais l’être.",
+  "auteur": "Marc Aurèle",
+  "source": "Pensées, X, 16"
+ },
+ {
+  "id": "ant-013",
+  "categorie": "Antiquité",
+  "texte": "Ce n’est pas que nous ayons peu de temps, c’est que nous en perdons beaucoup.",
+  "auteur": "Sénèque",
+  "source": "De la brièveté de la vie, I"
+ },
+ {
+  "id": "ant-014",
+  "categorie": "Antiquité",
+  "texte": "Pendant qu’on attend de vivre, la vie passe.",
+  "auteur": "Sénèque",
+  "source": "Lettres à Lucilius, 1"
+ },
+ {
+  "id": "ant-015",
+  "categorie": "Antiquité",
+  "texte": "Ce n’est pas parce que les choses sont difficiles que nous n’osons pas, c’est parce que nous n’osons pas qu’elles sont difficiles.",
+  "auteur": "Sénèque",
+  "source": "Lettres à Lucilius, 104"
+ },
+ {
+  "id": "ant-016",
+  "categorie": "Antiquité",
+  "texte": "Il n’est point de vent favorable pour celui qui ne sait où il va.",
+  "auteur": "Sénèque",
+  "source": "Lettres à Lucilius, 71"
+ },
+ {
+  "id": "ant-017",
+  "categorie": "Antiquité",
+  "texte": "Nous souffrons plus souvent en imagination qu’en réalité.",
+  "auteur": "Sénèque",
+  "source": "Lettres à Lucilius, 13"
+ },
+ {
+  "id": "ant-018",
+  "categorie": "Antiquité",
+  "texte": "Pendant que nous enseignons, nous apprenons.",
+  "auteur": "Sénèque",
+  "source": "Lettres à Lucilius, 7"
+ },
+ {
+  "id": "ant-019",
+  "categorie": "Antiquité",
+  "texte": "Toute la vie n’est qu’un voyage vers la mort.",
+  "auteur": "Sénèque",
+  "source": "Consolation à Polybe, XI"
+ },
+ {
+  "id": "ant-020",
+  "categorie": "Antiquité",
+  "texte": "On ne se baigne jamais deux fois dans le même fleuve.",
+  "auteur": "Héraclite",
+  "source": "Fragment 91 (d’après Plutarque)"
+ },
+ {
+  "id": "ant-021",
+  "categorie": "Antiquité",
+  "texte": "Le caractère d’un homme, c’est son destin.",
+  "auteur": "Héraclite",
+  "source": "Fragment 119"
+ },
+ {
+  "id": "ant-022",
+  "categorie": "Antiquité",
+  "texte": "La nature aime à se cacher.",
+  "auteur": "Héraclite",
+  "source": "Fragment 123"
+ },
+ {
+  "id": "ant-023",
+  "categorie": "Antiquité",
+  "texte": "Connais-toi toi-même.",
+  "auteur": "Inscription du temple d’Apollon à Delphes",
+  "source": "Rapportée par Platon, Charmide"
+ },
+ {
+  "id": "ant-024",
+  "categorie": "Antiquité",
+  "texte": "Une vie sans examen ne vaut pas la peine d’être vécue.",
+  "auteur": "Socrate",
+  "source": "Platon, Apologie de Socrate, 38a"
+ },
+ {
+  "id": "ant-025",
+  "categorie": "Antiquité",
+  "texte": "Je suis plus sage que cet homme en ceci du moins : je ne crois pas savoir ce que je ne sais pas.",
+  "auteur": "Socrate",
+  "source": "Platon, Apologie de Socrate, 21d"
+ },
+ {
+  "id": "ant-026",
+  "categorie": "Antiquité",
+  "texte": "Ceux qui philosophent droitement s’exercent à mourir.",
+  "auteur": "Platon",
+  "source": "Phédon, 67e"
+ },
+ {
+  "id": "ant-027",
+  "categorie": "Antiquité",
+  "texte": "L’étonnement est le commencement de la philosophie.",
+  "auteur": "Platon",
+  "source": "Théétète, 155d"
+ },
+ {
+  "id": "ant-028",
+  "categorie": "Antiquité",
+  "texte": "Une hirondelle ne fait pas le printemps, ni non plus un seul jour : et ainsi la félicité ne vient pas d’un seul jour.",
+  "auteur": "Aristote",
+  "source": "Éthique à Nicomaque, I, 6"
+ },
+ {
+  "id": "ant-029",
+  "categorie": "Antiquité",
+  "texte": "L’homme est par nature un animal politique.",
+  "auteur": "Aristote",
+  "source": "Politique, I, 2"
+ },
+ {
+  "id": "ant-030",
+  "categorie": "Antiquité",
+  "texte": "L’ami est un autre soi-même.",
+  "auteur": "Aristote",
+  "source": "Éthique à Nicomaque, IX, 4"
+ },
+ {
+  "id": "ant-031",
+  "categorie": "Antiquité",
+  "texte": "La mort n’est rien pour nous : tant que nous existons, la mort n’est pas là, et quand la mort est là, nous ne sommes plus.",
+  "auteur": "Épicure",
+  "source": "Lettre à Ménécée"
+ },
+ {
+  "id": "ant-032",
+  "categorie": "Antiquité",
+  "texte": "Il n’est jamais trop tôt ni trop tard pour prendre soin de son âme.",
+  "auteur": "Épicure",
+  "source": "Lettre à Ménécée"
+ },
+ {
+  "id": "ant-033",
+  "categorie": "Antiquité",
+  "texte": "De tous les biens que la sagesse procure pour le bonheur de la vie entière, le plus grand de beaucoup est l’amitié.",
+  "auteur": "Épicure",
+  "source": "Maximes capitales, XXVII"
+ },
+ {
+  "id": "ant-034",
+  "categorie": "Antiquité",
+  "texte": "Cueille le jour, et fie-toi le moins possible au lendemain.",
+  "auteur": "Horace",
+  "source": "Odes, I, 11 (« Carpe diem »)"
+ },
+ {
+  "id": "ant-035",
+  "categorie": "Antiquité",
+  "texte": "Ose être sage.",
+  "auteur": "Horace",
+  "source": "Épîtres, I, 2 (« Sapere aude »)"
+ },
+ {
+  "id": "ant-036",
+  "categorie": "Antiquité",
+  "texte": "Ceux qui traversent la mer changent de ciel, non d’âme.",
+  "auteur": "Horace",
+  "source": "Épîtres, I, 11"
+ },
+ {
+  "id": "ant-037",
+  "categorie": "Antiquité",
+  "texte": "La goutte d’eau creuse la pierre.",
+  "auteur": "Ovide",
+  "source": "Pontiques, IV, 10"
+ },
+ {
+  "id": "ant-038",
+  "categorie": "Antiquité",
+  "texte": "Je vois le meilleur et je l’approuve, et je fais le pire.",
+  "auteur": "Ovide",
+  "source": "Métamorphoses, VII, 20"
+ },
+ {
+  "id": "ant-039",
+  "categorie": "Antiquité",
+  "texte": "Je suis homme, et rien de ce qui est humain ne m’est étranger.",
+  "auteur": "Térence",
+  "source": "Le Bourreau de soi-même, I, 1"
+ },
+ {
+  "id": "ant-040",
+  "categorie": "Antiquité",
+  "texte": "Si tu as un jardin près de ta bibliothèque, rien ne te manquera.",
+  "auteur": "Cicéron",
+  "source": "Lettres familières, IX, 4"
+ },
+ {
+  "id": "ant-041",
+  "categorie": "Antiquité",
+  "texte": "L’histoire est le témoin des temps, la lumière de la vérité, la vie de la mémoire, la maîtresse de la vie.",
+  "auteur": "Cicéron",
+  "source": "De l’orateur, II, 9"
+ },
+ {
+  "id": "ant-042",
+  "categorie": "Antiquité",
+  "texte": "Rien ne naît de rien.",
+  "auteur": "Lucrèce",
+  "source": "De la nature, I, 150"
+ },
+ {
+  "id": "ant-043",
+  "categorie": "Antiquité",
+  "texte": "Heureux qui a pu connaître les causes des choses.",
+  "auteur": "Virgile",
+  "source": "Géorgiques, II, 490"
+ },
+ {
+  "id": "ant-044",
+  "categorie": "Antiquité",
+  "texte": "Le temps fuit, irréparable.",
+  "auteur": "Virgile",
+  "source": "Géorgiques, III, 284"
+ },
+ {
+  "id": "ant-045",
+  "categorie": "Antiquité",
+  "texte": "Donnez-moi un point d’appui et je soulèverai le monde.",
+  "auteur": "Archimède",
+  "source": "Rapporté par Pappus d’Alexandrie, Collection, VIII"
+ },
+ {
+  "id": "ren-001",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Parce que c’était lui, parce que c’était moi.",
+  "auteur": "Michel de Montaigne",
+  "source": "Essais, I, 28"
+ },
+ {
+  "id": "ren-002",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Chaque homme porte la forme entière de l’humaine condition.",
+  "auteur": "Michel de Montaigne",
+  "source": "Essais, III, 2"
+ },
+ {
+  "id": "ren-003",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Que sais-je ?",
+  "auteur": "Michel de Montaigne",
+  "source": "Essais, II, 12"
+ },
+ {
+  "id": "ren-004",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Je veux qu’on agisse, et que la mort me trouve plantant mes choux, mais nonchalant d’elle, et encore plus de mon jardin imparfait.",
+  "auteur": "Michel de Montaigne",
+  "source": "Essais, I, 20"
+ },
+ {
+  "id": "ren-005",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "La plus grande chose du monde, c’est de savoir être à soi.",
+  "auteur": "Michel de Montaigne",
+  "source": "Essais, I, 39"
+ },
+ {
+  "id": "ren-006",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Je voudrais qu’on choisisse un guide qui eût plutôt la tête bien faite que bien pleine.",
+  "auteur": "Michel de Montaigne",
+  "source": "Essais, I, 26"
+ },
+ {
+  "id": "ren-007",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Quand je danse, je danse ; quand je dors, je dors.",
+  "auteur": "Michel de Montaigne",
+  "source": "Essais, III, 13"
+ },
+ {
+  "id": "ren-008",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Le monde n’est qu’une branloire pérenne.",
+  "auteur": "Michel de Montaigne",
+  "source": "Essais, III, 2"
+ },
+ {
+  "id": "ren-009",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Science sans conscience n’est que ruine de l’âme.",
+  "auteur": "François Rabelais",
+  "source": "Pantagruel, VIII"
+ },
+ {
+  "id": "ren-010",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Le cœur a ses raisons que la raison ne connaît point.",
+  "auteur": "Blaise Pascal",
+  "source": "Pensées (Brunschvicg 277)"
+ },
+ {
+  "id": "ren-011",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Tout le malheur des hommes vient d’une seule chose, qui est de ne savoir pas demeurer en repos dans une chambre.",
+  "auteur": "Blaise Pascal",
+  "source": "Pensées (Brunschvicg 139)"
+ },
+ {
+  "id": "ren-012",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "L’homme n’est qu’un roseau, le plus faible de la nature ; mais c’est un roseau pensant.",
+  "auteur": "Blaise Pascal",
+  "source": "Pensées (Brunschvicg 347)"
+ },
+ {
+  "id": "ren-013",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Le silence éternel de ces espaces infinis m’effraie.",
+  "auteur": "Blaise Pascal",
+  "source": "Pensées (Brunschvicg 206)"
+ },
+ {
+  "id": "ren-014",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Je n’ai fait celle-ci plus longue que parce que je n’ai pas eu le loisir de la faire plus courte.",
+  "auteur": "Blaise Pascal",
+  "source": "Les Provinciales, lettre XVI"
+ },
+ {
+  "id": "ren-015",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Je pense, donc je suis.",
+  "auteur": "René Descartes",
+  "source": "Discours de la méthode, IV"
+ },
+ {
+  "id": "ren-016",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Le bon sens est la chose du monde la mieux partagée.",
+  "auteur": "René Descartes",
+  "source": "Discours de la méthode, I"
+ },
+ {
+  "id": "ren-017",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Le désir est l’essence même de l’homme.",
+  "auteur": "Baruch Spinoza",
+  "source": "Éthique, III, définition des affects, 1"
+ },
+ {
+  "id": "ren-018",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Ne pas railler, ne pas déplorer, ne pas détester, mais comprendre.",
+  "auteur": "Baruch Spinoza",
+  "source": "Traité politique, I, 4"
+ },
+ {
+  "id": "ren-019",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Tout ce qui est remarquable est aussi difficile que rare.",
+  "auteur": "Baruch Spinoza",
+  "source": "Éthique, V, 42, scolie"
+ },
+ {
+  "id": "ren-020",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Nous avons tous assez de force pour supporter les maux d’autrui.",
+  "auteur": "François de La Rochefoucauld",
+  "source": "Maximes, 19"
+ },
+ {
+  "id": "ren-021",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Le soleil ni la mort ne se peuvent regarder fixement.",
+  "auteur": "François de La Rochefoucauld",
+  "source": "Maximes, 26"
+ },
+ {
+  "id": "ren-022",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "On n’est jamais si heureux ni si malheureux qu’on s’imagine.",
+  "auteur": "François de La Rochefoucauld",
+  "source": "Maximes, 49"
+ },
+ {
+  "id": "ren-023",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "C’est une grande folie de vouloir être sage tout seul.",
+  "auteur": "François de La Rochefoucauld",
+  "source": "Maximes, 231"
+ },
+ {
+  "id": "ren-024",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Il est plus honteux de se défier de ses amis que d’en être trompé.",
+  "auteur": "François de La Rochefoucauld",
+  "source": "Maximes, 84"
+ },
+ {
+  "id": "ren-025",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Il faut rire avant que d’être heureux, de peur de mourir sans avoir ri.",
+  "auteur": "Jean de La Bruyère",
+  "source": "Les Caractères, « Du cœur », 63"
+ },
+ {
+  "id": "ren-026",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Tout est dit, et l’on vient trop tard depuis plus de sept mille ans qu’il y a des hommes et qui pensent.",
+  "auteur": "Jean de La Bruyère",
+  "source": "Les Caractères, « Des ouvrages de l’esprit », 1"
+ },
+ {
+  "id": "ren-027",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Rien ne sert de courir ; il faut partir à point.",
+  "auteur": "Jean de La Fontaine",
+  "source": "Fables, « Le Lièvre et la Tortue »"
+ },
+ {
+  "id": "ren-028",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Patience et longueur de temps font plus que force ni que rage.",
+  "auteur": "Jean de La Fontaine",
+  "source": "Fables, « Le Lion et le Rat »"
+ },
+ {
+  "id": "ren-029",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "On a souvent besoin d’un plus petit que soi.",
+  "auteur": "Jean de La Fontaine",
+  "source": "Fables, « Le Lion et le Rat »"
+ },
+ {
+  "id": "ren-030",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Travaillez, prenez de la peine : c’est le fonds qui manque le moins.",
+  "auteur": "Jean de La Fontaine",
+  "source": "Fables, « Le Laboureur et ses Enfants »"
+ },
+ {
+  "id": "ren-031",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Aide-toi, le Ciel t’aidera.",
+  "auteur": "Jean de La Fontaine",
+  "source": "Fables, « Le Chartier embourbé »"
+ },
+ {
+  "id": "ren-032",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "À vaincre sans péril, on triomphe sans gloire.",
+  "auteur": "Pierre Corneille",
+  "source": "Le Cid, II, 2"
+ },
+ {
+  "id": "ren-033",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Ce que l’on conçoit bien s’énonce clairement, et les mots pour le dire arrivent aisément.",
+  "auteur": "Nicolas Boileau",
+  "source": "L’Art poétique, I"
+ },
+ {
+  "id": "ren-034",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Hâtez-vous lentement, et sans perdre courage, vingt fois sur le métier remettez votre ouvrage.",
+  "auteur": "Nicolas Boileau",
+  "source": "L’Art poétique, I"
+ },
+ {
+  "id": "ren-035",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Il faut manger pour vivre, et non pas vivre pour manger.",
+  "auteur": "Molière",
+  "source": "L’Avare, III, 1"
+ },
+ {
+  "id": "ren-036",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Être ou ne pas être, telle est la question.",
+  "auteur": "William Shakespeare",
+  "source": "Hamlet, III, 1"
+ },
+ {
+  "id": "ren-037",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Nous sommes de l’étoffe dont sont faits les rêves, et notre petite vie est entourée de sommeil.",
+  "auteur": "William Shakespeare",
+  "source": "La Tempête, IV, 1"
+ },
+ {
+  "id": "ren-038",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Il n’y a rien de bon ni de mauvais, sinon que la pensée le rend tel.",
+  "auteur": "William Shakespeare",
+  "source": "Hamlet, II, 2"
+ },
+ {
+  "id": "ren-039",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Le monde entier est un théâtre, et tous, hommes et femmes, n’en sont que les acteurs.",
+  "auteur": "William Shakespeare",
+  "source": "Comme il vous plaira, II, 7"
+ },
+ {
+  "id": "ren-040",
+  "categorie": "Renaissance et époque moderne",
+  "texte": "Dans le pays des aveugles, le borgne est roi.",
+  "auteur": "Érasme",
+  "source": "Adages, III, 4, 96"
+ },
+ {
+  "id": "lum-001",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Il faut cultiver notre jardin.",
+  "auteur": "Voltaire",
+  "source": "Candide, XXX"
+ },
+ {
+  "id": "lum-002",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Le mieux est l’ennemi du bien.",
+  "auteur": "Voltaire",
+  "source": "La Bégueule"
+ },
+ {
+  "id": "lum-003",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Le travail éloigne de nous trois grands maux : l’ennui, le vice et le besoin.",
+  "auteur": "Voltaire",
+  "source": "Candide, XXX"
+ },
+ {
+  "id": "lum-004",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Si Dieu n’existait pas, il faudrait l’inventer.",
+  "auteur": "Voltaire",
+  "source": "Épître à l’auteur du livre des Trois imposteurs"
+ },
+ {
+  "id": "lum-005",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "L’homme est né libre, et partout il est dans les fers.",
+  "auteur": "Jean-Jacques Rousseau",
+  "source": "Du contrat social, I, 1"
+ },
+ {
+  "id": "lum-006",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Le pays des chimères est en ce monde le seul digne d’être habité.",
+  "auteur": "Jean-Jacques Rousseau",
+  "source": "Julie ou la Nouvelle Héloïse, VI, 8"
+ },
+ {
+  "id": "lum-007",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Il faut pleurer les hommes à leur naissance, et non pas à leur mort.",
+  "auteur": "Montesquieu",
+  "source": "Lettres persanes, XL"
+ },
+ {
+  "id": "lum-008",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Les grandes pensées viennent du cœur.",
+  "auteur": "Vauvenargues",
+  "source": "Réflexions et maximes, 127"
+ },
+ {
+  "id": "lum-009",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "La plus perdue de toutes les journées est celle où l’on n’a pas ri.",
+  "auteur": "Chamfort",
+  "source": "Maximes et pensées, 82"
+ },
+ {
+  "id": "lum-010",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Deux choses remplissent le cœur d’une admiration toujours nouvelle : le ciel étoilé au-dessus de moi et la loi morale en moi.",
+  "auteur": "Emmanuel Kant",
+  "source": "Critique de la raison pratique, conclusion"
+ },
+ {
+  "id": "lum-011",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Aie le courage de te servir de ton propre entendement.",
+  "auteur": "Emmanuel Kant",
+  "source": "Qu’est-ce que les Lumières ?"
+ },
+ {
+  "id": "lum-012",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Au commencement était l’action.",
+  "auteur": "Johann Wolfgang von Goethe",
+  "source": "Faust I, « Cabinet d’étude »"
+ },
+ {
+  "id": "lum-013",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Là où croît le péril croît aussi ce qui sauve.",
+  "auteur": "Friedrich Hölderlin",
+  "source": "Patmos"
+ },
+ {
+  "id": "lum-014",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Ce qui ne me tue pas me rend plus fort.",
+  "auteur": "Friedrich Nietzsche",
+  "source": "Crépuscule des idoles, « Maximes et pointes », 8"
+ },
+ {
+  "id": "lum-015",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Sans la musique, la vie serait une erreur.",
+  "auteur": "Friedrich Nietzsche",
+  "source": "Crépuscule des idoles, « Maximes et pointes », 33"
+ },
+ {
+  "id": "lum-016",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Il faut porter encore en soi un chaos pour pouvoir enfanter une étoile dansante.",
+  "auteur": "Friedrich Nietzsche",
+  "source": "Ainsi parlait Zarathoustra, prologue, 5"
+ },
+ {
+  "id": "lum-017",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Que dit ta conscience ? — « Tu dois devenir celui que tu es. »",
+  "auteur": "Friedrich Nietzsche",
+  "source": "Le Gai Savoir, 270"
+ },
+ {
+  "id": "lum-018",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "La vie doit être comprise en regardant en arrière, mais elle doit être vécue en regardant en avant.",
+  "auteur": "Søren Kierkegaard",
+  "source": "Journal, 1843"
+ },
+ {
+  "id": "lum-019",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Je suis allé dans les bois parce que je voulais vivre de façon réfléchie, n’affronter que les faits essentiels de la vie.",
+  "auteur": "Henry David Thoreau",
+  "source": "Walden, II"
+ },
+ {
+  "id": "lum-020",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "La plupart des hommes mènent une vie de tranquille désespoir.",
+  "auteur": "Henry David Thoreau",
+  "source": "Walden, I"
+ },
+ {
+  "id": "lum-021",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Être grand, c’est être incompris.",
+  "auteur": "Ralph Waldo Emerson",
+  "source": "La Confiance en soi"
+ },
+ {
+  "id": "lum-022",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Il faut être toujours ivre. Tout est là. […] De vin, de poésie ou de vertu, à votre guise. Mais enivrez-vous.",
+  "auteur": "Charles Baudelaire",
+  "source": "Le Spleen de Paris, « Enivrez-vous »"
+ },
+ {
+  "id": "lum-023",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Là, tout n’est qu’ordre et beauté, luxe, calme et volupté.",
+  "auteur": "Charles Baudelaire",
+  "source": "Les Fleurs du mal, « L’Invitation au voyage »"
+ },
+ {
+  "id": "lum-024",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "La beauté n’est que la promesse du bonheur.",
+  "auteur": "Stendhal",
+  "source": "De l’amour, XVII"
+ },
+ {
+  "id": "lum-025",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Un seul être vous manque, et tout est dépeuplé.",
+  "auteur": "Alphonse de Lamartine",
+  "source": "Méditations poétiques, « L’Isolement »"
+ },
+ {
+  "id": "lum-026",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Ô temps, suspends ton vol !",
+  "auteur": "Alphonse de Lamartine",
+  "source": "Méditations poétiques, « Le Lac »"
+ },
+ {
+  "id": "lum-027",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Le seul bien qui me reste au monde est d’avoir quelquefois pleuré.",
+  "auteur": "Alfred de Musset",
+  "source": "Poésies nouvelles, « Tristesse »"
+ },
+ {
+  "id": "lum-028",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "La mélancolie, c’est le bonheur d’être triste.",
+  "auteur": "Victor Hugo",
+  "source": "Les Travailleurs de la mer, III, I, 1"
+ },
+ {
+  "id": "lum-029",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "La musique exprime ce qui ne peut être dit et sur quoi il est impossible de rester silencieux.",
+  "auteur": "Victor Hugo",
+  "source": "William Shakespeare, I, II, 4"
+ },
+ {
+  "id": "lum-030",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Je est un autre.",
+  "auteur": "Arthur Rimbaud",
+  "source": "Lettre à Paul Demeny, 15 mai 1871"
+ },
+ {
+  "id": "lum-031",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Un paysage quelconque est un état de l’âme.",
+  "auteur": "Henri-Frédéric Amiel",
+  "source": "Journal intime, 31 octobre 1852"
+ },
+ {
+  "id": "lum-032",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Toutes les familles heureuses se ressemblent ; chaque famille malheureuse est malheureuse à sa façon.",
+  "auteur": "Léon Tolstoï",
+  "source": "Anna Karénine, I, 1"
+ },
+ {
+  "id": "lum-033",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "La beauté sauvera le monde.",
+  "auteur": "Fiodor Dostoïevski",
+  "source": "L’Idiot (propos prêté au prince Mychkine)"
+ },
+ {
+  "id": "lum-034",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Le bonheur est un idéal, non de la raison, mais de l’imagination.",
+  "auteur": "Emmanuel Kant",
+  "source": "Fondements de la métaphysique des mœurs, II"
+ },
+ {
+  "id": "lum-035",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "La vie oscille, comme un pendule, de droite à gauche, de la souffrance à l’ennui.",
+  "auteur": "Arthur Schopenhauer",
+  "source": "Le Monde comme volonté et comme représentation, I, 57"
+ },
+ {
+  "id": "lum-036",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Le génie n’est que l’enfance retrouvée à volonté.",
+  "auteur": "Charles Baudelaire",
+  "source": "Le Peintre de la vie moderne, III"
+ },
+ {
+  "id": "lum-037",
+  "categorie": "Lumières et XIXe siècle",
+  "texte": "Il faut toujours dire ce que l’on voit. Surtout il faut toujours, ce qui est plus difficile, voir ce que l’on voit.",
+  "auteur": "Charles Péguy",
+  "source": "Notre jeunesse"
+ },
+ {
+  "id": "con-001",
+  "categorie": "Époque contemporaine",
+  "texte": "On ne voit bien qu’avec le cœur. L’essentiel est invisible pour les yeux.",
+  "auteur": "Antoine de Saint-Exupéry",
+  "source": "Le Petit Prince, XXI"
+ },
+ {
+  "id": "con-002",
+  "categorie": "Époque contemporaine",
+  "texte": "Tu deviens responsable pour toujours de ce que tu as apprivoisé.",
+  "auteur": "Antoine de Saint-Exupéry",
+  "source": "Le Petit Prince, XXI"
+ },
+ {
+  "id": "con-003",
+  "categorie": "Époque contemporaine",
+  "texte": "C’est le temps que tu as perdu pour ta rose qui fait ta rose si importante.",
+  "auteur": "Antoine de Saint-Exupéry",
+  "source": "Le Petit Prince, XXI"
+ },
+ {
+  "id": "con-004",
+  "categorie": "Époque contemporaine",
+  "texte": "Aimer, ce n’est point nous regarder l’un l’autre, mais regarder ensemble dans la même direction.",
+  "auteur": "Antoine de Saint-Exupéry",
+  "source": "Terre des hommes, VIII"
+ },
+ {
+  "id": "con-005",
+  "categorie": "Époque contemporaine",
+  "texte": "Il semble que la perfection soit atteinte non quand il n’y a plus rien à ajouter, mais quand il n’y a plus rien à retrancher.",
+  "auteur": "Antoine de Saint-Exupéry",
+  "source": "Terre des hommes, III"
+ },
+ {
+  "id": "con-006",
+  "categorie": "Époque contemporaine",
+  "texte": "Il faut imaginer Sisyphe heureux.",
+  "auteur": "Albert Camus",
+  "source": "Le Mythe de Sisyphe"
+ },
+ {
+  "id": "con-007",
+  "categorie": "Époque contemporaine",
+  "texte": "La lutte elle-même vers les sommets suffit à remplir un cœur d’homme.",
+  "auteur": "Albert Camus",
+  "source": "Le Mythe de Sisyphe"
+ },
+ {
+  "id": "con-008",
+  "categorie": "Époque contemporaine",
+  "texte": "Au milieu de l’hiver, j’apprenais enfin qu’il y avait en moi un été invincible.",
+  "auteur": "Albert Camus",
+  "source": "L’Été, « Retour à Tipasa »"
+ },
+ {
+  "id": "con-009",
+  "categorie": "Époque contemporaine",
+  "texte": "La vraie générosité envers l’avenir consiste à tout donner au présent.",
+  "auteur": "Albert Camus",
+  "source": "L’Homme révolté"
+ },
+ {
+  "id": "con-010",
+  "categorie": "Époque contemporaine",
+  "texte": "Le seul véritable voyage […] ce ne serait pas d’aller vers de nouveaux paysages, mais d’avoir d’autres yeux.",
+  "auteur": "Marcel Proust",
+  "source": "La Prisonnière"
+ },
+ {
+  "id": "con-011",
+  "categorie": "Époque contemporaine",
+  "texte": "Les vrais paradis sont les paradis qu’on a perdus.",
+  "auteur": "Marcel Proust",
+  "source": "Le Temps retrouvé"
+ },
+ {
+  "id": "con-012",
+  "categorie": "Époque contemporaine",
+  "texte": "Le vent se lève !… Il faut tenter de vivre !",
+  "auteur": "Paul Valéry",
+  "source": "Charmes, « Le Cimetière marin »"
+ },
+ {
+  "id": "con-013",
+  "categorie": "Époque contemporaine",
+  "texte": "Le pessimisme est d’humeur ; l’optimisme est de volonté.",
+  "auteur": "Alain",
+  "source": "Propos sur le bonheur"
+ },
+ {
+  "id": "con-014",
+  "categorie": "Époque contemporaine",
+  "texte": "Il faut vouloir être heureux et y mettre du sien.",
+  "auteur": "Alain",
+  "source": "Propos sur le bonheur"
+ },
+ {
+  "id": "con-015",
+  "categorie": "Époque contemporaine",
+  "texte": "Soyez patient envers tout ce qui n’est pas résolu dans votre cœur, et essayez d’aimer les questions elles-mêmes.",
+  "auteur": "Rainer Maria Rilke",
+  "source": "Lettres à un jeune poète, 16 juillet 1903"
+ },
+ {
+  "id": "con-016",
+  "categorie": "Époque contemporaine",
+  "texte": "L’attention est la forme la plus rare et la plus pure de la générosité.",
+  "auteur": "Simone Weil",
+  "source": "Lettre à Joë Bousquet, 13 avril 1942"
+ },
+ {
+  "id": "con-017",
+  "categorie": "Époque contemporaine",
+  "texte": "L’enracinement est peut-être le besoin le plus important et le plus méconnu de l’âme humaine.",
+  "auteur": "Simone Weil",
+  "source": "L’Enracinement"
+ },
+ {
+  "id": "con-018",
+  "categorie": "Époque contemporaine",
+  "texte": "Que l’importance soit dans ton regard, non dans la chose regardée.",
+  "auteur": "André Gide",
+  "source": "Les Nourritures terrestres, I"
+ },
+ {
+  "id": "con-019",
+  "categorie": "Époque contemporaine",
+  "texte": "Impose ta chance, serre ton bonheur et va vers ton risque. À te regarder, ils s’habitueront.",
+  "auteur": "René Char",
+  "source": "Les Matinaux, « Rougeur des Matinaux »"
+ },
+ {
+  "id": "con-020",
+  "categorie": "Époque contemporaine",
+  "texte": "La lucidité est la blessure la plus rapprochée du soleil.",
+  "auteur": "René Char",
+  "source": "Feuillets d’Hypnos, 169"
+ },
+ {
+  "id": "con-021",
+  "categorie": "Époque contemporaine",
+  "texte": "Un voyage se passe de motifs. […] On croit qu’on va faire un voyage, mais bientôt c’est le voyage qui vous fait, ou vous défait.",
+  "auteur": "Nicolas Bouvier",
+  "source": "L’Usage du monde"
+ },
+ {
+  "id": "con-022",
+  "categorie": "Époque contemporaine",
+  "texte": "Le patriotisme, c’est l’amour des siens. Le nationalisme, c’est la haine des autres.",
+  "auteur": "Romain Gary",
+  "source": "Éducation européenne"
+ },
+ {
+  "id": "con-023",
+  "categorie": "Époque contemporaine",
+  "texte": "Tout peut être enlevé à un homme, sauf une chose : la dernière des libertés humaines, celle de choisir son attitude face aux circonstances.",
+  "auteur": "Viktor Frankl",
+  "source": "Découvrir un sens à sa vie"
+ },
+ {
+  "id": "con-024",
+  "categorie": "Époque contemporaine",
+  "texte": "La chose la plus incompréhensible à propos de l’univers, c’est qu’il soit compréhensible.",
+  "auteur": "Albert Einstein",
+  "source": "« Physique et réalité », 1936"
+ },
+ {
+  "id": "con-025",
+  "categorie": "Époque contemporaine",
+  "texte": "Nous devons apprendre à vivre ensemble comme des frères, sinon nous allons mourir tous ensemble comme des idiots.",
+  "auteur": "Martin Luther King",
+  "source": "Discours de Saint Louis, 22 mars 1964"
+ },
+ {
+  "id": "con-026",
+  "categorie": "Époque contemporaine",
+  "texte": "J’ai fait un rêve.",
+  "auteur": "Martin Luther King",
+  "source": "Discours de Washington, 28 août 1963"
+ },
+ {
+  "id": "con-027",
+  "categorie": "Époque contemporaine",
+  "texte": "Le véritable lieu de naissance est celui où l’on a porté pour la première fois un coup d’œil intelligent sur soi-même.",
+  "auteur": "Marguerite Yourcenar",
+  "source": "Mémoires d’Hadrien"
+ },
+ {
+  "id": "con-028",
+  "categorie": "Époque contemporaine",
+  "texte": "L’enfer, c’est les autres.",
+  "auteur": "Jean-Paul Sartre",
+  "source": "Huis clos, scène 5"
+ },
+ {
+  "id": "con-029",
+  "categorie": "Époque contemporaine",
+  "texte": "L’homme est condamné à être libre.",
+  "auteur": "Jean-Paul Sartre",
+  "source": "L’existentialisme est un humanisme"
+ },
+ {
+  "id": "con-030",
+  "categorie": "Époque contemporaine",
+  "texte": "On ne naît pas femme : on le devient.",
+  "auteur": "Simone de Beauvoir",
+  "source": "Le Deuxième Sexe, II"
+ },
+ {
+  "id": "con-031",
+  "categorie": "Époque contemporaine",
+  "texte": "Ce qui importe, ce n’est pas ce qu’on a fait de nous, mais ce que nous faisons nous-mêmes de ce qu’on a fait de nous.",
+  "auteur": "Jean-Paul Sartre",
+  "source": "Saint Genet, comédien et martyr"
+ },
+ {
+  "id": "con-032",
+  "categorie": "Époque contemporaine",
+  "texte": "Sous le pont Mirabeau coule la Seine / Et nos amours / Faut-il qu’il m’en souvienne / La joie venait toujours après la peine.",
+  "auteur": "Guillaume Apollinaire",
+  "source": "Alcools, « Le Pont Mirabeau »"
+ },
+ {
+  "id": "con-033",
+  "categorie": "Époque contemporaine",
+  "texte": "Il n’y a pas d’amour, il n’y a que des preuves d’amour.",
+  "auteur": "Pierre Reverdy",
+  "source": "Le Gant de crin"
+ },
+ {
+  "id": "con-034",
+  "categorie": "Époque contemporaine",
+  "texte": "La poésie est une arme chargée de futur.",
+  "auteur": "Gabriel Celaya",
+  "source": "Cantos íberos, « La poesía es un arma cargada de futuro »"
+ },
+ {
+  "id": "con-035",
+  "categorie": "Époque contemporaine",
+  "texte": "Il faut agir en homme de pensée et penser en homme d’action.",
+  "auteur": "Henri Bergson",
+  "source": "Message au Congrès Descartes, 1937"
+ },
+ {
+  "id": "con-036",
+  "categorie": "Époque contemporaine",
+  "texte": "Pour ce qui est de l’avenir, il ne s’agit pas de le prévoir, mais de le rendre possible.",
+  "auteur": "Antoine de Saint-Exupéry",
+  "source": "Citadelle"
+ },
+ {
+  "id": "con-037",
+  "categorie": "Époque contemporaine",
+  "texte": "Toutes les grandes personnes ont d’abord été des enfants. (Mais peu d’entre elles s’en souviennent.)",
+  "auteur": "Antoine de Saint-Exupéry",
+  "source": "Le Petit Prince, dédicace"
+ },
+ {
+  "id": "con-038",
+  "categorie": "Époque contemporaine",
+  "texte": "Le tact dans l’audace, c’est de savoir jusqu’où on peut aller trop loin.",
+  "auteur": "Jean Cocteau",
+  "source": "Le Coq et l’Arlequin"
+ },
+ {
+  "id": "con-039",
+  "categorie": "Époque contemporaine",
+  "texte": "Et si Dieu cesse de m’aider, ce sera à moi d’aider Dieu.",
+  "auteur": "Etty Hillesum",
+  "source": "Une vie bouleversée, journal, 12 juillet 1942"
+ },
+ {
+  "id": "con-040",
+  "categorie": "Époque contemporaine",
+  "texte": "Un livre doit être la hache qui brise la mer gelée en nous.",
+  "auteur": "Franz Kafka",
+  "source": "Lettre à Oskar Pollak, 27 janvier 1904"
+ },
+ {
+  "id": "con-041",
+  "categorie": "Époque contemporaine",
+  "texte": "Je ne suis rien. Jamais je ne serai rien. Je ne puis vouloir être rien. Cela dit, je porte en moi tous les rêves du monde.",
+  "auteur": "Fernando Pessoa (Álvaro de Campos)",
+  "source": "Bureau de tabac"
+ },
+ {
+  "id": "con-042",
+  "categorie": "Époque contemporaine",
+  "texte": "Voyageur, il n’y a pas de chemin, le chemin se fait en marchant.",
+  "auteur": "Antonio Machado",
+  "source": "Champs de Castille, « Proverbes et chansons », XXIX"
+ },
+ {
+  "id": "con-043",
+  "categorie": "Époque contemporaine",
+  "texte": "Moi qui imaginais le Paradis sous l’espèce d’une bibliothèque.",
+  "auteur": "Jorge Luis Borges",
+  "source": "L’Auteur et autres textes, « Poème des dons »"
+ },
+ {
+  "id": "con-044",
+  "categorie": "Époque contemporaine",
+  "texte": "Le courage, c’est de chercher la vérité et de la dire.",
+  "auteur": "Jean Jaurès",
+  "source": "Discours à la jeunesse, Albi, 1903"
+ },
+ {
+  "id": "con-045",
+  "categorie": "Époque contemporaine",
+  "texte": "Il faut aller à l’idéal et comprendre le réel.",
+  "auteur": "Jean Jaurès",
+  "source": "Discours à la jeunesse, Albi, 1903"
+ },
+ {
+  "id": "afr-001",
+  "categorie": "Afrique",
+  "texte": "En Afrique, quand un vieillard meurt, c’est une bibliothèque qui brûle.",
+  "auteur": "Amadou Hampâté Bâ",
+  "source": "Formule popularisée après son intervention à l’UNESCO, 1960"
+ },
+ {
+  "id": "afr-002",
+  "categorie": "Afrique",
+  "texte": "Il y a trois vérités : ma vérité, ta vérité et la vérité.",
+  "auteur": "Tierno Bokar",
+  "source": "Rapporté par Amadou Hampâté Bâ, Vie et enseignement de Tierno Bokar"
+ },
+ {
+  "id": "afr-003",
+  "categorie": "Afrique",
+  "texte": "J’ai appris que le courage n’était pas l’absence de peur, mais la capacité de la vaincre.",
+  "auteur": "Nelson Mandela",
+  "source": "Un long chemin vers la liberté"
+ },
+ {
+  "id": "afr-004",
+  "categorie": "Afrique",
+  "texte": "Être libre, ce n’est pas seulement se débarrasser de ses chaînes ; c’est vivre d’une façon qui respecte et renforce la liberté des autres.",
+  "auteur": "Nelson Mandela",
+  "source": "Un long chemin vers la liberté"
+ },
+ {
+  "id": "afr-005",
+  "categorie": "Afrique",
+  "texte": "Personne ne naît en haïssant une autre personne à cause de la couleur de sa peau, de son passé ou de sa religion. Les gens doivent apprendre à haïr, et s’ils peuvent apprendre à haïr, on peut leur enseigner aussi à aimer.",
+  "auteur": "Nelson Mandela",
+  "source": "Un long chemin vers la liberté"
+ },
+ {
+  "id": "afr-006",
+  "categorie": "Afrique",
+  "texte": "Après avoir gravi une haute colline, on découvre seulement qu’il reste beaucoup d’autres collines à gravir.",
+  "auteur": "Nelson Mandela",
+  "source": "Un long chemin vers la liberté"
+ },
+ {
+  "id": "afr-007",
+  "categorie": "Afrique",
+  "texte": "Une personne est une personne à travers les autres personnes.",
+  "auteur": "Desmond Tutu",
+  "source": "Il n’y a pas d’avenir sans pardon (à propos de l’ubuntu)"
+ },
+ {
+  "id": "afr-008",
+  "categorie": "Afrique",
+  "texte": "Ceux qui sont morts ne sont jamais partis : ils sont dans l’ombre qui s’éclaire et dans l’ombre qui s’épaissit.",
+  "auteur": "Birago Diop",
+  "source": "Leurres et lueurs, « Souffles »"
+ },
+ {
+  "id": "afr-009",
+  "categorie": "Afrique",
+  "texte": "Écoute plus souvent les choses que les êtres.",
+  "auteur": "Birago Diop",
+  "source": "Leurres et lueurs, « Souffles »"
+ },
+ {
+  "id": "afr-010",
+  "categorie": "Afrique",
+  "texte": "Un tigre ne proclame pas sa tigritude, il bondit sur sa proie.",
+  "auteur": "Wole Soyinka",
+  "source": "Conférence des écrivains africains, Kampala, 1962"
+ },
+ {
+  "id": "afr-011",
+  "categorie": "Afrique",
+  "texte": "Tant que les lions n’auront pas leurs propres historiens, les histoires de chasse glorifieront toujours le chasseur.",
+  "auteur": "Proverbe cité par Chinua Achebe",
+  "source": "Entretien, The Paris Review, 1994"
+ },
+ {
+  "id": "afr-012",
+  "categorie": "Afrique",
+  "texte": "Femme nue, femme noire, vêtue de ta couleur qui est vie, de ta forme qui est beauté !",
+  "auteur": "Léopold Sédar Senghor",
+  "source": "Chants d’ombre, « Femme noire »"
+ },
+ {
+  "id": "afr-013",
+  "categorie": "Afrique",
+  "texte": "L’Afrique écrira sa propre histoire, et elle sera au nord et au sud du Sahara une histoire de gloire et de dignité.",
+  "auteur": "Patrice Lumumba",
+  "source": "Dernière lettre à son épouse, 1961"
+ },
+ {
+  "id": "afr-014",
+  "categorie": "Afrique",
+  "texte": "Le français est notre butin de guerre.",
+  "auteur": "Kateb Yacine",
+  "source": "Entretien, 1966"
+ },
+ {
+  "id": "afr-015",
+  "categorie": "Afrique",
+  "texte": "Le vaincu cherche toujours à imiter le vainqueur dans ses traits distinctifs, son habillement, ses usages et ses coutumes.",
+  "auteur": "Ibn Khaldoun",
+  "source": "Al-Muqaddima, II, 22"
+ },
+ {
+  "id": "afr-016",
+  "categorie": "Afrique",
+  "texte": "Aime, et fais ce que tu veux.",
+  "auteur": "Augustin d’Hippone (né à Thagaste, Numidie)",
+  "source": "Commentaire de la première épître de saint Jean, VII, 8"
+ },
+ {
+  "id": "afr-017",
+  "categorie": "Afrique",
+  "texte": "Qu’est-ce donc que le temps ? Si personne ne me le demande, je le sais ; si je veux l’expliquer à qui me le demande, je ne le sais plus.",
+  "auteur": "Augustin d’Hippone (né à Thagaste, Numidie)",
+  "source": "Confessions, XI, 14"
+ },
+ {
+  "id": "afr-018",
+  "categorie": "Afrique",
+  "texte": "Les hommes vont admirer la hauteur des montagnes, les vastes flots de la mer, […] et ils se délaissent eux-mêmes.",
+  "auteur": "Augustin d’Hippone (né à Thagaste, Numidie)",
+  "source": "Confessions, X, 8"
+ },
+ {
+  "id": "ori-001",
+  "categorie": "Philosophie orientale",
+  "texte": "Tu as droit à l’action, mais jamais à ses fruits. Que les fruits de l’action ne soient pas ton mobile, mais ne t’attache pas non plus à l’inaction.",
+  "auteur": "Bhagavad-Gîtâ",
+  "source": "II, 47"
+ },
+ {
+  "id": "ori-002",
+  "categorie": "Philosophie orientale",
+  "texte": "Celui qui voit l’inaction dans l’action et l’action dans l’inaction, celui-là est sage parmi les hommes.",
+  "auteur": "Bhagavad-Gîtâ",
+  "source": "IV, 18"
+ },
+ {
+  "id": "ori-003",
+  "categorie": "Philosophie orientale",
+  "texte": "Il vaut mieux accomplir son propre devoir, même imparfaitement, que celui d’un autre, même parfaitement.",
+  "auteur": "Bhagavad-Gîtâ",
+  "source": "III, 35"
+ },
+ {
+  "id": "ori-004",
+  "categorie": "Philosophie orientale",
+  "texte": "L’âme n’est jamais née et ne meurt jamais.",
+  "auteur": "Bhagavad-Gîtâ",
+  "source": "II, 20"
+ },
+ {
+  "id": "ori-005",
+  "categorie": "Philosophie orientale",
+  "texte": "Tu es Cela.",
+  "auteur": "Chāndogya Upanishad",
+  "source": "VI, 8, 7 (« Tat tvam asi »)"
+ },
+ {
+  "id": "ori-006",
+  "categorie": "Philosophie orientale",
+  "texte": "De l’irréel conduis-moi au réel, des ténèbres conduis-moi à la lumière, de la mort conduis-moi à l’immortalité.",
+  "auteur": "Brihadāranyaka Upanishad",
+  "source": "I, 3, 28"
+ },
+ {
+  "id": "ori-007",
+  "categorie": "Philosophie orientale",
+  "texte": "Le yoga est l’arrêt des fluctuations du mental.",
+  "auteur": "Patañjali",
+  "source": "Yoga-sūtra, I, 2"
+ },
+ {
+  "id": "ori-008",
+  "categorie": "Philosophie orientale",
+  "texte": "Si tu pleures parce que le soleil est sorti de ta vie, tes larmes t’empêcheront de voir les étoiles.",
+  "auteur": "Rabindranath Tagore",
+  "source": "Les Oiseaux de passage, 6"
+ },
+ {
+  "id": "ori-009",
+  "categorie": "Philosophie orientale",
+  "texte": "La non-violence est la plus grande force dont dispose l’humanité.",
+  "auteur": "Mohandas K. Gandhi",
+  "source": "Harijan (hebdomadaire fondé par Gandhi)"
+ },
+ {
+  "id": "ori-010",
+  "categorie": "Philosophie orientale",
+  "texte": "La vérité est Dieu.",
+  "auteur": "Mohandas K. Gandhi",
+  "source": "Discours de Lausanne, 1931"
+ },
+ {
+  "id": "ori-011",
+  "categorie": "Philosophie orientale",
+  "texte": "Écoute la flûte de roseau, comme elle se plaint ; elle raconte les séparations.",
+  "auteur": "Djalâl al-Dîn Rûmî",
+  "source": "Masnavi, I, 1"
+ },
+ {
+  "id": "ori-012",
+  "categorie": "Philosophie orientale",
+  "texte": "Les enfants d’Adam sont les membres d’un même corps, car ils ont été créés d’une même essence.",
+  "auteur": "Saadi",
+  "source": "Golestân, I, 10"
+ },
+ {
+  "id": "ori-013",
+  "categorie": "Philosophie orientale",
+  "texte": "Bois du vin, car tu dormiras longtemps sous la terre, sans compagnon, sans ami, sans épouse.",
+  "auteur": "Omar Khayyâm",
+  "source": "Robâiyât (traduction libre)"
+ },
+ {
+  "id": "ori-014",
+  "categorie": "Philosophie orientale",
+  "texte": "Celui qui se connaît soi-même connaît son Seigneur.",
+  "auteur": "Hadith cité par les soufis (Ibn Arabî et d’autres)",
+  "source": "Tradition soufie"
+ },
+ {
+  "id": "ori-015",
+  "categorie": "Philosophie orientale",
+  "texte": "La science sans l’action est une folie, et l’action sans la science est vaine.",
+  "auteur": "Al-Ghazâlî",
+  "source": "Lettre au disciple (Ayyuhā al-walad)"
+ },
+ {
+  "id": "ori-016",
+  "categorie": "Philosophie orientale",
+  "texte": "Mon cœur est devenu capable de toute forme : pâturage pour les gazelles, couvent pour les moines.",
+  "auteur": "Ibn Arabî",
+  "source": "L’Interprète des désirs, poème XI"
+ },
+ {
+  "id": "ori-017",
+  "categorie": "Philosophie orientale",
+  "texte": "Celui qui est dans tous les êtres et que tous les êtres ne connaissent pas, celui-là est ton âme.",
+  "auteur": "Brihadāranyaka Upanishad",
+  "source": "III, 7, 15"
+ },
+ {
+  "id": "ori-018",
+  "categorie": "Philosophie orientale",
+  "texte": "Le sage n’est ni exalté par le bonheur ni abattu par le malheur.",
+  "auteur": "Bhagavad-Gîtâ",
+  "source": "II, 56 (traduction libre)"
+ },
+ {
+  "id": "cnf-001",
+  "categorie": "Confucianisme",
+  "texte": "Étudier et, le moment venu, mettre en pratique ce que l’on a étudié, n’est-ce pas une source de plaisir ?",
+  "auteur": "Confucius",
+  "source": "Entretiens, I, 1"
+ },
+ {
+  "id": "cnf-002",
+  "categorie": "Confucianisme",
+  "texte": "Ne pas s’affliger d’être méconnu des hommes, mais s’affliger de ne pas les connaître.",
+  "auteur": "Confucius",
+  "source": "Entretiens, I, 16"
+ },
+ {
+  "id": "cnf-003",
+  "categorie": "Confucianisme",
+  "texte": "Apprendre sans réfléchir est vain ; réfléchir sans apprendre est dangereux.",
+  "auteur": "Confucius",
+  "source": "Entretiens, II, 15"
+ },
+ {
+  "id": "cnf-004",
+  "categorie": "Confucianisme",
+  "texte": "Savoir que l’on sait ce que l’on sait, et savoir que l’on ne sait pas ce que l’on ne sait pas : voilà la véritable connaissance.",
+  "auteur": "Confucius",
+  "source": "Entretiens, II, 17"
+ },
+ {
+  "id": "cnf-005",
+  "categorie": "Confucianisme",
+  "texte": "À quinze ans, je m’appliquai à l’étude ; à trente ans, je m’affermis ; à quarante ans, je n’avais plus de doutes ; à cinquante ans, je connus le décret du Ciel ; à soixante ans, j’avais l’oreille accordée ; à soixante-dix ans, je suivais les désirs de mon cœur sans transgresser aucune règle.",
+  "auteur": "Confucius",
+  "source": "Entretiens, II, 4"
+ },
+ {
+  "id": "cnf-006",
+  "categorie": "Confucianisme",
+  "texte": "Revisiter l’ancien pour découvrir le nouveau : à ce prix on peut devenir maître.",
+  "auteur": "Confucius",
+  "source": "Entretiens, II, 11"
+ },
+ {
+  "id": "cnf-007",
+  "categorie": "Confucianisme",
+  "texte": "Voir ce qui est juste et ne pas le faire, c’est manquer de courage.",
+  "auteur": "Confucius",
+  "source": "Entretiens, II, 24"
+ },
+ {
+  "id": "cnf-008",
+  "categorie": "Confucianisme",
+  "texte": "En voyant un homme de bien, songe à l’égaler ; en voyant un homme sans valeur, examine-toi toi-même.",
+  "auteur": "Confucius",
+  "source": "Entretiens, IV, 17"
+ },
+ {
+  "id": "cnf-009",
+  "categorie": "Confucianisme",
+  "texte": "L’homme de bien est lent en paroles et prompt en actions.",
+  "auteur": "Confucius",
+  "source": "Entretiens, IV, 24"
+ },
+ {
+  "id": "cnf-010",
+  "categorie": "Confucianisme",
+  "texte": "La vertu n’est jamais solitaire ; elle a toujours des voisins.",
+  "auteur": "Confucius",
+  "source": "Entretiens, IV, 25"
+ },
+ {
+  "id": "cnf-011",
+  "categorie": "Confucianisme",
+  "texte": "Celui qui connaît ne vaut pas celui qui aime ; celui qui aime ne vaut pas celui qui en fait sa joie.",
+  "auteur": "Confucius",
+  "source": "Entretiens, VI, 20"
+ },
+ {
+  "id": "cnf-012",
+  "categorie": "Confucianisme",
+  "texte": "Quand nous marchons à trois, j’ai forcément deux maîtres : je prends exemple sur les qualités de l’un et je corrige en moi les défauts de l’autre.",
+  "auteur": "Confucius",
+  "source": "Entretiens, VII, 22"
+ },
+ {
+  "id": "cnf-013",
+  "categorie": "Confucianisme",
+  "texte": "L’homme de bien est serein et détendu ; l’homme de peu est toujours tourmenté.",
+  "auteur": "Confucius",
+  "source": "Entretiens, VII, 37"
+ },
+ {
+  "id": "cnf-014",
+  "categorie": "Confucianisme",
+  "texte": "Le fleuve s’écoule ainsi, sans s’arrêter ni jour ni nuit.",
+  "auteur": "Confucius",
+  "source": "Entretiens, IX, 17"
+ },
+ {
+  "id": "cnf-015",
+  "categorie": "Confucianisme",
+  "texte": "On peut enlever à une armée son général, on ne peut enlever à un homme du commun sa volonté.",
+  "auteur": "Confucius",
+  "source": "Entretiens, IX, 26"
+ },
+ {
+  "id": "cnf-016",
+  "categorie": "Confucianisme",
+  "texte": "Ce n’est qu’au froid de l’hiver qu’on s’aperçoit que le pin et le cyprès perdent leurs feuilles les derniers.",
+  "auteur": "Confucius",
+  "source": "Entretiens, IX, 28"
+ },
+ {
+  "id": "cnf-017",
+  "categorie": "Confucianisme",
+  "texte": "Ne pas encore savoir servir les vivants, comment pourrait-on servir les esprits ? Ne connaissant pas encore la vie, comment connaître la mort ?",
+  "auteur": "Confucius",
+  "source": "Entretiens, XI, 12"
+ },
+ {
+  "id": "cnf-018",
+  "categorie": "Confucianisme",
+  "texte": "Ce que tu ne voudrais pas qu’on te fasse, ne l’inflige pas aux autres.",
+  "auteur": "Confucius",
+  "source": "Entretiens, XII, 2 et XV, 24"
+ },
+ {
+  "id": "cnf-019",
+  "categorie": "Confucianisme",
+  "texte": "L’homme de bien s’accorde avec autrui sans se conformer à lui ; l’homme de peu se conforme sans s’accorder.",
+  "auteur": "Confucius",
+  "source": "Entretiens, XIII, 23"
+ },
+ {
+  "id": "cnf-020",
+  "categorie": "Confucianisme",
+  "texte": "L’homme de bien exige tout de lui-même ; l’homme de peu exige tout des autres.",
+  "auteur": "Confucius",
+  "source": "Entretiens, XV, 21"
+ },
+ {
+  "id": "cnf-021",
+  "categorie": "Confucianisme",
+  "texte": "Commettre une faute et ne pas s’en corriger, voilà ce qu’on appelle vraiment une faute.",
+  "auteur": "Confucius",
+  "source": "Entretiens, XV, 30"
+ },
+ {
+  "id": "cnf-022",
+  "categorie": "Confucianisme",
+  "texte": "Les hommes sont proches par nature ; c’est la pratique qui les éloigne.",
+  "auteur": "Confucius",
+  "source": "Entretiens, XVII, 2"
+ },
+ {
+  "id": "cnf-023",
+  "categorie": "Confucianisme",
+  "texte": "Un artisan qui veut bien faire son travail doit d’abord aiguiser ses outils.",
+  "auteur": "Confucius",
+  "source": "Entretiens, XV, 10"
+ },
+ {
+  "id": "cnf-024",
+  "categorie": "Confucianisme",
+  "texte": "Tout homme a un cœur qui ne supporte pas la souffrance d’autrui.",
+  "auteur": "Mencius",
+  "source": "Mencius, II A, 6"
+ },
+ {
+  "id": "cnf-025",
+  "categorie": "Confucianisme",
+  "texte": "Le grand homme est celui qui n’a pas perdu son cœur d’enfant.",
+  "auteur": "Mencius",
+  "source": "Mencius, IV B, 12"
+ },
+ {
+  "id": "cnf-026",
+  "categorie": "Confucianisme",
+  "texte": "Ne tirez pas sur les pousses pour les faire grandir.",
+  "auteur": "Mencius",
+  "source": "Mencius, II A, 2 (l’homme de Song)"
+ },
+ {
+  "id": "cnf-027",
+  "categorie": "Confucianisme",
+  "texte": "Le Ciel voit comme voit mon peuple ; le Ciel entend comme entend mon peuple.",
+  "auteur": "Mencius",
+  "source": "Mencius, V A, 5 (citant le Livre des Documents)"
+ },
+ {
+  "id": "cnf-028",
+  "categorie": "Confucianisme",
+  "texte": "Celui qui ne gravit pas une haute montagne ne connaît pas la hauteur du ciel.",
+  "auteur": "Xunzi",
+  "source": "Xunzi, I, « Exhortation à l’étude »"
+ },
+ {
+  "id": "cnf-029",
+  "categorie": "Confucianisme",
+  "texte": "L’étude ne doit jamais cesser. Le bleu est tiré de l’indigo, mais il est plus bleu que l’indigo.",
+  "auteur": "Xunzi",
+  "source": "Xunzi, I, « Exhortation à l’étude »"
+ },
+ {
+  "id": "cnf-030",
+  "categorie": "Confucianisme",
+  "texte": "Pour mettre l’ordre dans l’État, il faut d’abord régler sa famille ; pour régler sa famille, il faut d’abord se cultiver soi-même.",
+  "auteur": "La Grande Étude (Daxue)",
+  "source": "Texte classique confucéen"
+ },
+ {
+  "id": "tao-001",
+  "categorie": "Taoïsme",
+  "texte": "Le Tao qui peut être dit n’est pas le Tao éternel ; le nom qui peut être nommé n’est pas le nom éternel.",
+  "auteur": "Lao-tseu",
+  "source": "Tao-tö-king, 1"
+ },
+ {
+  "id": "tao-002",
+  "categorie": "Taoïsme",
+  "texte": "La bonté suprême est comme l’eau : l’eau excelle à être utile à tous les êtres, sans lutter avec eux.",
+  "auteur": "Lao-tseu",
+  "source": "Tao-tö-king, 8"
+ },
+ {
+  "id": "tao-003",
+  "categorie": "Taoïsme",
+  "texte": "On façonne l’argile pour en faire des vases, mais c’est de son vide que dépend l’usage du vase.",
+  "auteur": "Lao-tseu",
+  "source": "Tao-tö-king, 11"
+ },
+ {
+  "id": "tao-004",
+  "categorie": "Taoïsme",
+  "texte": "Qui connaît les autres est avisé ; qui se connaît lui-même est éclairé. Qui triomphe des autres est fort ; qui triomphe de lui-même est puissant.",
+  "auteur": "Lao-tseu",
+  "source": "Tao-tö-king, 33"
+ },
+ {
+  "id": "tao-005",
+  "categorie": "Taoïsme",
+  "texte": "Qui sait se contenter est riche.",
+  "auteur": "Lao-tseu",
+  "source": "Tao-tö-king, 33"
+ },
+ {
+  "id": "tao-006",
+  "categorie": "Taoïsme",
+  "texte": "Il n’y a pas de plus grand malheur que de ne pas savoir se contenter.",
+  "auteur": "Lao-tseu",
+  "source": "Tao-tö-king, 46"
+ },
+ {
+  "id": "tao-007",
+  "categorie": "Taoïsme",
+  "texte": "Sans sortir de sa porte, on peut connaître le monde.",
+  "auteur": "Lao-tseu",
+  "source": "Tao-tö-king, 47"
+ },
+ {
+  "id": "tao-008",
+  "categorie": "Taoïsme",
+  "texte": "Celui qui sait ne parle pas ; celui qui parle ne sait pas.",
+  "auteur": "Lao-tseu",
+  "source": "Tao-tö-king, 56"
+ },
+ {
+  "id": "tao-009",
+  "categorie": "Taoïsme",
+  "texte": "Gouverner un grand pays, c’est comme faire frire un petit poisson.",
+  "auteur": "Lao-tseu",
+  "source": "Tao-tö-king, 60"
+ },
+ {
+  "id": "tao-010",
+  "categorie": "Taoïsme",
+  "texte": "Traite les choses difficiles quand elles sont encore faciles ; accomplis les grandes choses quand elles sont encore petites.",
+  "auteur": "Lao-tseu",
+  "source": "Tao-tö-king, 63"
+ },
+ {
+  "id": "tao-011",
+  "categorie": "Taoïsme",
+  "texte": "L’arbre qu’on peut à peine embrasser est né d’une pousse minuscule ; une tour de neuf étages part d’un tas de terre ; un voyage de mille lieues commence par un pas.",
+  "auteur": "Lao-tseu",
+  "source": "Tao-tö-king, 64"
+ },
+ {
+  "id": "tao-012",
+  "categorie": "Taoïsme",
+  "texte": "L’homme, à sa naissance, est souple et faible ; à sa mort, il est dur et raide. Le dur et le fort sont compagnons de la mort ; le souple et le faible, compagnons de la vie.",
+  "auteur": "Lao-tseu",
+  "source": "Tao-tö-king, 76"
+ },
+ {
+  "id": "tao-013",
+  "categorie": "Taoïsme",
+  "texte": "Rien au monde n’est plus souple et plus faible que l’eau, mais pour attaquer ce qui est dur et fort, rien ne la surpasse.",
+  "auteur": "Lao-tseu",
+  "source": "Tao-tö-king, 78"
+ },
+ {
+  "id": "tao-014",
+  "categorie": "Taoïsme",
+  "texte": "Les paroles vraies ne sont pas belles ; les belles paroles ne sont pas vraies.",
+  "auteur": "Lao-tseu",
+  "source": "Tao-tö-king, 81"
+ },
+ {
+  "id": "tao-015",
+  "categorie": "Taoïsme",
+  "texte": "Le sage n’accumule pas : plus il fait pour les autres, plus il possède ; plus il donne aux autres, plus il a.",
+  "auteur": "Lao-tseu",
+  "source": "Tao-tö-king, 81"
+ },
+ {
+  "id": "tao-016",
+  "categorie": "Taoïsme",
+  "texte": "Qui se dresse sur la pointe des pieds ne tient pas debout ; qui allonge le pas ne marche pas longtemps.",
+  "auteur": "Lao-tseu",
+  "source": "Tao-tö-king, 24"
+ },
+ {
+  "id": "tao-017",
+  "categorie": "Taoïsme",
+  "texte": "Un bon marcheur ne laisse pas de traces.",
+  "auteur": "Lao-tseu",
+  "source": "Tao-tö-king, 27"
+ },
+ {
+  "id": "tao-018",
+  "categorie": "Taoïsme",
+  "texte": "Le retour est le mouvement du Tao ; la faiblesse est son usage.",
+  "auteur": "Lao-tseu",
+  "source": "Tao-tö-king, 40"
+ },
+ {
+  "id": "tao-019",
+  "categorie": "Taoïsme",
+  "texte": "Jadis, Tchouang-tseu rêva qu’il était un papillon voltigeant, heureux de son sort. Il s’éveilla et ne sut plus s’il était Tchouang-tseu rêvant qu’il était papillon, ou un papillon rêvant qu’il était Tchouang-tseu.",
+  "auteur": "Tchouang-tseu",
+  "source": "Tchouang-tseu, II"
+ },
+ {
+  "id": "tao-020",
+  "categorie": "Taoïsme",
+  "texte": "La nasse sert à prendre le poisson ; quand on a le poisson, on oublie la nasse. Les mots servent à exprimer l’idée ; quand on a saisi l’idée, on oublie les mots.",
+  "auteur": "Tchouang-tseu",
+  "source": "Tchouang-tseu, XXVI"
+ },
+ {
+  "id": "tao-021",
+  "categorie": "Taoïsme",
+  "texte": "Tout le monde connaît l’utilité de l’utile, mais personne ne connaît l’utilité de l’inutile.",
+  "auteur": "Tchouang-tseu",
+  "source": "Tchouang-tseu, IV"
+ },
+ {
+  "id": "tao-022",
+  "categorie": "Taoïsme",
+  "texte": "On ne peut parler de la mer à une grenouille qui vit au fond d’un puits : elle est bornée par son trou.",
+  "auteur": "Tchouang-tseu",
+  "source": "Tchouang-tseu, XVII"
+ },
+ {
+  "id": "tao-023",
+  "categorie": "Taoïsme",
+  "texte": "Vois comme les poissons sortent et s’ébattent à leur aise : c’est là le bonheur des poissons.",
+  "auteur": "Tchouang-tseu",
+  "source": "Tchouang-tseu, XVII"
+ },
+ {
+  "id": "tao-024",
+  "categorie": "Taoïsme",
+  "texte": "Mon couteau a dix-neuf ans ; il a découpé des milliers de bœufs, et son tranchant est comme neuf, car je ne le fais passer que par les interstices.",
+  "auteur": "Tchouang-tseu",
+  "source": "Tchouang-tseu, III (le cuisinier Ding)"
+ },
+ {
+  "id": "tao-025",
+  "categorie": "Taoïsme",
+  "texte": "Notre vie a une limite, mais le savoir n’en a pas.",
+  "auteur": "Tchouang-tseu",
+  "source": "Tchouang-tseu, III"
+ },
+ {
+  "id": "tao-026",
+  "categorie": "Taoïsme",
+  "texte": "Le canard a les pattes courtes : les allonger le ferait souffrir. La grue a les pattes longues : les couper la rendrait malheureuse.",
+  "auteur": "Tchouang-tseu",
+  "source": "Tchouang-tseu, VIII"
+ },
+ {
+  "id": "tao-027",
+  "categorie": "Taoïsme",
+  "texte": "L’homme parfait se sert de son esprit comme d’un miroir : il ne retient rien, ne refuse rien ; il reflète sans garder.",
+  "auteur": "Tchouang-tseu",
+  "source": "Tchouang-tseu, VII"
+ },
+ {
+  "id": "tao-028",
+  "categorie": "Taoïsme",
+  "texte": "Quand les sources sont à sec, les poissons se retrouvent ensemble sur la terre ; ils se mouillent de leur haleine. Mieux vaudrait qu’ils s’oublient les uns les autres dans les fleuves et les lacs.",
+  "auteur": "Tchouang-tseu",
+  "source": "Tchouang-tseu, VI"
+ },
+ {
+  "id": "tao-029",
+  "categorie": "Taoïsme",
+  "texte": "Le vent qui souffle sur dix mille trous différents fait sortir de chacun son propre son.",
+  "auteur": "Tchouang-tseu",
+  "source": "Tchouang-tseu, II"
+ },
+ {
+  "id": "bou-001",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Les phénomènes sont précédés par l’esprit, ont l’esprit pour guide, sont faits par l’esprit.",
+  "auteur": "Le Bouddha",
+  "source": "Dhammapada, 1"
+ },
+ {
+  "id": "bou-002",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "La haine ne cesse jamais par la haine ; c’est par la non-haine qu’elle cesse. C’est une loi éternelle.",
+  "auteur": "Le Bouddha",
+  "source": "Dhammapada, 5"
+ },
+ {
+  "id": "bou-003",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Celui qui se vainc lui-même est un plus grand vainqueur que celui qui vainc mille fois mille hommes au combat.",
+  "auteur": "Le Bouddha",
+  "source": "Dhammapada, 103"
+ },
+ {
+  "id": "bou-004",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Comme un rocher massif n’est pas ébranlé par le vent, le sage n’est pas ému par le blâme ni par la louange.",
+  "auteur": "Le Bouddha",
+  "source": "Dhammapada, 81"
+ },
+ {
+  "id": "bou-005",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "S’abstenir de tout mal, accomplir le bien, purifier son esprit : tel est l’enseignement des Bouddhas.",
+  "auteur": "Le Bouddha",
+  "source": "Dhammapada, 183"
+ },
+ {
+  "id": "bou-006",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "La santé est le plus grand des dons, le contentement la plus grande des richesses.",
+  "auteur": "Le Bouddha",
+  "source": "Dhammapada, 204"
+ },
+ {
+  "id": "bou-007",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Mieux qu’un millier de paroles vides de sens, une seule parole sensée qui apporte la paix.",
+  "auteur": "Le Bouddha",
+  "source": "Dhammapada, 100"
+ },
+ {
+  "id": "bou-008",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Ne pensez pas légèrement au bien en disant : « Cela ne viendra pas à moi. » Goutte à goutte se remplit la cruche d’eau.",
+  "auteur": "Le Bouddha",
+  "source": "Dhammapada, 122"
+ },
+ {
+  "id": "bou-009",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Soyez à vous-mêmes votre propre île, votre propre refuge.",
+  "auteur": "Le Bouddha",
+  "source": "Mahāparinibbāna Sutta (Dīgha Nikāya, 16)"
+ },
+ {
+  "id": "bou-010",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Toutes les choses composées sont impermanentes. Efforcez-vous avec vigilance.",
+  "auteur": "Le Bouddha",
+  "source": "Dernières paroles, Mahāparinibbāna Sutta"
+ },
+ {
+  "id": "bou-011",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Ne croyez pas une chose simplement parce que vous l’avez entendue, ni parce qu’elle est écrite dans les textes […] ; quand vous savez par vous-mêmes que cela est bon, alors acceptez-le.",
+  "auteur": "Le Bouddha",
+  "source": "Kālāma Sutta (Aṅguttara Nikāya, III, 65), condensé"
+ },
+ {
+  "id": "bou-012",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Mon enseignement est comme un radeau : il sert à traverser, non à être porté sur le dos.",
+  "auteur": "Le Bouddha",
+  "source": "Alagaddūpama Sutta (Majjhima Nikāya, 22)"
+ },
+ {
+  "id": "bou-013",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Où trouverais-je assez de cuir pour couvrir toute la terre ? Avec du cuir sous mes seules sandales, c’est comme si toute la terre était couverte.",
+  "auteur": "Shāntideva",
+  "source": "La Marche vers l’Éveil, V, 13"
+ },
+ {
+  "id": "bou-014",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Tant que durera l’espace, tant que demeureront les êtres, puissé-je demeurer aussi pour dissiper la souffrance du monde.",
+  "auteur": "Shāntideva",
+  "source": "La Marche vers l’Éveil, X, 55"
+ },
+ {
+  "id": "bou-015",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Étudier la Voie du Bouddha, c’est s’étudier soi-même. S’étudier soi-même, c’est s’oublier soi-même. S’oublier soi-même, c’est être éveillé par toutes choses.",
+  "auteur": "Dōgen",
+  "source": "Shōbōgenzō, « Genjōkōan »"
+ },
+ {
+  "id": "bou-016",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Si tu veux l’ainsité, sois sans délai ainsi.",
+  "auteur": "Dōgen",
+  "source": "Fukanzazengi (traduction libre)"
+ },
+ {
+  "id": "bou-017",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "La Voie parfaite n’est pas difficile ; elle refuse seulement de choisir.",
+  "auteur": "Sengcan",
+  "source": "Xinxin Ming (Inscription sur l’esprit de foi)"
+ },
+ {
+  "id": "bou-018",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Si tu rencontres le Bouddha, tue le Bouddha.",
+  "auteur": "Linji Yixuan",
+  "source": "Entretiens de Linji"
+ },
+ {
+  "id": "bou-019",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Pouvoir merveilleux et activité spirituelle : porter de l’eau, ramasser du bois.",
+  "auteur": "Layman Pang",
+  "source": "Recueil de Layman Pang"
+ },
+ {
+  "id": "bou-020",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Dans l’esprit du débutant, il y a beaucoup de possibilités ; dans celui de l’expert, il y en a peu.",
+  "auteur": "Shunryu Suzuki",
+  "source": "Esprit zen, esprit neuf"
+ },
+ {
+  "id": "bou-021",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "On considère d’ordinaire que marcher sur l’eau ou dans les airs est un miracle. Mais je crois que le vrai miracle, c’est de marcher sur la terre.",
+  "auteur": "Thich Nhat Hanh",
+  "source": "Le Miracle de la pleine conscience"
+ },
+ {
+  "id": "bou-022",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Laver la vaisselle pour laver la vaisselle.",
+  "auteur": "Thich Nhat Hanh",
+  "source": "Le Miracle de la pleine conscience"
+ },
+ {
+  "id": "bou-023",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Quand j’ai faim, je mange ; quand je suis fatigué, je dors.",
+  "auteur": "Dazhu Huihai",
+  "source": "Recueil de la transmission de la lampe (Jingde chuandeng lu)"
+ },
+ {
+  "id": "bou-024",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Un doigt pointé vers la lune n’est pas la lune.",
+  "auteur": "Sūtra Śūraṅgama",
+  "source": "II (image reprise par toute la tradition zen)"
+ },
+ {
+  "id": "bou-025",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "La forme est vide, le vide est forme.",
+  "auteur": "Sūtra du Cœur",
+  "source": "Prajñāpāramitā Hṛdaya Sūtra"
+ },
+ {
+  "id": "bou-026",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "De même qu’une mère protège au péril de sa vie son enfant, son unique enfant, ainsi devrait-on cultiver un cœur sans limites envers tous les êtres.",
+  "auteur": "Le Bouddha",
+  "source": "Metta Sutta (Sutta Nipāta, I, 8)"
+ },
+ {
+  "id": "bou-027",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Ce corps est semblable à l’écume, à un mirage.",
+  "auteur": "Le Bouddha",
+  "source": "Dhammapada, 46"
+ },
+ {
+  "id": "bou-028",
+  "categorie": "Bouddhisme et Zen",
+  "texte": "Comme l’abeille recueille le nectar sans abîmer ni la couleur ni le parfum de la fleur, ainsi le sage va de village en village.",
+  "auteur": "Le Bouddha",
+  "source": "Dhammapada, 49"
+ },
+ {
+  "id": "jap-001",
+  "categorie": "Culture japonaise",
+  "texte": "Le vieil étang — une grenouille y plonge : bruit de l’eau.",
+  "auteur": "Matsuo Bashō",
+  "source": "Haïku, 1686"
+ },
+ {
+  "id": "jap-002",
+  "categorie": "Culture japonaise",
+  "texte": "Sur une branche morte, un corbeau s’est posé — soir d’automne.",
+  "auteur": "Matsuo Bashō",
+  "source": "Haïku, 1680"
+ },
+ {
+  "id": "jap-003",
+  "categorie": "Culture japonaise",
+  "texte": "Malade en voyage, mes rêves errent sur les champs desséchés.",
+  "auteur": "Matsuo Bashō",
+  "source": "Dernier haïku, 1694"
+ },
+ {
+  "id": "jap-004",
+  "categorie": "Culture japonaise",
+  "texte": "Chaque jour est un voyage, et le voyage lui-même est la demeure.",
+  "auteur": "Matsuo Bashō",
+  "source": "La Sente étroite du Bout-du-Monde, prologue (traduction libre)"
+ },
+ {
+  "id": "jap-005",
+  "categorie": "Culture japonaise",
+  "texte": "Ce monde de rosée est un monde de rosée, et pourtant… et pourtant…",
+  "auteur": "Kobayashi Issa",
+  "source": "Haïku écrit après la mort de sa fille, 1819"
+ },
+ {
+  "id": "jap-006",
+  "categorie": "Culture japonaise",
+  "texte": "Petit escargot, gravis le mont Fuji, mais lentement, lentement !",
+  "auteur": "Kobayashi Issa",
+  "source": "Haïku"
+ },
+ {
+  "id": "jap-007",
+  "categorie": "Culture japonaise",
+  "texte": "Le voleur l’a laissée derrière lui : la lune à la fenêtre.",
+  "auteur": "Ryōkan",
+  "source": "Haïku"
+ },
+ {
+  "id": "jap-008",
+  "categorie": "Culture japonaise",
+  "texte": "La fleur de prunier : une fleur, la chaleur d’une fleur.",
+  "auteur": "Hattori Ransetsu",
+  "source": "Haïku"
+ },
+ {
+  "id": "jap-009",
+  "categorie": "Culture japonaise",
+  "texte": "Le courant de la rivière ne tarit jamais, et pourtant ce n’est jamais la même eau.",
+  "auteur": "Kamo no Chōmei",
+  "source": "Notes de ma cabane de moine (Hōjōki), incipit"
+ },
+ {
+  "id": "jap-010",
+  "categorie": "Culture japonaise",
+  "texte": "Si l’homme ne s’évanouissait pas comme la rosée d’Adashino, s’il ne se dissipait pas comme la fumée de Toribe, mais demeurait toujours en ce monde, les choses perdraient leur pouvoir de nous émouvoir. Le prix de la vie, c’est son incertitude.",
+  "auteur": "Yoshida Kenkō",
+  "source": "Les Heures oisives (Tsurezuregusa), 7"
+ },
+ {
+  "id": "jap-011",
+  "categorie": "Culture japonaise",
+  "texte": "Ne regarder les fleurs qu’en pleine floraison, la lune que sans nuages ? […] Les branches qui vont fleurir, le jardin jonché de fleurs fanées méritent davantage notre regard.",
+  "auteur": "Yoshida Kenkō",
+  "source": "Les Heures oisives (Tsurezuregusa), 137"
+ },
+ {
+  "id": "jap-012",
+  "categorie": "Culture japonaise",
+  "texte": "Au printemps, c’est l’aube que je préfère.",
+  "auteur": "Sei Shōnagon",
+  "source": "Notes de chevet, 1"
+ },
+ {
+  "id": "jap-013",
+  "categorie": "Culture japonaise",
+  "texte": "Le thé n’est qu’une manière de rendre un culte à l’imparfait, une tentative délicate pour accomplir quelque chose de possible dans cette chose impossible que nous appelons la vie.",
+  "auteur": "Okakura Kakuzō",
+  "source": "Le Livre du thé, I"
+ },
+ {
+  "id": "jap-014",
+  "categorie": "Culture japonaise",
+  "texte": "Je crois que le beau n’est pas une substance en soi, mais rien qu’un dessin d’ombres, qu’un jeu de clair-obscur produit par la juxtaposition de substances diverses.",
+  "auteur": "Jun’ichirō Tanizaki",
+  "source": "Éloge de l’ombre"
+ },
+ {
+  "id": "jap-015",
+  "categorie": "Culture japonaise",
+  "texte": "Si l’on use de sa raison, on devient anguleux ; si l’on se laisse porter par ses sentiments, on est emporté par le courant. Décidément, ce monde est difficile à vivre.",
+  "auteur": "Natsume Sōseki",
+  "source": "Oreiller d’herbes, I"
+ },
+ {
+  "id": "jap-016",
+  "categorie": "Culture japonaise",
+  "texte": "Tombe sept fois, relève-toi huit.",
+  "auteur": "Proverbe japonais",
+  "source": "Nana korobi ya oki"
+ },
+ {
+  "id": "jap-017",
+  "categorie": "Culture japonaise",
+  "texte": "Même un singe tombe de l’arbre.",
+  "auteur": "Proverbe japonais",
+  "source": "Saru mo ki kara ochiru"
+ },
+ {
+  "id": "jap-018",
+  "categorie": "Culture japonaise",
+  "texte": "Assis trois ans sur une pierre, elle finit par se réchauffer.",
+  "auteur": "Proverbe japonais",
+  "source": "Ishi no ue ni mo sannen"
+ },
+ {
+  "id": "jap-019",
+  "categorie": "Culture japonaise",
+  "texte": "Une rencontre, une occasion.",
+  "auteur": "Expression de la voie du thé",
+  "source": "Ichi-go ichi-e (formulée par Ii Naosuke)"
+ },
+ {
+  "id": "jap-020",
+  "categorie": "Culture japonaise",
+  "texte": "Il n’y a rien d’autre que la juste résolution de l’instant présent.",
+  "auteur": "Yamamoto Tsunetomo",
+  "source": "Hagakure, II"
+ },
+ {
+  "id": "jap-021",
+  "categorie": "Culture japonaise",
+  "texte": "Tu ne dois rien faire d’inutile.",
+  "auteur": "Miyamoto Musashi",
+  "source": "Traité des cinq roues, « Livre de la terre », neuf principes"
+ },
+ {
+  "id": "jap-022",
+  "categorie": "Culture japonaise",
+  "texte": "Connaître mille choses par une seule.",
+  "auteur": "Miyamoto Musashi",
+  "source": "Traité des cinq roues, « Livre de la terre »"
+ },
+ {
+  "id": "jap-023",
+  "categorie": "Culture japonaise",
+  "texte": "Le printemps qui s’en va — les oiseaux pleurent, les yeux des poissons sont pleins de larmes.",
+  "auteur": "Matsuo Bashō",
+  "source": "La Sente étroite du Bout-du-Monde"
+ },
+ {
+  "id": "jap-024",
+  "categorie": "Culture japonaise",
+  "texte": "Silence — le chant des cigales pénètre les rochers.",
+  "auteur": "Matsuo Bashō",
+  "source": "La Sente étroite du Bout-du-Monde"
+ },
+ {
+  "id": "jap-025",
+  "categorie": "Culture japonaise",
+  "texte": "Les herbes de l’été — de tant de guerriers les rêves, ce qu’il en reste.",
+  "auteur": "Matsuo Bashō",
+  "source": "La Sente étroite du Bout-du-Monde, Hiraizumi"
+ }
+]
