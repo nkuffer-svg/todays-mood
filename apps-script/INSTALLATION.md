@@ -115,6 +115,14 @@ Pas de nouvelle autorisation : recopie le nouveau `Code.gs`, enregistre, puis
 **Déployer → Gérer les déploiements → crayon → Nouvelle version → Déployer**.
 L'onglet `Pensees` du classeur se remplit tout seul (favoris et pensées déjà vues).
 
+## Mise à jour de l'étape 7 (réglages dans le Sheet)
+
+Pas de nouvelle autorisation : recopie le nouveau `Code.gs`, enregistre, puis
+**Déployer → Gérer les déploiements → crayon → Nouvelle version → Déployer**.
+L'onglet `Reglages` du classeur reçoit alors l'heure de bascule, l'objectif d'eau, la durée de la
+pensée, la position météo et la date du dernier export. L'adresse de la Web App et le jeton n'y vont
+jamais : ils restent uniquement sur le téléphone.
+
 ## En cas de problème
 
 | Message dans l'app | Que faire |

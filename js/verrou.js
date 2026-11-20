@@ -9,7 +9,7 @@ const ecouteurs = new Set();
 
 export const estDeverrouille = () => deverrouille;
 export const authentificationActive = () => authentificationEnCours;
-export function surChangement(fn) { ecouteurs.add(fn); }
+export function surChangement(fn) { ecouteurs.add(fn); return () => ecouteurs.delete(fn); }
 function publier() { for (const fn of ecouteurs) fn(deverrouille); }
 
 export function verrouiller() {

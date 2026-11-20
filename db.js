@@ -360,7 +360,29 @@
     return change;
   }
 
+  /* ---------- Réglages partagés avec le Sheet ---------- */
+
+  async function ecrireReglagePartage(cle, valeur) {
+    const db = await ouvrir();
+    const tx = db.transaction(['reglages', 'file'], 'readwrite');
+    tx.objectStore('reglages').put({ cle, valeur });
+    tx.objectStore('file').put({ cle: 'reglages', type: 'reglages', version: Date.now() });
+    return fin(tx);
+  }
+
+  /** Retire les réglages de la file s'ils n'ont pas changé pendant l'envoi. */
+  async function retirerReglagesDeLaFile(version) {
+    const db = await ouvrir();
+    const tx = db.transaction('file', 'readwrite');
+    const file = tx.objectStore('file');
+    file.get('reglages').onsuccess = (e) => {
+      if (e.target.result && e.target.result.version === version) file.delete('reglages');
+    };
+    return fin(tx);
+  }
+
   global.TMDB = {
+    ecrireReglagePartage, retirerReglagesDeLaFile,
     modifierPensee, retirerPenseeDeLaFile, fusionnerPensees,
     ajouterMarche, supprimerMarche, retirerMarcheDeLaFile, fusionnerMarches,
     enregistrerPhotoLocale, marquerPhotoEnvoyee, supprimerPhotoLocale, mettreALaCorbeille, purgerPhotos,

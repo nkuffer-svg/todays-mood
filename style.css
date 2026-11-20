@@ -888,3 +888,102 @@ select.champ { appearance: auto; }
 
 .pensee-carte blockquote { margin: 0; font-size: 17px; line-height: 1.5; color: var(--texte); }
 .pensee-carte .pensee-auteur { font-size: 19px; margin-top: 8px; }
+
+/* ---------- Historique, mémos, catégories (étape 7) ---------- */
+
+h1 { font-size: 30px; }
+.entete-actions { gap: 4px; }
+.etat-sync { padding: 0 10px; font-size: 11px; }
+
+.historique-vue { margin-top: 16px; }
+
+.cal-tete { display: grid; grid-template-columns: 48px 1fr 48px; align-items: center; gap: 8px; }
+.cal-titre { margin: 0; text-align: center; font-family: var(--titre); font-size: 26px; letter-spacing: 0.08em; color: var(--laiton); }
+.cal-grille { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 12px; }
+.cal-entete { text-align: center; font-family: var(--etroit); font-size: 12px; letter-spacing: 0.1em; color: var(--texte-discret); padding: 4px 0; }
+.cal-jour {
+  position: relative;
+  aspect-ratio: 1;
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--bordure);
+  background: var(--creux);
+  color: var(--texte-2);
+  font-family: var(--etroit);
+  font-size: 16px;
+  cursor: pointer;
+}
+.cal-jour:disabled { opacity: 0.3; cursor: default; }
+.cal-jour.avec-fiche { border-color: var(--laiton-fonce); color: var(--texte); background: var(--selection); }
+.cal-jour.aujourdhui { box-shadow: 0 0 0 2px var(--laiton); }
+.cal-jour.cool::after, .cal-jour.pascool::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 5px;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 50%;
+}
+.cal-jour.cool::after { background: var(--vert); }
+.cal-jour.pascool::after { background: var(--rouge); }
+.cal-resume { text-align: center; margin: 10px 0 0; }
+.cal-legende { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 12px; font-size: 12px; color: var(--texte-discret); margin: 6px 0 0; }
+.puce { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: -6px; }
+.puce.avec-fiche { border-radius: 3px; background: var(--selection); border: 1px solid var(--laiton-fonce); }
+.puce.cool { background: var(--vert); }
+.puce.pascool { background: var(--rouge); }
+
+.aide-filtre { margin: 6px 0 0; font-size: 12px; }
+.resultats { margin-top: 18px; }
+.liste-resultats { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.resultat {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 12px 14px;
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--bordure);
+  background: var(--carte);
+  color: var(--texte);
+  text-align: left;
+  cursor: pointer;
+  list-style: none;
+}
+.resultat::-webkit-details-marker { display: none; }
+.resultat-date { font-family: var(--etroit); font-weight: 600; font-size: 14px; color: var(--laiton-clair); text-transform: capitalize; }
+.resultat-marques { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.resultat-texte { font-size: 14px; color: var(--texte-2); }
+.pastille.statique.cool { border-color: #3E7A55; color: var(--vert); }
+.pastille.statique.pascool { border-color: #8C3A2C; color: var(--rouge); }
+.marque-icone { display: inline-grid; color: var(--laiton-clair); }
+.marque-icone .icone { width: 18px; height: 18px; }
+.marque-icone.piment { color: var(--rouge); }
+.icone.pleine .remplissable { fill: currentColor; }
+.memo[open] > .resultat { border-color: var(--laiton-fonce); border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.memo-corps { border: 1px solid var(--laiton-fonce); border-top: 0; border-radius: 0 0 12px 12px; padding: 4px 14px 12px; background: var(--creux); }
+.memo-texte { white-space: pre-wrap; margin: 8px 0 10px; }
+
+.encart { background: var(--selection); border-left: 3px solid var(--laiton); border-radius: 4px 10px 10px 4px; padding: 10px 14px; margin-top: 16px; }
+.encart p { margin: 0 0 8px; color: var(--texte-2); font-size: 14px; }
+.encart .bouton { display: inline-flex; align-items: center; gap: 4px; }
+
+.zone-export { margin-top: 24px; padding-top: 8px; border-top: 1px solid var(--bordure); }
+.zone-export .bouton { display: inline-flex; align-items: center; gap: 8px; }
+.zone-export .bouton .icone { width: 20px; height: 20px; }
+.case { display: flex; align-items: flex-start; gap: 10px; margin: 10px 0; min-height: 44px; cursor: pointer; color: var(--texte); }
+.case input { width: 22px; height: 22px; margin: 2px 0 0; accent-color: var(--laiton); flex: none; }
+.case small { color: var(--texte-discret); }
+
+.liste-categories { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.categorie { display: flex; flex-direction: column; gap: 6px; padding-bottom: 10px; border-bottom: 1px solid var(--bordure); }
+.categorie.masquee .champ { color: var(--texte-discret); text-decoration: line-through; }
+.categorie-actions { display: flex; align-items: center; gap: 8px; }
+.bouton-rond.petit { width: 44px; height: 44px; }
+.bouton-visibilite { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; }
+.bouton-visibilite[aria-pressed="false"] { color: var(--texte-discret); border-color: var(--bordure-forte); }
+.ajout-categorie { margin-top: 14px; }

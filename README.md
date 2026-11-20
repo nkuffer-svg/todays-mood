@@ -6,4 +6,6 @@ Journal quotidien personnel (PWA pour Android), hébergé sur GitHub Pages :
 - `CLAUDE.md` : document de référence du projet.
 - `index.html`, `style.css`, `db.js`, `js/` : l'app (HTML/CSS/JS sans build).
 - `sw.js` : service worker (hors ligne, réception des partages de l'Enregistreur).
-- `apps-script/` : code à coller dans Google Apps Script, et `INSTALLATION.md` pour la mise en place.
+- `data/pensees.json` : base des pensées du jour (315 citations avec leur source).
+- `apps-script/` : code à coller dans Google Apps Script, et `INSTALLATION.md` pour la mise en place
+  et les mises à jour.

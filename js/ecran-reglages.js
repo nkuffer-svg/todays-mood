@@ -1,5 +1,5 @@
 /* Écran Réglages (minimal à l'étape 2) : Web App, jeton, heure de bascule. */
-import { el, carte, segments } from './ui.js';
+import { el, carte, segments, icone } from './ui.js';
 import { LIEU_DEFAUT } from './meteo.js';
 import { empreinteEnregistree, enregistrerEmpreinte, disponibilite } from './verrou.js';
 import { ouvrirEcran } from './ecran.js';
@@ -8,7 +8,53 @@ import { appeler, surEtat, planifier } from './sync.js';
 
 const fmt = new Intl.DateTimeFormat('fr-CH', { dateStyle: 'medium', timeStyle: 'short' });
 
-export function ouvrirReglages({ synchroComplete, reglagesModifies }) {
+/** Carte de gestion des catégories d'événement : renommer, masquer, réordonner, ajouter. */
+function carteCategories(categories) {
+  const liste = el('ul', { class: 'liste-categories' });
+  const message = el('p', { class: 'avertissement', role: 'status', hidden: true });
+  const signaler = (texte) => { message.hidden = !texte; message.textContent = texte || ''; };
+
+  function dessiner() {
+    const items = categories.liste();
+    liste.replaceChildren(...items.map((p, i) => {
+      const champ = el('input', { class: 'champ', type: 'text', maxlength: '30', value: p.nom, 'aria-label': `Nom de la catégorie ${p.nom}` });
+      champ.addEventListener('change', async () => {
+        const r = await categories.renommer(p.nom, champ.value.trim());
+        if (!r.ok) { signaler(r.message); champ.value = p.nom; return; }
+        signaler(r.message || '');
+        dessiner();
+      });
+      return el('li', { class: 'categorie' + (p.visible === false ? ' masquee' : '') },
+        champ,
+        el('div', { class: 'categorie-actions' },
+          el('button', { type: 'button', class: 'bouton-rond petit', 'aria-label': `Monter ${p.nom}`, disabled: i === 0, onClick: async () => { await categories.deplacer(p.nom, -1); dessiner(); } }, icone('haut')),
+          el('button', { type: 'button', class: 'bouton-rond petit', 'aria-label': `Descendre ${p.nom}`, disabled: i === items.length - 1, onClick: async () => { await categories.deplacer(p.nom, 1); dessiner(); } }, icone('bas')),
+          el('button', {
+            type: 'button', class: 'bouton petit discret bouton-visibilite', 'aria-pressed': String(p.visible !== false),
+            onClick: async () => { await categories.basculerVisible(p.nom); dessiner(); },
+          }, icone('oeil', 'petite'), p.visible === false ? ' Masquée' : ' Visible')));
+    }));
+  }
+
+  const champNouveau = el('input', { class: 'champ', type: 'text', maxlength: '30', placeholder: 'Nouvelle catégorie', 'aria-label': 'Nouvelle catégorie' });
+  const formulaire = el('form', { class: 'ligne-champ ajout-categorie' }, champNouveau, el('button', { type: 'submit', class: 'bouton' }, 'Ajouter'));
+  formulaire.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nom = champNouveau.value.trim();
+    if (!nom) return;
+    const r = await categories.ajouter(nom);
+    if (!r.ok) { signaler(r.message); return; }
+    signaler('');
+    champNouveau.value = '';
+    dessiner();
+  });
+  dessiner();
+  return carte('Catégories d’événement',
+    el('p', { class: 'discret' }, 'Renommer une catégorie met aussi à jour les fiches qui l’utilisent. Une catégorie masquée n’est plus proposée, mais reste dans l’historique.'),
+    liste, message, formulaire);
+}
+
+export function ouvrirReglages({ synchroComplete, reglagesModifies, categories }) {
   let desabonner = null;
   let enregistrerMaintenant = null;
   const { corps } = ouvrirEcran({
@@ -209,6 +255,7 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies }) {
       el('p', { class: 'discret' }, 'Avant cette heure, une saisie compte encore pour la veille.'),
       el('label', { class: 'sous-titre-champ', for: 'reglage-eau' }, 'Objectif d’eau par jour'),
       choixEau),
+    carteCategories(categories),
     carte('Pensée du jour',
       el('label', { class: 'sous-titre-champ', for: 'reglage-duree-pensee' }, 'Durée d’affichage à l’ouverture'),
       choixDuree,

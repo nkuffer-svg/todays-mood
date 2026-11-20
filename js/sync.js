@@ -3,7 +3,7 @@
      que si elle n'a pas été modifiée pendant l'envoi.
    - Réception : au démarrage (et sur demande), toutes les fiches du Sheet sont relues ; une fiche
      distante remplace la locale si elle est plus récente et que la locale n'attend pas d'envoi. */
-import { reglage, definirReglage } from './reglages.js';
+import { reglage, definirReglage, reglagesPartages, fusionnerReglages } from './reglages.js';
 
 const ecouteurs = new Set();
 const ecouteursDonnees = new Set();
@@ -125,7 +125,9 @@ export function synchroniser({ tirer = false } = {}) {
 }
 
 async function executer(tirer) {
-  const resultat = { datesModifiees: new Set(), pastillesModifiees: false, marchesModifiees: false, penseesModifiees: false };
+  const resultat = {
+    datesModifiees: new Set(), pastillesModifiees: false, marchesModifiees: false, penseesModifiees: false, reglagesModifies: false,
+  };
   const attente = await compterAttente();
   if (!reglage('url') || !reglage('jeton')) {
     publier({ code: 'config', message: 'Synchronisation à configurer' });
@@ -150,7 +152,7 @@ async function executer(tirer) {
   } catch (err) {
     publier({ code: err.code === 'jeton' ? 'jeton' : 'erreur', message: err.message });
   }
-  if (resultat.datesModifiees.size || resultat.pastillesModifiees || resultat.marchesModifiees || resultat.penseesModifiees) {
+  if (resultat.datesModifiees.size || resultat.pastillesModifiees || resultat.marchesModifiees || resultat.penseesModifiees || resultat.reglagesModifies) {
     for (const fn of ecouteursDonnees) await fn(resultat);
   }
   return resultat;
@@ -194,7 +196,7 @@ async function envoyerPhotos() {
 async function envoyer() {
   await envoyerPhotos();
   const file = await TMDB.tout('file');
-  if (file.filter((e) => ['fiche', 'pastilles', 'marche', 'pensee'].includes(e.type)).length === 0) return 0;
+  if (file.filter((e) => ['fiche', 'pastilles', 'marche', 'pensee', 'reglages'].includes(e.type)).length === 0) return 0;
   // Chaque fiche part avec ses seuls champs modifiés : le Sheet garde les autres
   // (saisis par exemple sur un autre appareil).
   const fiches = [];
@@ -237,6 +239,10 @@ async function envoyer() {
     else await TMDB.supprimer('file', e.cle);
   }
   if (pensees.length) donnees.pensees = pensees;
+
+  // Réglages partagés (jamais l'adresse ni le jeton).
+  const entreeReglages = file.find((e) => e.type === 'reglages');
+  if (entreeReglages) donnees.reglages = reglagesPartages();
   if (avecPastilles) donnees.pastilles = await TMDB.tout('pastilles');
 
   const rep = await appeler('enregistrer', donnees);
@@ -245,6 +251,7 @@ async function envoyer() {
   if (avecPastilles) await TMDB.supprimer('file', 'pastilles');
   for (const e of entreesMarches) await TMDB.retirerMarcheDeLaFile(e.id, e.op);
   for (const p of pensees) await TMDB.retirerPenseeDeLaFile(p);
+  if (entreeReglages) await TMDB.retirerReglagesDeLaFile(entreeReglages.version);
   return (rep.ignorees || []).length;
 }
 
@@ -259,6 +266,9 @@ async function recevoir(resultat) {
   }
   if (Array.isArray(rep.pensees) && await TMDB.fusionnerPensees(rep.pensees)) {
     resultat.penseesModifiees = true;
+  }
+  if (rep.reglages && typeof rep.reglages === 'object') {
+    resultat.reglagesModifies = (await fusionnerReglages(rep.reglages)).length > 0;
   }
   const fileActuelle = await TMDB.tout('file');
   const pastillesEnAttente = fileActuelle.some((e) => e.type === 'pastilles');

@@ -13,8 +13,9 @@ import { traiterPartage } from './ecran-partage.js';
 import * as verrou from './verrou.js';
 import { tirerPensee, definirFavori } from './pensees.js';
 import { afficherPensee, ouvrirFavoris } from './ecran-pensee.js';
+import { ouvrirHistorique } from './ecran-historique.js';
 
-export const VERSION = 'etape6-v1';
+export const VERSION = 'etape7-v1';
 
 const etat = {
   aujourdhui: null, // jour courant selon l'heure de bascule
@@ -243,6 +244,49 @@ const ctx = {
   },
 };
 
+/* ---------- Catégories d'événement (Réglages) ---------- */
+
+const triees = () => [...etat.pastilles].sort((a, b) => a.ordre - b.ordre);
+
+async function enregistrerCategories(liste) {
+  etat.pastilles = liste.map((p, i) => ({ ...p, ordre: i + 1 }));
+  await TMDB.enregistrerPastilles(etat.pastilles);
+  planifier();
+}
+
+const categories = {
+  liste: triees,
+  async ajouter(nom) {
+    if (etat.pastilles.some((p) => p.nom.toLowerCase() === nom.toLowerCase())) return { ok: false, message: 'Cette catégorie existe déjà.' };
+    await enregistrerCategories([...triees(), { nom, visible: true }]);
+    return { ok: true };
+  },
+  async renommer(ancien, nouveau) {
+    if (!nouveau) return { ok: false, message: 'Le nom ne peut pas être vide.' };
+    if (nouveau === ancien) return { ok: true };
+    if (etat.pastilles.some((p) => p.nom !== ancien && p.nom.toLowerCase() === nouveau.toLowerCase())) {
+      return { ok: false, message: 'Une autre catégorie porte déjà ce nom.' };
+    }
+    await enregistrerCategories(triees().map((p) => (p.nom === ancien ? { ...p, nom: nouveau } : p)));
+    // Les fiches qui utilisaient l'ancien nom suivent le renommage.
+    await viderSaisieEnAttente();
+    const concernees = (await TMDB.tout('fiches')).filter((f) => f.evt_categorie === ancien);
+    for (const f of concernees) await appliquerChamps(f.date, { evt_categorie: nouveau });
+    return { ok: true, message: concernees.length ? `${concernees.length} fiche(s) mise(s) à jour.` : '' };
+  },
+  async basculerVisible(nom) {
+    await enregistrerCategories(triees().map((p) => (p.nom === nom ? { ...p, visible: p.visible === false } : p)));
+  },
+  async deplacer(nom, delta) {
+    const liste = triees();
+    const i = liste.findIndex((p) => p.nom === nom);
+    const j = i + delta;
+    if (i < 0 || j < 0 || j >= liste.length) return;
+    [liste[i], liste[j]] = [liste[j], liste[i]];
+    await enregistrerCategories(liste);
+  },
+};
+
 async function chargerPastilles() {
   const stockees = await TMDB.tout('pastilles');
   etat.pastilles = stockees.length
@@ -279,6 +323,7 @@ export async function allerA(date, { onglet } = {}) {
   await viderSaisieEnAttente();
   if (date > etat.aujourdhui) date = etat.aujourdhui;
   etat.date = date;
+  if (onglet && etat.onglet === 'perso' && onglet !== 'perso') verrou.verrouiller();
   if (onglet) etat.onglet = onglet;
   etat.fiche = await chargerFiche(date);
   rendre();
@@ -345,8 +390,22 @@ function construireEntete() {
     if (j != null) { changerOnglet(ONGLETS[j].id); $('onglet-' + ONGLETS[j].id).focus(); }
   });
 
-  $('btn-reglages').addEventListener('click', () => ouvrirReglages({ synchroComplete, reglagesModifies }));
-  $('btn-sync').addEventListener('click', () => ouvrirReglages({ synchroComplete, reglagesModifies }));
+  const reglagesComplets = () => ouvrirReglages({
+    synchroComplete, categories,
+    reglagesModifies: () => reglagesModifies(),
+  });
+  $('btn-reglages').addEventListener('click', reglagesComplets);
+  $('btn-sync').addEventListener('click', reglagesComplets);
+  $('btn-historique').append(icone('historique'));
+  $('btn-historique').addEventListener('click', async () => {
+    await viderSaisieEnAttente();
+    ouvrirHistorique({
+      aujourdhui: etat.aujourdhui,
+      categories: triees().map((p) => p.nom),
+      allerA: (date, onglet) => allerA(date, { onglet }),
+      ouvrirFavoris: () => ctx.pensee.ouvrirFavoris(),
+    });
+  });
 
   surEtat((s) => {
     const b = $('btn-sync');
@@ -362,6 +421,7 @@ function construireEntete() {
 
 async function apresSynchro(resultat) {
   if (texteEnAttente) return; // ne pas effacer une saisie en cours ; la suite viendra à la prochaine synchro
+  if (resultat.reglagesModifies && verifierChangementDeJour()) return;
   let redessiner = false;
   if (resultat.pastillesModifiees) {
     await chargerPastilles();
@@ -373,6 +433,7 @@ async function apresSynchro(resultat) {
   }
   if (resultat.marchesModifiees && etat.onglet === 'journee') redessiner = true;
   if (resultat.penseesModifiees && etat.onglet === 'matin') redessiner = true;
+  if (resultat.reglagesModifies) redessiner = true;
   if (redessiner) rendre();
 }
 

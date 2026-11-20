@@ -1,5 +1,5 @@
 /**
- * Today's Mood — Web App Apps Script (étape 6).
+ * Today's Mood — Web App Apps Script (étape 7).
  *
  * À coller dans l'éditeur Apps Script du classeur « Today's Mood – données »
  * (Extensions → Apps Script). Voir apps-script/INSTALLATION.md.
@@ -8,7 +8,7 @@
  * et rangé dans les Propriétés du script.
  */
 
-const VERSION = 'etape6-v1';
+const VERSION = 'etape7-v1';
 
 const COLONNES_FICHES = [
   'date', 'modifie_le', 'pensee_id',
@@ -40,6 +40,12 @@ const ONGLETS = {
 
 const NOM_DOSSIER_PHOTOS = "Today's Mood – photos";
 const CHAMPS_PHOTO = { photo_ciel: 'ciel', photo_jour: 'jour' };
+
+/** Réglages que l'app peut enregistrer dans l'onglet Reglages (jamais l'adresse ni le jeton). */
+const REGLAGES_AUTORISES = [
+  'bascule', 'objectifEau', 'dureePensee', 'meteoMode', 'lieuNom', 'lieuLat', 'lieuLon',
+  'penseesDebutCycle', 'dernierExport',
+];
 
 const PASTILLES_DEFAUT = ['Job', 'Maison', 'Famille élargie', 'Famille', 'Réflexion', 'Pensée', 'Scène de vie'];
 
@@ -141,10 +147,11 @@ function traiter_(requete) {
         enregistrerMarches_(ss, requete.marches || [], requete.marchesSupprimees || []);
       }
       if (Array.isArray(requete.pensees)) enregistrerPensees_(ss, requete.pensees);
+      if (requete.reglages && typeof requete.reglages === 'object') enregistrerReglages_(ss, requete.reglages);
       return { ok: true, enregistrees: resultat.enregistrees, ignorees: resultat.ignorees };
     }
     case 'lire':
-      return { ok: true, fiches: lireFiches_(ss), pastilles: lirePastilles_(ss), marches: lireMarches_(ss), pensees: lirePensees_(ss) };
+      return { ok: true, fiches: lireFiches_(ss), pastilles: lirePastilles_(ss), marches: lireMarches_(ss), pensees: lirePensees_(ss), reglages: lireReglages_(ss) };
     case 'envoyerPhoto':
       return envoyerPhoto_(requete);
     case 'lirePhoto':
@@ -380,6 +387,41 @@ function lirePensees_(ss) {
         derniere: texteDate_(l[iDer], tz) || null,
       };
     });
+}
+
+/* =====================================================================
+   Réglages : clé, valeur
+   ===================================================================== */
+
+function enregistrerReglages_(ss, reglages) {
+  const feuille = onglet_(ss, 'Reglages');
+  const derniere = feuille.getLastRow();
+  const valeurs = derniere >= 2 ? feuille.getRange(2, 1, derniere - 1, 2).getValues() : [];
+  const ligneParCle = {};
+  valeurs.forEach(function (l, k) { if (String(l[0]).trim()) ligneParCle[String(l[0]).trim()] = k + 2; });
+  const nouvelles = [];
+  Object.keys(reglages).forEach(function (cle) {
+    if (REGLAGES_AUTORISES.indexOf(cle) < 0) return;
+    const v = reglages[cle];
+    const cellule = typeof v === 'number' ? v : (v === null || v === undefined ? '' : "'" + String(v));
+    if (ligneParCle[cle]) feuille.getRange(ligneParCle[cle], 2).setValue(cellule);
+    else nouvelles.push(["'" + cle, cellule]);
+  });
+  if (nouvelles.length) feuille.getRange(Math.max(derniere, 1) + 1, 1, nouvelles.length, 2).setValues(nouvelles);
+}
+
+function lireReglages_(ss) {
+  const feuille = onglet_(ss, 'Reglages');
+  const tz = ss.getSpreadsheetTimeZone();
+  const derniere = feuille.getLastRow();
+  const reglages = {};
+  if (derniere < 2) return reglages;
+  feuille.getRange(2, 1, derniere - 1, 2).getValues().forEach(function (l) {
+    const cle = String(l[0]).trim();
+    if (REGLAGES_AUTORISES.indexOf(cle) < 0 || l[1] === '') return;
+    reglages[cle] = l[1] instanceof Date ? Utilities.formatDate(l[1], tz, 'yyyy-MM-dd') : l[1];
+  });
+  return reglages;
 }
 
 /* =====================================================================

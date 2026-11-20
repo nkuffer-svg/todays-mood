@@ -4,7 +4,7 @@
 'use strict';
 importScripts('./db.js');
 
-const VERSION = 'etape6-v1';
+const VERSION = 'etape7-v1';
 const CACHE = 'todays-mood-' + VERSION;
 const CACHE_POLICES = 'todays-mood-polices';
 const FICHIERS = [
@@ -16,9 +16,11 @@ const FICHIERS = [
   './data/pensees.json',
   './js/app.js',
   './js/compteurs.js',
+  './js/docx.js',
   './js/donnees.js',
   './js/ecran-pensee.js',
   './js/ecran.js',
+  './js/ecran-historique.js',
   './js/ecran-partage.js',
   './js/ecran-reglages.js',
   './js/jauge.js',

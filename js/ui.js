@@ -54,6 +54,12 @@ const TRACES = {
   galerie: '<rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-4.5 3.5 3 3-2.5 4.5 4"/>',
   corbeille: '<path d="M5 7h14M10 7V4.5h4V7M7 7l1 13h8l1-13"/>',
   actualiser: '<path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3M19.5 4.5v3.8h-3.8"/>',
+  historique: '<path d="M4.2 13.5A8 8 0 1 0 6 6.3"/><path d="M4 3.8v4.4h4.4"/><path d="M12 8v4.2l2.8 1.8"/>',
+  haut: '<path d="M6 15l6-6 6 6"/>',
+  bas: '<path d="M6 9l6 6 6-6"/>',
+  telecharger: '<path d="M12 4v11M7 10.5l5 5 5-5M5 20h14"/>',
+  partager: '<circle cx="18" cy="5.5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="18.5" r="2.5"/><path d="M8.2 10.8l7.6-4.1M8.2 13.2l7.6 4.1"/>',
+  oeil: '<path d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/>',
   empreinte: '<path d="M7.5 9.5a4.5 4.5 0 0 1 9 0c0 3-.5 5.5-1.5 7.5"/><path d="M12 9.5c0 3.5-.6 6.6-2.2 9"/><path d="M5 13c.3-1 .5-2.2.5-3.5a6.5 6.5 0 0 1 13 0c0 1.5-.1 3-.4 4.5"/><path d="M9.5 9.8c0 2.6-.5 5-1.6 7"/>',
 };
 

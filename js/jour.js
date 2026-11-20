@@ -33,7 +33,7 @@ const majuscule = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 export function formatLong(texte, reference) {
   const d = depuisTexte(texte);
   const memeAnnee = reference && texte.slice(0, 4) === reference.slice(0, 4);
-  return majuscule((memeAnnee ? fmtLong : fmtAnnee).format(d));
+  return majuscule((memeAnnee ? fmtLong : fmtAnnee).format(d).replace(',', ''));
 }
 
 /** « Aujourd'hui », « Hier », « Avant-hier » ou chaîne vide. */
