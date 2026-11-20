@@ -59,3 +59,10 @@ export const ONGLETS = [
   { id: 'soir', nom: 'Soir' },
   { id: 'perso', nom: 'Perso' },
 ];
+
+export const RESSENTIS = [
+  { valeur: 1, libelle: 'Soleil', icone: 'soleil' },
+  { valeur: 2, libelle: 'Nuageux', icone: 'nuage' },
+  { valeur: 3, libelle: 'Pluie', icone: 'pluie' },
+  { valeur: 4, libelle: 'Neige', icone: 'neige' },
+];

@@ -91,6 +91,19 @@ Pense à supprimer la note Keep ou l'e-mail une fois le jeton saisi.
 Ainsi l'adresse reste la même : rien à changer sur le téléphone.
 (Si tu fais « Nouveau déploiement » à la place, tu obtiens une nouvelle adresse qu'il faudrait ressaisir.)
 
+## Mise à jour de l'étape 3 (photos sur Drive)
+
+Le script doit maintenant pouvoir ranger les photos dans ton Google Drive. Il faut donc une nouvelle
+autorisation, en plus de la mise à jour habituelle :
+
+1. Recopie le nouveau `Code.gs` dans l'éditeur (comme à l'étape 2 ci-dessus) et enregistre.
+2. Choisis la fonction **initialiser** et clique sur **Exécuter**.
+   Google redemande une autorisation, cette fois pour **Google Drive** : accepte-la comme la première fois
+   (Paramètres avancés → Accéder à Today's Mood → Autoriser).
+   Le journal affiche « Dossier des photos : Today's Mood – photos » : le dossier est créé dans ton Drive.
+   Ton jeton ne change pas.
+3. **Déployer → Gérer les déploiements** → **crayon** → Version : **Nouvelle version** → **Déployer**.
+
 ## En cas de problème
 
 | Message dans l'app | Que faire |
@@ -99,6 +112,8 @@ Ainsi l'adresse reste la même : rien à changer sur le téléphone.
 | Jeton non configuré | Lance la fonction **initialiser** dans l'éditeur. |
 | Réponse inattendue du serveur | Vérifie que l'adresse finit par `/exec` et que l'accès est « Tout le monde ». |
 | Connexion impossible | Vérifie le réseau et l'adresse. |
+| Le script Apps Script n'est pas à jour | Recopie `Code.gs` puis publie une **nouvelle version** du déploiement. |
+| Une photo reste « Envoi vers Drive en attente » | Lance **initialiser** dans l'éditeur pour accorder l'accès à Drive, puis publie une nouvelle version. |
 
 Si tu penses que ton jeton a été vu par quelqu'un : lance la fonction **nouveauJeton**, puis saisis le
 nouveau jeton dans l'app.

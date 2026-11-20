@@ -1,5 +1,5 @@
 /**
- * Today's Mood — Web App Apps Script (étape 2).
+ * Today's Mood — Web App Apps Script (étape 3).
  *
  * À coller dans l'éditeur Apps Script du classeur « Today's Mood – données »
  * (Extensions → Apps Script). Voir apps-script/INSTALLATION.md.
@@ -8,7 +8,7 @@
  * et rangé dans les Propriétés du script.
  */
 
-const VERSION = 'etape2-v1';
+const VERSION = 'etape3-v1';
 
 const COLONNES_FICHES = [
   'date', 'modifie_le', 'pensee_id',
@@ -38,13 +38,16 @@ const ONGLETS = {
   Reglages: ['cle', 'valeur'],
 };
 
+const NOM_DOSSIER_PHOTOS = "Today's Mood – photos";
+const CHAMPS_PHOTO = { photo_ciel: 'ciel', photo_jour: 'jour' };
+
 const PASTILLES_DEFAUT = ['Job', 'Maison', 'Famille élargie', 'Famille', 'Réflexion', 'Pensée', 'Scène de vie'];
 
 /* =====================================================================
    Fonctions à lancer à la main depuis l'éditeur (menu déroulant + Exécuter)
    ===================================================================== */
 
-/** Crée les 5 onglets avec leurs en-têtes et le jeton secret. Sans danger si on la relance. */
+/** Crée les 5 onglets, le dossier Drive des photos et le jeton secret. Sans danger si on la relance. */
 function initialiser() {
   const ss = classeur_();
   Object.keys(ONGLETS).forEach(function (nom) { preparerOnglet_(ss, nom, ONGLETS[nom]); });
@@ -59,6 +62,9 @@ function initialiser() {
   ss.getSheets().forEach(function (f) {
     if (!ONGLETS[f.getName()] && f.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(f);
   });
+
+  const dossier = dossierPhotos_();
+  Logger.log('Dossier des photos : ' + dossier.getName());
 
   const props = PropertiesService.getScriptProperties();
   let jeton = props.getProperty('JETON');
@@ -135,6 +141,12 @@ function traiter_(requete) {
     }
     case 'lire':
       return { ok: true, fiches: lireFiches_(ss), pastilles: lirePastilles_(ss) };
+    case 'envoyerPhoto':
+      return envoyerPhoto_(requete);
+    case 'lirePhoto':
+      return lirePhoto_(requete);
+    case 'supprimerPhoto':
+      return supprimerPhoto_(requete);
     default:
       throw erreur_('Action inconnue : ' + requete.action, 'requete');
   }
@@ -144,6 +156,11 @@ function traiter_(requete) {
    Fiches
    ===================================================================== */
 
+/**
+ * Enregistre des fiches champ par champ : seules les colonnes reçues sont modifiées,
+ * les autres gardent leur valeur (saisie par exemple sur un autre appareil).
+ * Format reçu : { date, modifie_le, champs: { colonne: valeur, … } }.
+ */
 function enregistrerFiches_(ss, fiches) {
   const feuille = onglet_(ss, 'Fiches');
   const entetes = entetes_(feuille);
@@ -152,50 +169,59 @@ function enregistrerFiches_(ss, fiches) {
   const tz = ss.getSpreadsheetTimeZone();
 
   const derniere = feuille.getLastRow();
-  const existantes = {}; // date → { ligne, modif, valeurs }
+  const existantes = {}; // date → { ligne, valeurs }
   if (derniere >= 2) {
     const valeurs = feuille.getRange(2, 1, derniere - 1, entetes.length).getValues();
     valeurs.forEach(function (ligne, k) {
       const d = texteDate_(ligne[iDate], tz);
-      if (d && !existantes[d]) existantes[d] = { ligne: k + 2, modif: texteHorodatage_(ligne[iModif]), valeurs: ligne };
+      if (d && !existantes[d]) existantes[d] = { ligne: k + 2, valeurs: ligne };
     });
   }
 
-  const nouvelles = [];
-  const indexNouvelles = {};
+  const nouvelles = []; // { date, valeurs }
   const enregistrees = [];
-  const ignorees = [];
 
   fiches.forEach(function (fiche) {
     if (!fiche || !/^\d{4}-\d{2}-\d{2}$/.test(String(fiche.date))) return;
-    const existante = existantes[fiche.date];
-    // La version la plus récente gagne.
-    if (existante && existante.modif && fiche.modifie_le && existante.modif > String(fiche.modifie_le)) {
-      ignorees.push(fiche.date);
-      return;
+    const champs = fiche.champs || fiche; // ancien format : fiche complète
+    const aJour = function (h) {
+      return h !== 'date' && h !== 'modifie_le' && Object.prototype.hasOwnProperty.call(champs, h);
+    };
+
+    let cible = existantes[fiche.date];
+    if (!cible) {
+      cible = { ligne: null, valeurs: entetes.map(function () { return ''; }) };
+      nouvelles.push({ date: fiche.date, cible: cible });
+      existantes[fiche.date] = cible;
     }
+    const modifActuel = texteHorodatage_(cible.valeurs[iModif]);
+    const modifRecu = String(fiche.modifie_le || '');
+
     const ligne = entetes.map(function (h, i) {
-      // Colonne ajoutée à la main dans le Sheet : on n'y touche pas.
-      if (COLONNES_FICHES.indexOf(h) < 0) return existante ? existante.valeurs[i] : '';
-      return versCellule_(h, fiche[h]);
+      const actuelle = cible.valeurs[i];
+      if (COLONNES_FICHES.indexOf(h) < 0) return actuelle; // colonne ajoutée à la main : intacte
+      if (h === 'date') return versCellule_(h, fiche.date);
+      if (h === 'modifie_le') return versCellule_(h, modifRecu > modifActuel ? modifRecu : modifActuel);
+      if (aJour(h)) return versCellule_(h, champs[h]);
+      return versCellule_(h, depuisCellule_(h, actuelle, tz)); // réécrit à l'identique (texte protégé)
     });
-    if (existante) {
-      feuille.getRange(existante.ligne, 1, 1, entetes.length).setValues([ligne]);
-    } else if (indexNouvelles[fiche.date] !== undefined) {
-      nouvelles[indexNouvelles[fiche.date]] = ligne;
-    } else {
-      indexNouvelles[fiche.date] = nouvelles.length;
-      nouvelles.push(ligne);
-    }
+    // Garde les valeurs telles qu'elles seront relues, pour une éventuelle 2e fiche du même jour.
+    cible.valeurs = ligne.map(function (v) { return typeof v === 'string' && v.charAt(0) === "'" ? v.slice(1) : v; });
+    cible.ecrire = ligne;
     enregistrees.push(fiche.date);
   });
 
+  Object.keys(existantes).forEach(function (d) {
+    const c = existantes[d];
+    if (c.ligne && c.ecrire) feuille.getRange(c.ligne, 1, 1, entetes.length).setValues([c.ecrire]);
+  });
   if (nouvelles.length) {
-    feuille.getRange(Math.max(derniere, 1) + 1, 1, nouvelles.length, entetes.length).setValues(nouvelles);
+    feuille.getRange(Math.max(derniere, 1) + 1, 1, nouvelles.length, entetes.length)
+      .setValues(nouvelles.map(function (n) { return n.cible.ecrire; }));
     // Garde les fiches dans l'ordre chronologique.
     feuille.getRange(2, 1, feuille.getLastRow() - 1, feuille.getLastColumn()).sort(iDate + 1);
   }
-  return { enregistrees: enregistrees, ignorees: ignorees };
+  return { enregistrees: enregistrees, ignorees: [] };
 }
 
 function lireFiches_(ss) {
@@ -267,6 +293,75 @@ function enregistrerPastilles_(ss, liste) {
   const derniere = feuille.getLastRow();
   if (derniere >= 2) feuille.getRange(2, 1, derniere - 1, 3).clearContent();
   if (lignes.length) feuille.getRange(2, 1, lignes.length, 3).setValues(lignes);
+}
+
+/* =====================================================================
+   Photos (dossier Drive « Today's Mood – photos »)
+   ===================================================================== */
+
+/** Le dossier des photos (créé au besoin ; son identifiant est gardé dans les Propriétés du script). */
+function dossierPhotos_() {
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('DOSSIER_PHOTOS');
+  if (id) {
+    try {
+      const d = DriveApp.getFolderById(id);
+      if (!d.isTrashed()) return d;
+    } catch (err) { /* dossier supprimé : on en recrée un */ }
+  }
+  const trouves = DriveApp.getFoldersByName(NOM_DOSSIER_PHOTOS);
+  const dossier = trouves.hasNext() ? trouves.next() : DriveApp.createFolder(NOM_DOSSIER_PHOTOS);
+  props.setProperty('DOSSIER_PHOTOS', dossier.getId());
+  return dossier;
+}
+
+/** Fichier du dossier des photos (refuse tout autre fichier du Drive). */
+function fichierPhoto_(id) {
+  let fichier;
+  try {
+    fichier = DriveApp.getFileById(String(id));
+  } catch (err) {
+    throw erreur_('Photo introuvable sur Drive.', 'photo');
+  }
+  const idDossier = dossierPhotos_().getId();
+  const parents = fichier.getParents();
+  while (parents.hasNext()) {
+    if (parents.next().getId() === idDossier) return fichier;
+  }
+  throw erreur_('Ce fichier n’est pas dans le dossier « ' + NOM_DOSSIER_PHOTOS + ' ».', 'photo');
+}
+
+function envoyerPhoto_(requete) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(requete.date))) throw erreur_('Date de photo invalide.', 'requete');
+  const suffixe = CHAMPS_PHOTO[requete.champ];
+  if (!suffixe) throw erreur_('Type de photo inconnu.', 'requete');
+  if (typeof requete.donnees !== 'string' || !requete.donnees) throw erreur_('Photo vide.', 'requete');
+
+  const octets = Utilities.base64Decode(requete.donnees);
+  const blob = Utilities.newBlob(octets, 'image/jpeg', requete.date + '_' + suffixe + '.jpg');
+  const fichier = dossierPhotos_().createFile(blob);
+  if (requete.remplace) mettreALaCorbeille_(requete.remplace);
+  return { ok: true, id: fichier.getId(), lien: fichier.getUrl() };
+}
+
+function lirePhoto_(requete) {
+  const fichier = fichierPhoto_(requete.id);
+  const blob = fichier.getBlob();
+  return { ok: true, donnees: Utilities.base64Encode(blob.getBytes()), type: blob.getContentType() };
+}
+
+function supprimerPhoto_(requete) {
+  mettreALaCorbeille_(requete.id);
+  return { ok: true };
+}
+
+/** Met une photo à la corbeille de Drive (récupérable 30 jours). Ignore une photo déjà disparue. */
+function mettreALaCorbeille_(id) {
+  try {
+    fichierPhoto_(id).setTrashed(true);
+  } catch (err) {
+    if (err.code !== 'photo') throw err;
+  }
 }
 
 /* =====================================================================

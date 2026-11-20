@@ -7,6 +7,12 @@ import { reglage, definirReglage } from './reglages.js';
 
 const ecouteurs = new Set();
 const ecouteursDonnees = new Set();
+let surPhotoEnvoyeeFn = null;
+
+/** L'app reçoit ici le lien Drive d'une photo envoyée, pour l'inscrire dans la fiche. */
+export function surPhotoEnvoyee(fn) {
+  surPhotoEnvoyeeFn = fn;
+}
 let etat = { code: 'inconnu', attente: 0, message: '' };
 let minuteur = null;
 let enCours = null;
@@ -84,7 +90,11 @@ export async function appeler(action, donnees = {}, config = {}) {
     throw e;
   }
   if (!json.ok) {
-    const e = new Error(json.erreur || 'Erreur inconnue côté Apps Script.');
+    let message = json.erreur || 'Erreur inconnue côté Apps Script.';
+    if (/^Action inconnue/.test(message)) {
+      message = 'Le script Apps Script n’est pas à jour : recolle Code.gs puis publie une nouvelle version du déploiement.';
+    }
+    const e = new Error(message);
     e.code = json.code || 'serveur';
     throw e;
   }
@@ -144,14 +154,60 @@ async function executer(tirer) {
   return resultat;
 }
 
+function blobVersBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const lecteur = new FileReader();
+    lecteur.onload = () => resolve(String(lecteur.result).split(',')[1]);
+    lecteur.onerror = () => reject(lecteur.error);
+    lecteur.readAsDataURL(blob);
+  });
+}
+
+/** Envoie les photos en attente, puis met à la corbeille les photos remplacées ou supprimées. */
+async function envoyerPhotos() {
+  const entrees = await TMDB.tout('file');
+  for (const e of entrees.filter((x) => x.type === 'photo')) {
+    const p = await TMDB.lire('photos', e.photo);
+    if (!p || p.etat !== 'attente') {
+      await TMDB.supprimer('file', e.cle);
+      continue;
+    }
+    publier({ code: 'encours', message: 'Envoi d’une photo…' });
+    const rep = await appeler('envoyerPhoto', {
+      date: p.date, champ: p.champ, donnees: await blobVersBase64(p.blob), remplace: p.remplace || null,
+    });
+    if (await TMDB.marquerPhotoEnvoyee(p.cle, p.version, rep.id)) {
+      if (surPhotoEnvoyeeFn) await surPhotoEnvoyeeFn(p.date, p.champ, rep.lien);
+    } else {
+      // Photo remplacée ou supprimée pendant l'envoi : le fichier envoyé ne sert plus.
+      await TMDB.mettreALaCorbeille(rep.id);
+    }
+  }
+  for (const e of (await TMDB.tout('file')).filter((x) => x.type === 'corbeille')) {
+    await appeler('supprimerPhoto', { id: e.id });
+    await TMDB.supprimer('file', e.cle);
+  }
+}
+
 async function envoyer() {
+  await envoyerPhotos();
   const file = await TMDB.tout('file');
-  if (file.length === 0) return 0;
+  if (file.filter((e) => e.type === 'fiche' || e.type === 'pastilles').length === 0) return 0;
+  // Chaque fiche part avec ses seuls champs modifiés : le Sheet garde les autres
+  // (saisis par exemple sur un autre appareil).
   const fiches = [];
   for (const entree of file.filter((e) => e.type === 'fiche')) {
     const f = await TMDB.lire('fiches', entree.date);
-    if (f) fiches.push(f);
-    else await TMDB.supprimer('file', entree.cle);
+    if (!f) {
+      await TMDB.supprimer('file', entree.cle);
+      continue;
+    }
+    const noms = Array.isArray(entree.champs)
+      ? entree.champs
+      : Object.keys(f).filter((k) => k !== 'date' && k !== 'modifie_le');
+    const champs = {};
+    for (const k of noms) champs[k] = f[k] ?? null;
+    fiches.push({ date: f.date, modifie_le: f.modifie_le, champs });
   }
   const avecPastilles = file.some((e) => e.type === 'pastilles');
   const donnees = { fiches };

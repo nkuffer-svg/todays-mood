@@ -1,5 +1,6 @@
 /* Écran Réglages (minimal à l'étape 2) : Web App, jeton, heure de bascule. */
-import { el, carte } from './ui.js';
+import { el, carte, segments } from './ui.js';
+import { LIEU_DEFAUT } from './meteo.js';
 import { ouvrirEcran } from './ecran.js';
 import { reglage, definirReglage } from './reglages.js';
 import { appeler, surEtat, planifier } from './sync.js';
@@ -104,6 +105,52 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies }) {
     reglagesModifies();
   });
 
+  /* --- Météo --- */
+  const modeGps = reglage('meteoMode') !== 'fixe';
+  const champNom = el('input', { id: 'reglage-lieu-nom', class: 'champ', type: 'text', maxlength: '40', value: reglage('lieuNom') || LIEU_DEFAUT.nom });
+  const champLat = el('input', { id: 'reglage-lieu-lat', class: 'champ', type: 'text', inputmode: 'decimal', value: String(reglage('lieuLat') ?? LIEU_DEFAUT.lat) });
+  const champLon = el('input', { id: 'reglage-lieu-lon', class: 'champ', type: 'text', inputmode: 'decimal', value: String(reglage('lieuLon') ?? LIEU_DEFAUT.lon) });
+  const alerteLieu = el('p', { class: 'avertissement', hidden: true });
+  const explicationMode = el('p', { class: 'discret' });
+  const expliquer = (gps) => {
+    explicationMode.textContent = gps
+      ? 'La météo utilise la position du téléphone. Si elle n’est pas disponible, le lieu ci-dessous sert de secours.'
+      : 'La météo utilise toujours le lieu ci-dessous.';
+  };
+  expliquer(modeGps);
+  const choixMode = segments({
+    etiquette: 'Position pour la météo',
+    options: [{ valeur: 'gps', libelle: 'GPS' }, { valeur: 'fixe', libelle: 'Lieu fixe' }],
+    valeur: modeGps ? 'gps' : 'fixe',
+    obligatoire: true,
+    onChange: async (mode) => {
+      await definirReglage('meteoMode', mode);
+      expliquer(mode === 'gps');
+    },
+  });
+  const lireNombre = (t) => Number(String(t).trim().replace(',', '.'));
+  async function enregistrerLieu() {
+    const lat = lireNombre(champLat.value);
+    const lon = lireNombre(champLon.value);
+    const ok = Number.isFinite(lat) && Number.isFinite(lon) && Math.abs(lat) <= 90 && Math.abs(lon) <= 180
+      && champLat.value.trim() !== '' && champLon.value.trim() !== '';
+    alerteLieu.hidden = ok;
+    alerteLieu.textContent = ok ? '' : 'Latitude entre −90 et 90, longitude entre −180 et 180 (ex. 46,49 et 6,73).';
+    if (!ok) return;
+    await definirReglage('lieuNom', champNom.value.trim() || 'Lieu fixe');
+    await definirReglage('lieuLat', lat);
+    await definirReglage('lieuLon', lon);
+  }
+  for (const c of [champNom, champLat, champLon]) c.addEventListener('change', enregistrerLieu);
+  const boutonLavaux = el('button', {
+    type: 'button', class: 'bouton petit discret', onClick: async () => {
+      champNom.value = LIEU_DEFAUT.nom;
+      champLat.value = String(LIEU_DEFAUT.lat);
+      champLon.value = String(LIEU_DEFAUT.lon);
+      await enregistrerLieu();
+    },
+  }, 'Revenir à Lavaux');
+
   corps.append(
     carte('Google Sheet',
       el('p', { class: 'discret' }, 'Ces deux informations restent sur ce téléphone.'),
@@ -118,5 +165,16 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies }) {
       el('label', { class: 'sous-titre-champ', for: 'reglage-bascule' }, 'Heure de bascule du jour'),
       choixBascule,
       el('p', { class: 'discret' }, 'Avant cette heure, une saisie compte encore pour la veille.')),
+    carte('Météo',
+      el('p', { class: 'sous-titre-champ' }, 'Position'),
+      choixMode,
+      explicationMode,
+      el('label', { class: 'sous-titre-champ', for: 'reglage-lieu-nom' }, 'Nom du lieu fixe'),
+      champNom,
+      el('div', { class: 'deux-colonnes' },
+        el('div', {}, el('label', { class: 'sous-titre-champ', for: 'reglage-lieu-lat' }, 'Latitude'), champLat),
+        el('div', {}, el('label', { class: 'sous-titre-champ', for: 'reglage-lieu-lon' }, 'Longitude'), champLon)),
+      alerteLieu,
+      el('div', { class: 'rangee-boutons' }, boutonLavaux)),
   );
 }

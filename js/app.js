@@ -3,12 +3,14 @@ import { el, icone } from './ui.js';
 import { COLONNES, ONGLETS, PASTILLES_DEFAUT } from './donnees.js';
 import { jourCourant, decaler, formatLong, relatif } from './jour.js';
 import { chargerReglages, reglage } from './reglages.js';
-import { synchroniser, planifier, surEtat, surDonnees } from './sync.js';
-import { rendreOnglet } from './onglets.js';
+import { synchroniser, planifier, surEtat, surDonnees, surPhotoEnvoyee } from './sync.js';
+import { rendreOnglet, carteMeteo } from './onglets.js';
+import { chercherMeteo } from './meteo.js';
+import { enregistrerPhoto, supprimerPhoto, photoAffichable } from './photos.js';
 import { ouvrirReglages } from './ecran-reglages.js';
 import { traiterPartage } from './ecran-partage.js';
 
-export const VERSION = 'etape2-v1';
+export const VERSION = 'etape3-v1';
 
 const etat = {
   aujourdhui: null, // jour courant selon l'heure de bascule
@@ -34,15 +36,16 @@ async function chargerFiche(date) {
   return { ...ficheVide(date), ...(f || {}) };
 }
 
-/* Enregistrement : les écritures sont mises à la suite pour garder l'ordre. */
+/* Enregistrement : seuls les champs modifiés sont écrits (et envoyés au Sheet).
+   Les écritures sont mises à la suite pour garder l'ordre. */
 let chaine = Promise.resolve();
 let minuteurTexte = null;
-let ficheEnAttente = null;
+let texteEnAttente = null; // { date, modifs } : texte en cours de frappe
 
-function sauver(fiche) {
-  fiche.modifie_le = new Date().toISOString();
-  const copie = { ...fiche };
-  chaine = chaine.then(() => TMDB.enregistrerFiche(copie)).catch((err) => {
+function sauver(date, modifs) {
+  const modifieLe = new Date().toISOString();
+  if (etat.fiche && etat.fiche.date === date) etat.fiche.modifie_le = modifieLe;
+  chaine = chaine.then(() => TMDB.modifierFiche(date, modifs, modifieLe)).catch((err) => {
     console.error(err);
     alert('Impossible d’enregistrer sur le téléphone : ' + err.message);
   });
@@ -53,10 +56,10 @@ function sauver(fiche) {
 /** Enregistre tout de suite une saisie en attente (texte en cours de frappe). */
 function viderSaisieEnAttente() {
   clearTimeout(minuteurTexte);
-  if (ficheEnAttente) {
-    const f = ficheEnAttente;
-    ficheEnAttente = null;
-    return sauver(f);
+  if (texteEnAttente) {
+    const { date, modifs } = texteEnAttente;
+    texteEnAttente = null;
+    return sauver(date, modifs);
   }
   return chaine;
 }
@@ -66,20 +69,79 @@ function normaliser(valeur) {
   return valeur ?? null;
 }
 
+/** Applique des valeurs à la fiche d'un jour (celle affichée ou une autre) et les enregistre. */
+function appliquerChamps(date, champs) {
+  const modifs = {};
+  for (const [k, v] of Object.entries(champs)) modifs[k] = normaliser(v);
+  if (etat.fiche && etat.fiche.date === date) Object.assign(etat.fiche, modifs);
+  if (texteEnAttente && texteEnAttente.date === date) {
+    for (const k of Object.keys(modifs)) delete texteEnAttente.modifs[k];
+  }
+  return sauver(date, modifs);
+}
+
+/* ---------- Météo ---------- */
+
+const meteoEtat = { date: null, etat: 'repos', message: '', lieu: '' };
+const meteoTentees = new Set();
+
+function majCarteMeteo() {
+  const ancienne = document.getElementById('carte-meteo');
+  if (ancienne) ancienne.replaceWith(carteMeteo(ctx));
+}
+
+async function actualiserMeteo(date, { auto = false } = {}) {
+  if (auto) {
+    if (meteoTentees.has(date) || !navigator.onLine) return;
+    meteoTentees.add(date);
+  }
+  Object.assign(meteoEtat, { date, etat: 'encours', message: '' });
+  majCarteMeteo();
+  try {
+    const { lieu, champs } = await chercherMeteo(date);
+    await appliquerChamps(date, champs);
+    Object.assign(meteoEtat, { date, etat: 'ok', lieu });
+  } catch (err) {
+    Object.assign(meteoEtat, { date, etat: 'erreur', message: err.message });
+  }
+  majCarteMeteo();
+}
+
+/** À la première ouverture du jour : la fiche du jour n'a pas encore de météo → on la récupère. */
+async function meteoAutomatique() {
+  const date = etat.aujourdhui;
+  const f = etat.fiche && etat.fiche.date === date ? etat.fiche : await TMDB.lire('fiches', date);
+  if (f && f.meteo_code != null) return;
+  actualiserMeteo(date, { auto: true });
+}
+
 const ctx = {
   get fiche() { return etat.fiche; },
+  get meteo() { return meteoEtat.date === etat.date ? meteoEtat : { etat: 'repos' }; },
+  actualiserMeteo: () => actualiserMeteo(etat.date),
+  photo: {
+    affichable: (champ) => photoAffichable(etat.date, champ, etat.fiche[champ]),
+    async ajouter(champ, fichier) {
+      const date = etat.date;
+      await enregistrerPhoto(date, champ, fichier, etat.fiche[champ]);
+      planifier(500);
+    },
+    async supprimer(champ) {
+      const date = etat.date;
+      await supprimerPhoto(date, champ, etat.fiche[champ]);
+      await appliquerChamps(date, { [champ]: null });
+    },
+  },
   get pastilles() { return etat.pastilles.filter((p) => p.visible !== false).sort((a, b) => a.ordre - b.ordre).map((p) => p.nom); },
   modifier(champ, valeur) {
-    const f = etat.fiche;
-    f[champ] = normaliser(valeur);
-    clearTimeout(minuteurTexte);
-    ficheEnAttente = null;
-    return sauver(f);
+    return appliquerChamps(etat.fiche.date, { [champ]: valeur });
   },
   modifierTexte(champ, valeur) {
-    const f = etat.fiche;
-    f[champ] = normaliser(valeur);
-    ficheEnAttente = f;
+    const date = etat.fiche.date;
+    etat.fiche[champ] = normaliser(valeur);
+    if (texteEnAttente && texteEnAttente.date !== date) viderSaisieEnAttente();
+    texteEnAttente = texteEnAttente || { date, modifs: {} };
+    texteEnAttente.modifs[champ] = etat.fiche[champ];
     clearTimeout(minuteurTexte);
     minuteurTexte = setTimeout(viderSaisieEnAttente, 600);
   },
@@ -214,7 +276,7 @@ function construireEntete() {
 async function apresSynchro(resultat) {
   if (resultat.pastillesModifiees) await chargerPastilles();
   const ficheAffecteeEnCours = resultat.datesModifiees.has(etat.date);
-  if (ficheAffecteeEnCours && !ficheEnAttente) {
+  if (ficheAffecteeEnCours && !texteEnAttente) {
     etat.fiche = await chargerFiche(etat.date);
     rendre();
   } else if (resultat.pastillesModifiees) {
@@ -251,6 +313,10 @@ async function demarrer() {
   await chargerPastilles();
   construireEntete();
   surDonnees(apresSynchro);
+  surPhotoEnvoyee(async (date, champ, lien) => {
+    await appliquerChamps(date, { [champ]: lien });
+    if (date === etat.date && (etat.onglet === 'matin' || etat.onglet === 'journee')) rendre();
+  });
   $('version').textContent = VERSION;
 
   etat.aujourdhui = jourCourant(reglage('bascule'));
@@ -264,7 +330,7 @@ async function demarrer() {
       erreur: params.get('erreur-partage'),
       jour: () => etat.aujourdhui,
       chargerFiche,
-      enregistrer: async (fiche) => { await sauver(fiche); },
+      enregistrer: (date, modifs) => appliquerChamps(date, modifs),
       ouvrirRecit: async () => {
         await allerA(etat.aujourdhui, { onglet: 'soir' });
         document.getElementById('carte-recit')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
@@ -272,9 +338,13 @@ async function demarrer() {
     });
   }
 
-  synchroComplete();
+  // D'abord relire le Sheet (la météo du jour y est peut-être déjà), puis la météo automatique.
+  synchroComplete().finally(meteoAutomatique);
 
-  window.addEventListener('online', () => synchroComplete());
+  // Les copies locales des photos de plus de 60 jours sont effacées (elles restent sur Drive).
+  TMDB.purgerPhotos(decaler(etat.aujourdhui, -60)).catch(() => {});
+
+  window.addEventListener('online', () => { synchroComplete(); meteoAutomatique(); });
   window.addEventListener('offline', () => synchroniser());
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
@@ -282,6 +352,7 @@ async function demarrer() {
     } else {
       verifierChangementDeJour();
       synchroComplete();
+      meteoAutomatique();
     }
   });
   window.addEventListener('pagehide', () => { viderSaisieEnAttente(); });

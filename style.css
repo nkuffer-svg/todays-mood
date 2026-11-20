@@ -624,3 +624,100 @@ select.champ { appearance: auto; }
   letter-spacing: 0.08em;
   margin: 28px 0 0;
 }
+
+/* ---------- Météo (étape 3) ---------- */
+
+.meteo-principal { display: flex; align-items: center; gap: 16px; }
+.meteo-icone {
+  width: 64px;
+  height: 64px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--laiton);
+  box-shadow: inset 0 0 0 4px var(--creux), inset 0 0 0 5px var(--laiton-fonce);
+  color: var(--laiton-clair);
+}
+.meteo-icone .icone { width: 34px; height: 34px; }
+.meteo-temp {
+  font-family: var(--titre);
+  font-size: 40px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  margin: 0;
+  color: var(--texte);
+}
+.meteo-desc { margin: 4px 0 0; color: var(--texte-2); }
+
+.meteo-details {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 16px 0 0;
+}
+.meteo-details div {
+  background: var(--creux);
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+  padding: 8px 10px;
+  text-align: center;
+}
+.meteo-details dt {
+  font-family: var(--etroit);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 12px;
+  color: var(--texte-discret);
+}
+.meteo-details dd {
+  margin: 2px 0 0;
+  font-family: var(--titre);
+  font-size: 24px;
+  letter-spacing: 0.04em;
+  color: var(--texte);
+}
+.meteo-statut { margin: 12px 0 0; font-size: 14px; color: var(--texte-discret); }
+.bouton-actualiser { margin-top: 12px; display: inline-flex; align-items: center; gap: 6px; }
+.bouton-actualiser .icone { width: 18px; height: 18px; }
+
+.ressentis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.tuile-ressenti { padding: 12px 2px 10px; }
+.tuile-ressenti .icone { width: 34px; height: 34px; }
+.tuile-ressenti span { font-size: 13px; }
+
+/* ---------- Photos (étape 3) ---------- */
+
+.photo-zone { border-radius: 10px; overflow: hidden; }
+.photo {
+  display: block;
+  width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  background: var(--creux);
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+}
+.photo-vide {
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--creux);
+  border: 1px dashed var(--bordure-forte);
+  border-radius: 10px;
+  color: var(--texte-discret);
+  font-size: 14px;
+}
+.photo-vide .icone { width: 36px; height: 36px; color: var(--laiton-fonce); }
+.photo-statut { margin: 10px 0 0; font-size: 14px; color: var(--vert); }
+.photo-statut:empty { display: none; }
+.photo-statut.attente { color: var(--laiton-clair); }
+.carte-photo .rangee-boutons { margin-top: 12px; }
+.carte-photo .bouton { display: inline-flex; align-items: center; gap: 8px; }
+.carte-photo .bouton .icone { width: 20px; height: 20px; }
+
+.deux-colonnes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.meteo-details .unite { font-family: var(--etroit); font-size: 14px; letter-spacing: 0; color: var(--texte-2); }

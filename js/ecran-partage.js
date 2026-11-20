@@ -53,8 +53,7 @@ export async function traiterPartage({ id, erreur, jour, chargerFiche, enregistr
   async function ranger(mode) {
     const fiche = await chargerFiche(date);
     const actuel = (fiche.recit || '').trim();
-    fiche.recit = mode === 'suite' && actuel ? `${actuel}\n\n${texte}` : texte;
-    await enregistrer(fiche);
+    await enregistrer(date, { recit: mode === 'suite' && actuel ? `${actuel}\n\n${texte}` : texte });
     partage.utilise = { champ: 'recit', le: new Date().toISOString() };
     await TMDB.ecrire('partages', partage);
     fermer();
