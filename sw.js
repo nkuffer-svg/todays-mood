@@ -4,7 +4,7 @@
 'use strict';
 importScripts('./db.js');
 
-const VERSION = 'etape4-v1';
+const VERSION = 'etape5-v1';
 const CACHE = 'todays-mood-' + VERSION;
 const CACHE_POLICES = 'todays-mood-polices';
 const FICHIERS = [
@@ -23,11 +23,13 @@ const FICHIERS = [
   './js/jour.js',
   './js/meteo.js',
   './js/onglets.js',
+  './js/perso.js',
   './js/photos.js',
   './js/reglages.js',
   './js/stats.js',
   './js/sync.js',
   './js/ui.js',
+  './js/verrou.js',
   './icons/icon.svg',
   './icons/icon-192.png',
   './icons/icon-512.png',

@@ -1,9 +1,9 @@
 /* Totaux calculés (jamais stockés) : jour, mois et depuis le début, à partir des fiches et des marches locales. */
 
-const BOISSONS = ['cafe', 'deca', 'biere', 'vin'];
+const COMPTEURS = ['cafe', 'deca', 'biere', 'vin', 'biscotte_1', 'biscotte_2'];
 
 function vide() {
-  return { cafe: 0, deca: 0, biere: 0, vin: 0, eau_ml: 0, natation_m: 0, natation_nb: 0, marche_km: 0, marche_nb: 0 };
+  return { cafe: 0, deca: 0, biere: 0, vin: 0, biscotte_1: 0, biscotte_2: 0, eau_ml: 0, natation_m: 0, natation_nb: 0, marche_km: 0, marche_nb: 0 };
 }
 
 const nombre = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
@@ -18,7 +18,7 @@ export async function calculerTotaux(date) {
   for (const f of fiches) {
     const cibles = f.date.startsWith(prefixeMois) ? [mois, total] : [total];
     for (const c of cibles) {
-      for (const k of BOISSONS) c[k] += nombre(f[k]);
+      for (const k of COMPTEURS) c[k] += nombre(f[k]);
       c.eau_ml += nombre(f.eau_ml);
       if (nombre(f.natation_m) > 0) {
         c.natation_m += nombre(f.natation_m);

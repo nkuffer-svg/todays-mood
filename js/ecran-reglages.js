@@ -1,6 +1,7 @@
 /* Écran Réglages (minimal à l'étape 2) : Web App, jeton, heure de bascule. */
 import { el, carte, segments } from './ui.js';
 import { LIEU_DEFAUT } from './meteo.js';
+import { empreinteEnregistree, enregistrerEmpreinte, disponibilite } from './verrou.js';
 import { ouvrirEcran } from './ecran.js';
 import { reglage, definirReglage } from './reglages.js';
 import { appeler, surEtat, planifier } from './sync.js';
@@ -161,6 +162,32 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies }) {
     },
   }, 'Revenir à Lavaux');
 
+  /* --- Empreinte --- */
+  const etatEmpreinte = el('p', { class: 'discret' });
+  const resultatEmpreinte = el('p', { class: 'resultat-test', role: 'status' });
+  const boutonEmpreinte = el('button', { type: 'button', class: 'bouton discret' });
+  const majEmpreinte = async () => {
+    const dispo = await disponibilite();
+    if (dispo !== 'ok') {
+      etatEmpreinte.textContent = 'Aucun capteur d’empreinte disponible sur cet appareil.';
+      boutonEmpreinte.hidden = true;
+      return;
+    }
+    etatEmpreinte.textContent = empreinteEnregistree()
+      ? 'Une empreinte est enregistrée pour l’onglet Perso.'
+      : 'Aucune empreinte enregistrée : elle sera demandée à la première ouverture de Perso.';
+    boutonEmpreinte.textContent = empreinteEnregistree() ? 'Réenregistrer l’empreinte' : 'Enregistrer l’empreinte';
+  };
+  boutonEmpreinte.addEventListener('click', async () => {
+    resultatEmpreinte.className = 'resultat-test';
+    resultatEmpreinte.textContent = 'Pose ton doigt sur le capteur…';
+    const r = await enregistrerEmpreinte();
+    resultatEmpreinte.classList.add(r.ok ? 'succes' : 'erreur');
+    resultatEmpreinte.textContent = r.ok ? 'Empreinte enregistrée.' : r.message;
+    majEmpreinte();
+  });
+  majEmpreinte();
+
   corps.append(
     carte('Google Sheet',
       el('p', { class: 'discret' }, 'Ces deux informations restent sur ce téléphone.'),
@@ -177,6 +204,10 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies }) {
       el('p', { class: 'discret' }, 'Avant cette heure, une saisie compte encore pour la veille.'),
       el('label', { class: 'sous-titre-champ', for: 'reglage-eau' }, 'Objectif d’eau par jour'),
       choixEau),
+    carte('Empreinte (onglet Perso)',
+      etatEmpreinte,
+      el('div', { class: 'rangee-boutons' }, boutonEmpreinte),
+      resultatEmpreinte),
     carte('Météo',
       el('p', { class: 'sous-titre-champ' }, 'Position'),
       choixMode,

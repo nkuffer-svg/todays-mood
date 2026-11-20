@@ -10,8 +10,9 @@ import { enregistrerPhoto, supprimerPhoto, photoAffichable } from './photos.js';
 import { calculerTotaux } from './stats.js';
 import { ouvrirReglages } from './ecran-reglages.js';
 import { traiterPartage } from './ecran-partage.js';
+import * as verrou from './verrou.js';
 
-export const VERSION = 'etape4-v1';
+export const VERSION = 'etape5-v1';
 
 const etat = {
   aujourdhui: null, // jour courant selon l'heure de bascule
@@ -121,8 +122,16 @@ async function meteoAutomatique() {
 const cleAjoutsEau = (date) => 'eauAjouts:' + date;
 const ajoutsEau = (date) => reglage(cleAjoutsEau(date)) || [];
 
+let demandeEmpreinte = false;
+
 const ctx = {
   get fiche() { return etat.fiche; },
+  /** Vrai une seule fois juste après un appui sur l'onglet Perso : l'empreinte est alors demandée tout de suite. */
+  consommerDemandeEmpreinte() {
+    const d = demandeEmpreinte;
+    demandeEmpreinte = false;
+    return d;
+  },
   get objectifEau() { return Number(reglage('objectifEau')) || 2000; },
   async totaux() {
     await viderSaisieEnAttente();
@@ -241,6 +250,8 @@ export async function allerA(date, { onglet } = {}) {
 function changerOnglet(id) {
   if (id === etat.onglet) return;
   viderSaisieEnAttente();
+  if (etat.onglet === 'perso') verrou.verrouiller(); // Perso se reverrouille dès qu'on le quitte
+  demandeEmpreinte = id === 'perso';
   etat.onglet = id;
   rendre();
   window.scrollTo({ top: 0 });
@@ -355,6 +366,7 @@ async function demarrer() {
   await chargerPastilles();
   construireEntete();
   surDonnees(apresSynchro);
+  verrou.surChangement(() => { if (etat.onglet === 'perso') rendre(); });
   surPhotoEnvoyee(async (date, champ, lien) => {
     await appliquerChamps(date, { [champ]: lien });
     if (date === etat.date && (etat.onglet === 'matin' || etat.onglet === 'journee')) rendre();
@@ -377,6 +389,10 @@ async function demarrer() {
         await allerA(etat.aujourdhui, { onglet: 'soir' });
         document.getElementById('carte-recit')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
       },
+      ouvrirMyLove: async () => {
+        await allerA(etat.aujourdhui, { onglet: 'perso' });
+        document.getElementById('carte-mylove')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      },
     });
   }
 
@@ -390,6 +406,8 @@ async function demarrer() {
   window.addEventListener('offline', () => synchroniser());
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
+      // Arrière-plan : Perso se reverrouille (sauf pendant la demande d'empreinte elle-même).
+      if (!verrou.authentificationActive() && verrou.estDeverrouille()) verrou.verrouiller();
       viderSaisieEnAttente().then(() => synchroniser());
     } else {
       verifierChangementDeJour();

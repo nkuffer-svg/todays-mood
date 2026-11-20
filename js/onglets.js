@@ -6,6 +6,7 @@ import { creerJauge } from './jauge.js';
 import { LIBELLES, APPRECIATIONS, BILAN, ACCORDS, NIVEAUX_ACCORD, RESSENTIS } from './donnees.js';
 import { decrireCode } from './meteo.js';
 import { cartesCompteurs } from './compteurs.js';
+import { cartesPerso } from './perso.js';
 
 function aVenir(titre, texte, etape) {
   return el('section', { class: 'carte a-venir' },
@@ -271,24 +272,30 @@ function carteEvenement(ctx) {
     }));
 }
 
-function carteRecit(ctx) {
-  const vide = el('p', { class: 'etat-vide' },
-    'Aucun récit aujourd’hui. Dans l’Enregistreur : ',
-    el('strong', {}, 'Partager → Transcription → Today’s Mood'), '. Tu peux aussi écrire directement ici.');
+/** Texte long avec marques Favori / Piment (Récit du jour, My Love). */
+export function carteMemo(ctx, { champ, titre, id, vide }) {
+  const etatVide = el('p', { class: 'etat-vide' }, ...vide);
   const zone = texteExtensible({
-    id: 'recit', class: 'champ champ-long', rows: '4', 'aria-label': 'Récit du jour',
-    value: ctx.fiche.recit ?? '',
-    onInput: (e) => { vide.hidden = e.target.value.trim() !== ''; ctx.modifierTexte('recit', e.target.value); },
+    id: 'champ-' + champ, class: 'champ champ-long', rows: '4', 'aria-label': titre,
+    value: ctx.fiche[champ] ?? '',
+    onInput: (e) => { etatVide.hidden = e.target.value.trim() !== ''; ctx.modifierTexte(champ, e.target.value); },
   });
-  vide.hidden = (ctx.fiche.recit ?? '').trim() !== '';
-  return el('section', { class: 'carte', id: 'carte-recit' },
+  etatVide.hidden = (ctx.fiche[champ] ?? '').trim() !== '';
+  return el('section', { class: 'carte', id },
     el('div', { class: 'carte-tete' },
-      el('h2', {}, 'Récit du jour'),
+      el('h2', {}, titre),
       el('div', { class: 'marques' },
-        bascule({ nomIcone: 'etoile', libelle: 'Favori', actif: ctx.fiche.recit_favori, onChange: (v) => ctx.modifier('recit_favori', v || null) }),
-        bascule({ nomIcone: 'piment', libelle: 'Piment', actif: ctx.fiche.recit_piment, onChange: (v) => ctx.modifier('recit_piment', v || null) }))),
-    vide,
+        bascule({ nomIcone: 'etoile', libelle: 'Favori', actif: ctx.fiche[champ + '_favori'], onChange: (v) => ctx.modifier(champ + '_favori', v || null) }),
+        bascule({ nomIcone: 'piment', libelle: 'Piment', actif: ctx.fiche[champ + '_piment'], onChange: (v) => ctx.modifier(champ + '_piment', v || null) }))),
+    etatVide,
     zone);
+}
+
+function carteRecit(ctx) {
+  return carteMemo(ctx, {
+    champ: 'recit', titre: 'Récit du jour', id: 'carte-recit',
+    vide: ['Aucun récit aujourd’hui. Dans l’Enregistreur : ', el('strong', {}, 'Partager → Transcription → Today’s Mood'), '. Tu peux aussi écrire directement ici.'],
+  });
 }
 
 function soir(ctx) {
@@ -304,23 +311,12 @@ function soir(ctx) {
   ];
 }
 
-/* ---------- Perso ---------- */
-
-function perso() {
-  return [
-    el('section', { class: 'carte verrou' },
-      el('div', { class: 'empreinte' }, icone('empreinte')),
-      el('h2', {}, 'Accès réservé'),
-      el('p', { class: 'discret' }, 'Le verrou par empreinte, le compte-tours, Biscotte et My Love arrivent à l’étape 5.')),
-  ];
-}
-
 export function rendreOnglet(id, ctx) {
   switch (id) {
     case 'matin': return matin(ctx);
     case 'journee': return journee(ctx);
     case 'soir': return soir(ctx);
-    case 'perso': return perso(ctx);
+    case 'perso': return cartesPerso(ctx);
     default: return [];
   }
 }

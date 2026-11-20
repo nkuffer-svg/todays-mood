@@ -1,6 +1,7 @@
 /* Écran affiché après un partage depuis l'Enregistreur :
    aperçu, choix de la destination, puis « remplacer » ou « ajouter à la suite » si le champ contient déjà du texte. */
-import { el } from './ui.js';
+import { el, icone } from './ui.js';
+import { demanderAcces } from './verrou.js';
 import { ouvrirEcran } from './ecran.js';
 import { formatLong } from './jour.js';
 
@@ -14,7 +15,7 @@ function contenuPrincipal(partage) {
   return elements.reduce((a, b) => (b.contenu.trim().length > a.contenu.trim().length ? b : a));
 }
 
-export async function traiterPartage({ id, erreur, jour, chargerFiche, enregistrer, ouvrirRecit }) {
+export async function traiterPartage({ id, erreur, jour, chargerFiche, enregistrer, ouvrirRecit, ouvrirMyLove }) {
   const { corps, fermer } = ouvrirEcran({ titre: 'Transcription reçue' });
 
   if (erreur) {
@@ -44,31 +45,50 @@ export async function traiterPartage({ id, erreur, jour, chargerFiche, enregistr
   );
 
   const boutonRecit = el('button', { type: 'button', class: 'bouton grand' }, 'Récit du jour');
-  const boutonMyLove = el('button', { type: 'button', class: 'bouton grand discret', disabled: true }, 'My Love');
+  const boutonMyLove = el('button', { type: 'button', class: 'bouton grand discret' }, icone('cadenas', 'petite'), ' My Love');
+  const messageVerrou = el('p', { class: 'erreur', role: 'status', hidden: true });
   zoneQuestion.append(
     el('h3', {}, 'Où ranger ce texte ?'),
     el('div', { class: 'rangee-boutons' }, boutonRecit, boutonMyLove),
-    el('p', { class: 'discret' }, 'My Love sera disponible à l’étape 5.'));
+    messageVerrou,
+    el('p', { class: 'discret' }, 'My Love demande ton empreinte.'));
 
-  async function ranger(mode) {
+  const DESTINATIONS = {
+    recit: { nom: 'Récit', ouvrir: ouvrirRecit },
+    mylove: { nom: 'My Love', ouvrir: ouvrirMyLove },
+  };
+
+  async function ranger(champ, mode) {
     const fiche = await chargerFiche(date);
-    const actuel = (fiche.recit || '').trim();
-    await enregistrer(date, { recit: mode === 'suite' && actuel ? `${actuel}\n\n${texte}` : texte });
-    partage.utilise = { champ: 'recit', le: new Date().toISOString() };
+    const actuel = (fiche[champ] || '').trim();
+    await enregistrer(date, { [champ]: mode === 'suite' && actuel ? `${actuel}\n\n${texte}` : texte });
+    partage.utilise = { champ, le: new Date().toISOString() };
     await TMDB.ecrire('partages', partage);
     fermer();
-    await ouvrirRecit();
+    await DESTINATIONS[champ].ouvrir();
   }
 
-  boutonRecit.addEventListener('click', async () => {
+  async function choisir(champ) {
     const fiche = await chargerFiche(date);
-    if (!(fiche.recit || '').trim()) return ranger('remplacer');
+    if (!(fiche[champ] || '').trim()) return ranger(champ, 'remplacer');
     zoneQuestion.replaceChildren(
-      el('h3', {}, 'Le Récit de ce jour contient déjà du texte'),
-      el('pre', { class: 'apercu petit' }, fiche.recit.trim()),
+      el('h3', {}, `${DESTINATIONS[champ].nom} contient déjà du texte ce jour-là`),
+      el('pre', { class: 'apercu petit' }, fiche[champ].trim()),
       el('div', { class: 'rangee-boutons' },
-        el('button', { type: 'button', class: 'bouton grand', onClick: () => ranger('suite') }, 'Ajouter à la suite'),
-        el('button', { type: 'button', class: 'bouton grand discret', onClick: () => ranger('remplacer') }, 'Remplacer')),
+        el('button', { type: 'button', class: 'bouton grand', onClick: () => ranger(champ, 'suite') }, 'Ajouter à la suite'),
+        el('button', { type: 'button', class: 'bouton grand discret', onClick: () => ranger(champ, 'remplacer') }, 'Remplacer')),
       el('button', { type: 'button', class: 'bouton petit discret annuler', onClick: fermer }, 'Annuler'));
+  }
+
+  boutonRecit.addEventListener('click', () => choisir('recit'));
+  boutonMyLove.addEventListener('click', async () => {
+    messageVerrou.hidden = true;
+    const r = await demanderAcces();
+    if (!r.ok) {
+      messageVerrou.hidden = false;
+      messageVerrou.textContent = r.message;
+      return;
+    }
+    choisir('mylove');
   });
 }
