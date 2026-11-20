@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="fr-CH">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Today's Mood</title>
+  <meta name="theme-color" content="#17130F">
+  <meta name="color-scheme" content="dark">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&family=Archivo+Narrow:wght@500;600&family=Bebas+Neue&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="entete">
+    <h1>Today's Mood</h1>
+    <p class="sous-titre">Étape 1 · Test du partage</p>
+  </header>
+
+  <main>
+    <section class="carte" id="carte-dernier" aria-live="polite">
+      <h2>Dernier partage reçu</h2>
+      <div id="dernier"></div>
+    </section>
+
+    <section class="carte">
+      <h2>Historique (<span id="nb-max">5</span> derniers)</h2>
+      <div id="historique"></div>
+      <button type="button" class="bouton bouton-discret" id="vider">Effacer l'historique</button>
+    </section>
+
+    <section class="carte">
+      <h2>Mode d'emploi</h2>
+      <ol class="aide">
+        <li>Dans l'Enregistreur, ouvre un enregistrement.</li>
+        <li>Touche <strong>Partager</strong>, puis <strong>Transcription</strong>.</li>
+        <li>Choisis <strong>Today's Mood</strong> dans la liste des applis.</li>
+      </ol>
+    </section>
+
+    <details class="carte outils">
+      <summary>Outils de test (ordinateur)</summary>
+      <p class="discret">Simule un partage Android en envoyant le même formulaire que le téléphone.</p>
+      <form method="post" action="partage" enctype="multipart/form-data">
+        <label for="test-texte">Texte</label>
+        <textarea id="test-texte" name="text" rows="3"></textarea>
+        <label for="test-fichier">Fichier .txt</label>
+        <input id="test-fichier" type="file" name="fichiers" accept=".txt,text/plain">
+        <button type="submit" class="bouton">Simuler le partage</button>
+      </form>
+    </details>
+
+    <p class="pied discret">Version <span id="version">etape1-v1</span> · <span id="etat-sw">service worker…</span></p>
+  </main>
+
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
