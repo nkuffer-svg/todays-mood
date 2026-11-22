@@ -4,7 +4,7 @@
 'use strict';
 importScripts('./db.js');
 
-const VERSION = 'etape7-v1';
+const VERSION = 'v2a-1';
 const CACHE = 'todays-mood-' + VERSION;
 const CACHE_POLICES = 'todays-mood-polices';
 const FICHIERS = [
@@ -35,6 +35,7 @@ const FICHIERS = [
   './js/sync.js',
   './js/ui.js',
   './js/verrou.js',
+  './js/whatsup.js',
   './icons/icon.svg',
   './icons/icon-192.png',
   './icons/icon-512.png',

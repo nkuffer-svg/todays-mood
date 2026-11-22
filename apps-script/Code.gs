@@ -1,5 +1,5 @@
 /**
- * Today's Mood — Web App Apps Script (étape 7).
+ * Today's Mood — Web App Apps Script (version 2, partie A).
  *
  * À coller dans l'éditeur Apps Script du classeur « Today's Mood – données »
  * (Extensions → Apps Script). Voir apps-script/INSTALLATION.md.
@@ -8,7 +8,7 @@
  * et rangé dans les Propriétés du script.
  */
 
-const VERSION = 'etape7-v1';
+const VERSION = 'v2a-1';
 
 const COLONNES_FICHES = [
   'date', 'modifie_le', 'pensee_id',
@@ -19,12 +19,15 @@ const COLONNES_FICHES = [
   'accord_parole', 'accord_personnel', 'accord_supposition', 'accord_mieux',
   'pas', 'natation_m', 'eau_ml', 'cafe', 'deca', 'biere', 'vin', 'biscotte_1', 'biscotte_2',
   'recit', 'recit_favori', 'recit_piment', 'mylove', 'mylove_favori', 'mylove_piment',
+  // Version 2 : ajoutées à la fin. Si elles manquent dans le Sheet, elles sont créées automatiquement.
+  'cuisine', 'repas_type', 'guitare', 'feux_poele', 'barbecues', 'deplacement',
 ];
 
 /** Colonnes de texte (les autres sont numériques). */
 const COLONNES_TEXTE = [
   'date', 'modifie_le', 'pensee_id', 'photo_ciel', 'photo_jour',
   'evt_appreciation', 'evt_categorie', 'evt_texte', 'recit', 'mylove',
+  'cuisine', 'repas_type', 'deplacement',
 ];
 
 /** Colonnes oui / vide (marques Favori et Piment). */
@@ -45,6 +48,7 @@ const CHAMPS_PHOTO = { photo_ciel: 'ciel', photo_jour: 'jour' };
 const REGLAGES_AUTORISES = [
   'bascule', 'objectifEau', 'dureePensee', 'meteoMode', 'lieuNom', 'lieuLat', 'lieuLon',
   'penseesDebutCycle', 'dernierExport',
+  'cuisiniers', 'hiverDebut', 'hiverFin',
 ];
 
 const PASTILLES_DEFAUT = ['Job', 'Maison', 'Famille élargie', 'Famille', 'Réflexion', 'Pensée', 'Scène de vie'];

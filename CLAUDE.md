@@ -66,7 +66,9 @@ Pixel 8 Pro
 - La pensée affichée est enregistrée dans la fiche (identifiant de la citation).
 - Bouton « Revoir la pensée » dans l'onglet Matin, étoile pour la mettre en favori, liste « Mes pensées favorites ».
 
-## 5. Les 4 onglets de la fiche du jour
+## 5. Les 5 onglets de la fiche du jour
+
+Ordre des onglets : **Matin · Journée · Soir · What's up · Perso**.
 
 ### Matin
 | Rubrique | Saisie | Stockage |
@@ -110,9 +112,16 @@ Libellés des jauges (le mot du cran sélectionné s'affiche en grand) :
 
 ### Perso (verrouillé par empreinte)
 - **Énergie sexuelle** : compte-tours (voir section 8), 9 crans, sans libellés (chiffre seul). Stockage 1–9.
-- **Biscotte** : deux gros boutons « 1 » et « 2 ». Chacun ajoute +1 au compteur du jour correspondant, avec un −1. Affichage pour chacun : aujourd'hui, mois, total ; plus une ligne « Somme 1 + 2 » (mois et total).
+- **Happy Dicky** (anciennement « Biscotte » ; seul le nom affiché a changé, les colonnes restent `biscotte_1` et `biscotte_2`) : deux gros boutons ronds laiton (100 px) avec un geste dessiné au trait foncé, sans emoji — bouton 1 = index levé, bouton 2 = signe V (chemins SVG au §8). Chacun ajoute +1 au compteur du jour correspondant, avec un −1. Affichage pour chacun : aujourd'hui, mois, total ; plus une ligne « Somme 1 + 2 » (mois et total).
 - **My Love** : comme le Récit du jour (partage depuis l'Enregistreur, texte modifiable, marques Favori / Piment). État vide : « Aucun mémo aujourd'hui » + rappel de la manipulation.
 - Le contenu Perso n'apparaît dans l'historique et la recherche qu'une fois déverrouillé.
+
+### What's up
+Titre de l'écran : « What's up Today ? » (Bebas Neue).
+- **Who's the cook ?** (repas du soir) : pastilles à choix multiple parmi une liste modifiable dans les Réglages (par défaut Nico · Danis · Commande). Stockage `cuisine` = noms séparés par des virgules (ex. « Nico,Danis »). Puis un choix unique Carnivore / Végétarien (icônes pilon et feuille), stockage `repas_type` = `carnivore` / `vegetarien`. Dessous, un « tableau des chefs » du mois façon panneau de course : nombre de repas par personne (classement P1, P2…), et le nombre de repas Carnivore / Végétarien.
+- **Tu grattes ou quoi ?** : gros bouton laiton avec un médiator, +1 par session de guitare (`guitare`), avec −1. Affichage aujourd'hui / mois / total.
+- **Burn on the fire** : sélecteur Hiver / Été, choisi automatiquement selon la date (hiver du 1er octobre au 30 avril, dates réglables) mais modifiable à la main (le choix manuel ne vaut que pour la session). En hiver : bouton flamme, +1 feu de poêle (`feux_poele`). En été : bouton gril, +1 barbecue (`barbecues`). Les deux ont un −1. Affichage aujourd'hui / cette saison / total. En hiver, afficher aussi la date du premier feu de la saison et celle de la saison précédente (calculées depuis les données, rien à stocker).
+- **Fangio ou Rossi ?** : deux grandes tuiles, Moto (icône casque, sous-titre Rossi) et Voiture (icône volant, sous-titre Fangio). Un seul choix par jour (`deplacement` = `moto` / `voiture`). Compteurs mois / total pour chacun.
 
 ## 6. Partage depuis l'Enregistreur
 
@@ -127,7 +136,7 @@ Libellés des jauges (le mot du cran sélectionné s'affiche en grand) :
 - **Mémos marqués** : vue de tous les Récits et My Love marqués Favori ou Piment, filtrable.
 - **Export Word** : un fichier .docx des mémos marqués (date, type, marque, texte), à importer dans OneNote. Option « seulement depuis le dernier export ».
 - **Pensées favorites** : liste avec auteur.
-- **Réglages** : heure de bascule (4 h), objectif d'eau (2 L), pastilles de catégorie (ajout, renommage, masquage), durée de la pensée (30 s), position météo (GPS ou lieu fixe), URL de la Web App Apps Script, jeton secret, réenregistrement de l'empreinte.
+- **Réglages** : heure de bascule (4 h), objectif d'eau (2 L), pastilles de catégorie (ajout, renommage, masquage), durée de la pensée (30 s), position météo (GPS ou lieu fixe), noms proposés pour « Who's the cook ? », dates de début et de fin de l'hiver (1er octobre et 30 avril), URL de la Web App Apps Script, jeton secret, réenregistrement de l'empreinte.
 
 ## 8. Direction visuelle « Garage vintage »
 
@@ -154,11 +163,18 @@ Ambiance : tableau de bord de moto ancienne, adulte et chaleureux, **pas « joue
 
 **Composants**
 - **Cartes** : coins arrondis 14 px, bordure `#3A3026` et double filet intérieur (`box-shadow: inset 0 0 0 5px #1D1813, inset 0 0 0 6px #3A3026`).
-- **Onglets** : barre en pilule ; onglet actif plein laiton, texte foncé ; Perso avec un cadenas.
+- **Onglets** : barre en pilule, 5 onglets, libellés en Archivo Narrow 13 px ; onglet actif plein laiton, texte foncé ; Perso avec un cadenas.
 - **Boutons ronds** à bordure laiton pour + / −, icônes au trait (SVG inline), cibles tactiles ≥ 44 px.
 - **Pastilles** arrondies ; sélection = bordure laiton + fond `#2E2519`.
-- **Jauge 9 crans (humeur, énergie, inspiration)** : cadran crème cerclé de laiton (anneau foncé `#8C6B34`, anneau `#C9A15B`, face `#EFE6D2`), arc de 240° (de −120° à +120° par rapport à la verticale), 9 graduations principales numérotées 1 à 9 et graduations intermédiaires fines, aiguille rouge pivotant au centre (moyeu foncé cerclé de laiton), petite mention « TODAY'S MOOD » et nom de la jauge sur le cadran. L'aiguille se déplace au doigt (glisser sur le cadran) **et** avec des boutons − / +. Le libellé du cran s'affiche en grand sous le cadran.
+- **Jauge 9 crans (humeur, énergie, inspiration)** : cadran crème cerclé de laiton (anneau foncé `#8C6B34`, anneau `#C9A15B`, face `#EFE6D2`), arc de 240° (de −120° à +120° par rapport à la verticale), 9 graduations principales numérotées 1 à 9 et graduations intermédiaires fines, aiguille rouge pivotant au centre (moyeu foncé cerclé de laiton), petite mention « TODAY'S MOOD » et nom de la jauge sur le cadran. Le libellé du cran s'affiche en grand sous le cadran.
+- **Réglage des jauges à aiguille (toutes, compte-tours compris)** : **pas de déplacement de l'aiguille au doigt** (il se déclenchait en faisant défiler l'écran). Réglage par **appui sur un chiffre du cadran** : une zone d'appui ronde autour de chaque chiffre (rayon ≈ 18 dans un cadran de 300) ; un cercle laiton translucide marque le chiffre actif ; un appui n'est jamais confondu avec un défilement (seul un vrai appui, sans glisser, compte). Les boutons − et + restent. Petite mention sous le cadran : « Touche un chiffre du cadran, ou utilise − et + ».
 - **Compte-tours (énergie sexuelle)** : même géométrie mais cadran noir `#14100C`, graduations et chiffres crème, **zone rouge sur 8–9**, mention « TR/MIN × 1000 », aiguille crème, chiffre courant au bas du cadran.
+- **Gros boutons +1** (Happy Dicky, guitare, feu, barbecue) : ronds laiton de 100 px, icône au trait foncé.
+- **Gestes Happy Dicky** (viewBox 0 0 24 24, trait 1.4, extrémités et jonctions arrondies) :
+  - paume commune : `M7.2 12.2h9.6a2 2 0 0 1 2 2v2.3a5.5 5.5 0 0 1-5.5 5.5h-2.6a5.5 5.5 0 0 1-5.5-5.5v-2.3a2 2 0 0 1 2-2z`
+  - index : `M10.5 12.2V3.8a1.5 1.5 0 0 1 3 0v8.4` + paume + `M8.6 12.2v2.4M16 12.2v2.4M5.6 16.2c1.4-.2 2.4.3 3 1.3`
+  - V : `M9.6 12.2L7.5 4.2a1.45 1.45 0 0 1 2.8-.8L12 9.6` + `M14.4 12.2l2.1-8a1.45 1.45 0 0 0-2.8-.8L12 9.6` + paume + `M16.2 12.2v2.4M5.6 16.2c1.4-.2 2.4.3 3 1.3`
+- **Tableau des chefs** : panneau sombre façon tableau de course (damier, positions P1, P2… en Bebas Neue).
 - **Jauge d'eau** : demi-cadran crème façon jauge de carburant, 0 → 1 L → 2 L, zone verte entre 1,5 et 2 L, aiguille rouge ; à côté, la quantité en grand (« 1,3 L ») et « Encore 0,7 L » ou « Objectif atteint ».
 - **Bilan** : 5 visages SVG au trait dans des tuiles ; sélection = bordure laiton.
 - **Accords** : sélecteur segmenté en pilule Bon / Moyen / Pas bon ; segment actif plein laiton.
@@ -178,7 +194,9 @@ Classeur « Today's Mood – données », 5 onglets. Première ligne = en-têtes
 | `Pastilles` | une catégorie d'événement | nom, ordre, visible |
 | `Reglages` | un réglage | clé, valeur |
 
-Colonnes de `Fiches` : date, modifie_le, pensee_id, meteo_tmin, meteo_tmax, meteo_pluie_mm, meteo_soleil_h, meteo_nuages_pct, meteo_code, meteo_ressenti, photo_ciel, photo_jour, humeur_matin, humeur_soir, energie, inspiration, energie_sexuelle, bilan, evt_appreciation, evt_categorie, evt_texte, accord_parole, accord_personnel, accord_supposition, accord_mieux, pas, natation_m, eau_ml, cafe, deca, biere, vin, biscotte_1, biscotte_2, recit, recit_favori, recit_piment, mylove, mylove_favori, mylove_piment.
+Colonnes de `Fiches` : date, modifie_le, pensee_id, meteo_tmin, meteo_tmax, meteo_pluie_mm, meteo_soleil_h, meteo_nuages_pct, meteo_code, meteo_ressenti, photo_ciel, photo_jour, humeur_matin, humeur_soir, energie, inspiration, energie_sexuelle, bilan, evt_appreciation, evt_categorie, evt_texte, accord_parole, accord_personnel, accord_supposition, accord_mieux, pas, natation_m, eau_ml, cafe, deca, biere, vin, biscotte_1, biscotte_2, recit, recit_favori, recit_piment, mylove, mylove_favori, mylove_piment, puis (version 2, **toujours ajoutées à la fin**, sans déplacer les colonnes existantes) : cuisine, repas_type, guitare, feux_poele, barbecues, deplacement.
+
+L'Apps Script ajoute automatiquement à droite toute colonne attendue qui manque. Tous les totaux restent calculés, jamais stockés. L'onglet `Reglages` reçoit les réglages partagés (bascule, objectif d'eau, durée de la pensée, position météo, dernier export, cuisiniers, dates de l'hiver), jamais l'URL ni le jeton.
 
 Les données numériques restent numériques (pour les futurs graphiques). Une valeur non saisie reste vide (pas de 0).
 
@@ -191,5 +209,10 @@ Les données numériques restent numériques (pour les futurs graphiques). Une v
 5. **Perso** : verrou par empreinte, compte-tours, Biscotte, My Love, routage du partage vers My Love.
 6. **Pensées du jour** : base de citations, écran d'ouverture, favoris.
 7. **Historique, export et réglages** : recherche, mémos marqués, export Word, écran Réglages complet.
+
+Les étapes 1 à 7 sont terminées.
+
+### Version 2
+- **Partie A — nouvelles rubriques et jauges** : jauges réglées par appui sur un chiffre (plus de glisser), Biscotte renommé Happy Dicky avec boutons à gestes, nouvel onglet What's up (Who's the cook ?, Tu grattes ou quoi ?, Burn on the fire, Fangio ou Rossi ?), nouvelles colonnes à la fin de `Fiches`.
 
 Plus tard (hors périmètre pour l'instant) : graphiques de tendances (humeur × météo, matin × soir, accords dans le temps).

@@ -1,5 +1,6 @@
 /* Jauge 9 crans « Garage vintage » : cadran crème cerclé de laiton, arc de 240°, aiguille rouge.
-   L'aiguille se déplace au doigt (glisser sur le cadran), au clavier, ou avec les boutons − / +. */
+   Réglage par appui sur un chiffre du cadran (zone ronde autour de chaque chiffre), au clavier,
+   ou avec les boutons − / +. Pas de glisser : un défilement de l'écran ne change jamais la valeur. */
 import { el, svg, icone } from './ui.js';
 
 const C = 150; // centre du cadran (viewBox 300 × 300)
@@ -8,6 +9,8 @@ const PAS_ANGLE = 30; // 9 crans sur 240°
 const ANGLE_REPOS = -138; // position de l'aiguille quand rien n'est saisi
 
 const angleDe = (v) => ANGLE_MIN + (v - 1) * PAS_ANGLE;
+const R_CHIFFRES = 89; // rayon où sont écrits les chiffres
+const R_APPUI = 18; // zone d'appui autour de chaque chiffre
 
 function point(r, deg) {
   const a = (deg * Math.PI) / 180;
@@ -48,8 +51,16 @@ function dessinerCadran(nomCadran, variante) {
       x1, y1, x2, y2, stroke: t.encre, 'stroke-width': principale ? 3.4 : 1.3, 'stroke-linecap': 'round',
     }));
   }
+  // Cercles laiton translucides : marquent le chiffre actif (sous les chiffres).
+  const marqueurs = [];
   for (let v = 1; v <= 9; v++) {
-    const [x, y] = point(89, angleDe(v));
+    const [x, y] = point(R_CHIFFRES, angleDe(v));
+    const m = svg('circle', { cx: x, cy: y, r: R_APPUI, class: 'marqueur-chiffre' });
+    marqueurs.push(m);
+    s.append(m);
+  }
+  for (let v = 1; v <= 9; v++) {
+    const [x, y] = point(R_CHIFFRES, angleDe(v));
     const rouge = t.zoneRouge && v >= 8;
     s.append(svg('text', { x, y: y + 1, class: 'cadran-chiffre', style: `fill:${rouge ? '#E0533F' : t.encre}` }, String(v)));
   }
@@ -69,7 +80,16 @@ function dessinerCadran(nomCadran, variante) {
     aiguille,
     svg('circle', { cx: C, cy: C, r: 12, fill: '#2A2118', stroke: '#C9A15B', 'stroke-width': 3 }),
   );
-  return { s, aiguille, valeurBas };
+  // Zones d'appui, par-dessus tout le reste (aiguille comprise), invisibles.
+  const zonesAppui = [];
+  for (let v = 1; v <= 9; v++) {
+    const [x, y] = point(R_CHIFFRES, angleDe(v));
+    const z = svg('circle', { cx: x, cy: y, r: R_APPUI, class: 'zone-chiffre' });
+    z.dataset.valeur = String(v);
+    zonesAppui.push(z);
+    s.append(z);
+  }
+  return { s, aiguille, valeurBas, marqueurs, zonesAppui };
 }
 
 /**
@@ -83,15 +103,14 @@ function dessinerCadran(nomCadran, variante) {
  */
 export function creerJauge({ titre, nomCadran, libelles, valeur, onChange, variante = 'creme' }) {
   let v = valeur ?? null;
-  let glisse = false;
 
-  const { s, aiguille, valeurBas } = dessinerCadran(nomCadran, variante);
+  const { s, aiguille, valeurBas, marqueurs, zonesAppui } = dessinerCadran(nomCadran, variante);
   const zone = el('div', {
     class: 'cadran', role: 'slider', tabindex: '0', 'aria-label': titre,
     'aria-valuemin': '1', 'aria-valuemax': '9',
   }, s);
   const libelle = el('p', { class: 'jauge-libelle' });
-  const detail = el('p', { class: 'jauge-detail' });
+  const detail = el('p', { class: 'jauge-detail' }, 'Touche un chiffre du cadran, ou utilise − et +');
   const moins = el('button', { type: 'button', class: 'bouton-rond', 'aria-label': 'Baisser d’un cran' }, icone('moins'));
   const plus = el('button', { type: 'button', class: 'bouton-rond', 'aria-label': 'Monter d’un cran' }, icone('plus'));
 
@@ -99,8 +118,8 @@ export function creerJauge({ titre, nomCadran, libelles, valeur, onChange, varia
     aiguille.style.transform = `rotate(${v == null ? ANGLE_REPOS : angleDe(v)}deg)`;
     zone.classList.toggle('vide', v == null);
     if (valeurBas) valeurBas.textContent = v == null ? '–' : String(v);
+    marqueurs.forEach((m, i) => m.classList.toggle('actif', v === i + 1));
     libelle.textContent = v == null ? '—' : libelles[v - 1];
-    detail.textContent = v == null ? 'Glisse l’aiguille ou touche le cadran' : `Cran ${v} sur 9`;
     if (v == null) {
       zone.removeAttribute('aria-valuenow');
       zone.setAttribute('aria-valuetext', 'Non saisi');
@@ -119,25 +138,8 @@ export function creerJauge({ titre, nomCadran, libelles, valeur, onChange, varia
     onChange(v);
   }
 
-  function valeurDepuis(evt) {
-    const r = s.getBoundingClientRect();
-    const x = ((evt.clientX - r.left) / r.width) * 300 - C;
-    const y = ((evt.clientY - r.top) / r.height) * 300 - C;
-    let deg = (Math.atan2(x, -y) * 180) / Math.PI; // 0° en haut, sens horaire
-    deg = Math.max(ANGLE_MIN, Math.min(-ANGLE_MIN, deg));
-    return Math.round((deg - ANGLE_MIN) / PAS_ANGLE) + 1;
-  }
-
-  zone.addEventListener('pointerdown', (e) => {
-    glisse = true;
-    zone.setPointerCapture(e.pointerId);
-    zone.classList.add('glisse');
-    changer(valeurDepuis(e));
-  });
-  zone.addEventListener('pointermove', (e) => { if (glisse) changer(valeurDepuis(e)); });
-  const finGlisse = () => { glisse = false; zone.classList.remove('glisse'); };
-  zone.addEventListener('pointerup', finGlisse);
-  zone.addEventListener('pointercancel', finGlisse);
+  // « click » n'est émis que pour un vrai appui : jamais à la fin d'un défilement.
+  for (const z of zonesAppui) z.addEventListener('click', () => changer(Number(z.dataset.valeur)));
   zone.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); changer(v == null ? 5 : Math.max(1, v - 1)); }
     if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); changer(v == null ? 5 : Math.min(9, v + 1)); }

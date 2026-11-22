@@ -167,6 +167,40 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies, categories }
   choixDuree.value = String(Number(reglage('dureePensee')) || 30);
   choixDuree.addEventListener('change', () => definirReglage('dureePensee', Number(choixDuree.value)));
 
+  /* --- What's up --- */
+  const champCuisiniers = el('input', {
+    id: 'reglage-cuisiniers', class: 'champ', type: 'text', autocomplete: 'off',
+    value: String(reglage('cuisiniers') ?? 'Nico,Danis,Commande').split(',').map((x) => x.trim()).filter(Boolean).join(', '),
+  });
+  const alerteCuisiniers = el('p', { class: 'avertissement', hidden: true }, 'Indique au moins un nom.');
+  champCuisiniers.addEventListener('change', async () => {
+    const noms = [...new Set(champCuisiniers.value.split(',').map((x) => x.trim()).filter(Boolean))];
+    alerteCuisiniers.hidden = noms.length > 0;
+    if (!noms.length) return;
+    champCuisiniers.value = noms.join(', ');
+    await definirReglage('cuisiniers', noms.join(','));
+    reglagesModifies();
+  });
+  const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  function choixDate(cle, defaut, etiquette) {
+    const [m0, j0] = String(reglage(cle) || defaut).split('-').map(Number);
+    const jour = el('select', { class: 'champ', 'aria-label': etiquette + ' : jour' });
+    for (let j = 1; j <= 31; j++) jour.append(el('option', { value: String(j) }, String(j)));
+    const mois = el('select', { class: 'champ', 'aria-label': etiquette + ' : mois' });
+    MOIS.forEach((nom, i) => mois.append(el('option', { value: String(i + 1) }, nom)));
+    jour.value = String(j0);
+    mois.value = String(m0);
+    const enregistrer = async () => {
+      const max = new Date(2024, Number(mois.value), 0).getDate(); // 2024 : année bissextile
+      if (Number(jour.value) > max) jour.value = String(max);
+      await definirReglage(cle, `${String(mois.value).padStart(2, '0')}-${String(jour.value).padStart(2, '0')}`);
+      reglagesModifies();
+    };
+    jour.addEventListener('change', enregistrer);
+    mois.addEventListener('change', enregistrer);
+    return el('div', {}, el('p', { class: 'sous-titre-champ' }, etiquette), el('div', { class: 'deux-colonnes' }, jour, mois));
+  }
+
   /* --- Météo --- */
   const modeGps = reglage('meteoMode') !== 'fixe';
   const champNom = el('input', { id: 'reglage-lieu-nom', class: 'champ', type: 'text', maxlength: '40', value: reglage('lieuNom') || LIEU_DEFAUT.nom });
@@ -256,6 +290,14 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies, categories }
       el('label', { class: 'sous-titre-champ', for: 'reglage-eau' }, 'Objectif d’eau par jour'),
       choixEau),
     carteCategories(categories),
+    carte('What’s up',
+      el('label', { class: 'sous-titre-champ', for: 'reglage-cuisiniers' }, 'Who’s the cook ? — noms proposés'),
+      champCuisiniers,
+      alerteCuisiniers,
+      el('p', { class: 'discret' }, 'Sépare les noms par des virgules, par exemple : Nico, Danis, Commande.'),
+      choixDate('hiverDebut', '10-01', 'Début de l’hiver (poêle)'),
+      choixDate('hiverFin', '04-30', 'Fin de l’hiver'),
+      el('p', { class: 'discret' }, 'Le reste de l’année est l’été (barbecue). Le choix se fait tout seul selon la date, et reste modifiable à la main.')),
     carte('Pensée du jour',
       el('label', { class: 'sous-titre-champ', for: 'reglage-duree-pensee' }, 'Durée d’affichage à l’ouverture'),
       choixDuree,

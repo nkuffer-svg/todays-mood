@@ -123,6 +123,16 @@ L'onglet `Reglages` du classeur reçoit alors l'heure de bascule, l'objectif d'e
 pensée, la position météo et la date du dernier export. L'adresse de la Web App et le jeton n'y vont
 jamais : ils restent uniquement sur le téléphone.
 
+## Mise à jour de la version 2, partie A (What's up)
+
+Pas de nouvelle autorisation : recopie le nouveau `Code.gs`, enregistre, puis
+**Déployer → Gérer les déploiements → crayon → Nouvelle version → Déployer**.
+
+Les six nouvelles colonnes (`cuisine`, `repas_type`, `guitare`, `feux_poele`, `barbecues`, `deplacement`)
+s'ajoutent toutes seules **à la fin** de l'onglet `Fiches` à la première synchronisation. Tu peux aussi
+les créer tout de suite en lançant la fonction **initialiser** (sans danger : elle n'efface rien et ne
+change pas le jeton). Ne déplace pas les colonnes existantes.
+
 ## En cas de problème
 
 | Message dans l'app | Que faire |

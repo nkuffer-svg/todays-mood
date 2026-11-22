@@ -360,7 +360,6 @@ select.champ { appearance: auto; }
 .cadran {
   width: min(100%, 250px);
   aspect-ratio: 1;
-  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   cursor: pointer;
@@ -396,7 +395,6 @@ select.champ { appearance: auto; }
   transform-origin: 150px 150px;
   transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.6, 1);
 }
-.cadran.glisse .aiguille { transition: transform 0.08s linear; }
 .cadran.vide .aiguille { opacity: 0.35; }
 
 .jauge-commandes {
@@ -987,3 +985,140 @@ h1 { font-size: 30px; }
 .bouton-visibilite { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; }
 .bouton-visibilite[aria-pressed="false"] { color: var(--texte-discret); border-color: var(--bordure-forte); }
 .ajout-categorie { margin-top: 14px; }
+
+/* ---------- Jauges : appui sur un chiffre (V2) ---------- */
+
+.cadran { cursor: default; }
+.marqueur-chiffre { fill: rgba(201, 161, 91, 0.32); stroke: #C9A15B; stroke-width: 1.5; opacity: 0; transition: opacity 0.2s; }
+.marqueur-chiffre.actif { opacity: 1; }
+.zone-chiffre { fill: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.jauge-detail { font-size: 12px; }
+
+/* ---------- Happy Dicky (V2) ---------- */
+
+.bouton-biscotte {
+  width: 100px;
+  height: 100px;
+  aspect-ratio: auto;
+  max-width: none;
+  border: 2px solid var(--laiton-fonce);
+  background: var(--laiton);
+  box-shadow: inset 0 0 0 4px var(--laiton-clair), inset 0 0 0 5px var(--laiton-ombre);
+  color: #17130F;
+  gap: 0;
+}
+.bouton-biscotte:active { background: var(--laiton-clair); }
+.bouton-biscotte .geste { width: 54px; height: 54px; }
+.bouton-biscotte .mention { color: #2A2118; font-weight: 600; font-size: 12px; margin-top: -2px; }
+
+/* ---------- What's up (V2) ---------- */
+
+.onglet { font-family: var(--etroit); font-size: 13px; letter-spacing: 0.03em; padding: 0 2px; gap: 3px; }
+.onglet .icone.petite { width: 13px; height: 13px; }
+
+.titre-onglet {
+  font-family: var(--titre);
+  font-weight: 400;
+  font-size: 34px;
+  letter-spacing: 0.08em;
+  color: var(--laiton);
+  text-align: center;
+  margin: 20px 0 0;
+}
+
+.icone-grande { width: 44px; height: 44px; }
+
+.ligne-plus-un { display: grid; grid-template-columns: 100px 1fr 48px; align-items: center; gap: 12px; }
+.bouton-plus-un {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 2px solid var(--laiton-fonce);
+  background: var(--laiton);
+  box-shadow: inset 0 0 0 4px var(--laiton-clair), inset 0 0 0 5px var(--laiton-ombre);
+  color: #17130F;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.bouton-plus-un:active { background: var(--laiton-clair); }
+.bouton-plus-un .icone { stroke-width: 1.5; }
+.bouton-plus-un .mention { font-family: var(--etroit); font-weight: 600; font-size: 12px; letter-spacing: 0.12em; color: #2A2118; }
+.jour-plus-un { display: flex; flex-direction: column; align-items: center; }
+.jour-plus-un .compteur-valeur { font-size: 46px; }
+
+.repas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tuile-repas { padding: 12px 4px 10px; }
+.tuile-repas .icone { width: 30px; height: 30px; }
+.tuile-repas span { font-size: 14px; }
+
+.panneau-course {
+  margin-top: 18px;
+  border: 1px solid var(--bordure-forte);
+  border-radius: 10px;
+  background: #100D0A;
+  overflow: hidden;
+}
+.panneau-tete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--bordure);
+  font-family: var(--etroit);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--laiton-clair);
+}
+.damier { width: 40px; height: 10px; fill: var(--creme); flex: none; }
+.classement { list-style: none; margin: 0; padding: 4px 0; }
+.classement li { display: grid; grid-template-columns: 44px 1fr auto; align-items: baseline; gap: 8px; padding: 6px 14px; }
+.classement li + li { border-top: 1px dashed var(--bordure); }
+.classement .position { font-family: var(--titre); font-size: 22px; color: var(--laiton); letter-spacing: 0.04em; }
+.classement li:first-child .position { color: var(--laiton-clair); }
+.classement .pilote { font-family: var(--titre); font-size: 24px; letter-spacing: 0.1em; color: var(--texte); text-transform: uppercase; }
+.classement .score { font-family: var(--titre); font-size: 28px; color: var(--creme); }
+.panneau-vide { margin: 0; padding: 14px; text-align: center; color: var(--texte-discret); font-size: 14px; }
+.panneau-pied {
+  display: flex;
+  justify-content: space-around;
+  gap: 8px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--bordure);
+  font-family: var(--etroit);
+  font-size: 14px;
+  color: var(--texte-2);
+}
+.panneau-pied span { display: inline-flex; align-items: center; gap: 4px; }
+
+.aide-saison { margin: 6px 0 12px; font-size: 12px; }
+.premiers-feux { margin: 10px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.premiers-feux div { background: var(--creux); border: 1px solid var(--bordure); border-radius: 10px; padding: 6px 8px; text-align: center; }
+.premiers-feux dt { font-family: var(--etroit); text-transform: uppercase; letter-spacing: 0.08em; font-size: 11px; color: var(--texte-discret); }
+.premiers-feux dd { margin: 2px 0 0; font-size: 14px; font-weight: 600; color: var(--texte); }
+
+.grandes-tuiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grande-tuile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px 8px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--bordure);
+  background: var(--creux);
+  color: var(--texte-2);
+  cursor: pointer;
+}
+.grande-tuile .icone-grande { width: 52px; height: 52px; margin-bottom: 6px; }
+.grande-tuile .tuile-titre { font-family: var(--titre); font-size: 26px; letter-spacing: 0.08em; color: var(--texte); }
+.grande-tuile .tuile-sous { font-family: var(--etroit); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--texte-discret); }
+.grande-tuile .tuile-compteurs { margin-top: 8px; font-family: var(--etroit); font-size: 13px; color: var(--texte-2); }
+.grande-tuile[aria-pressed="true"] { border-color: var(--laiton); background: var(--selection); color: var(--laiton-clair); }
+.grande-tuile[aria-pressed="true"] .tuile-sous { color: var(--laiton); }
+.totaux-deux { grid-template-columns: 1fr 1fr; }

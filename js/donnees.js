@@ -10,6 +10,8 @@ export const COLONNES = [
   'accord_parole', 'accord_personnel', 'accord_supposition', 'accord_mieux',
   'pas', 'natation_m', 'eau_ml', 'cafe', 'deca', 'biere', 'vin', 'biscotte_1', 'biscotte_2',
   'recit', 'recit_favori', 'recit_piment', 'mylove', 'mylove_favori', 'mylove_piment',
+  // Version 2 (ajoutées à la fin, sans déplacer les colonnes existantes)
+  'cuisine', 'repas_type', 'guitare', 'feux_poele', 'barbecues', 'deplacement',
 ];
 
 export const LIBELLES = {
@@ -57,6 +59,7 @@ export const ONGLETS = [
   { id: 'matin', nom: 'Matin' },
   { id: 'journee', nom: 'Journée' },
   { id: 'soir', nom: 'Soir' },
+  { id: 'whatsup', nom: 'What’s up' },
   { id: 'perso', nom: 'Perso' },
 ];
 

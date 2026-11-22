@@ -15,7 +15,7 @@ import { tirerPensee, definirFavori } from './pensees.js';
 import { afficherPensee, ouvrirFavoris } from './ecran-pensee.js';
 import { ouvrirHistorique } from './ecran-historique.js';
 
-export const VERSION = 'etape7-v1';
+export const VERSION = 'v2a-1';
 
 const etat = {
   aujourdhui: null, // jour courant selon l'heure de bascule
@@ -157,8 +157,21 @@ async function executerPenseeDuJour() {
 
 let demandeEmpreinte = false;
 
+const CUISINIERS_DEFAUT = 'Nico,Danis,Commande';
+
 const ctx = {
   get fiche() { return etat.fiche; },
+  /** Toutes les fiches locales, après enregistrement de la saisie en cours. */
+  async fiches() {
+    await viderSaisieEnAttente();
+    return TMDB.tout('fiches');
+  },
+  get cuisiniers() {
+    return String(reglage('cuisiniers') ?? CUISINIERS_DEFAUT).split(',').map((x) => x.trim()).filter(Boolean);
+  },
+  get hiver() {
+    return { debut: reglage('hiverDebut') || '10-01', fin: reglage('hiverFin') || '04-30' };
+  },
   pensee: {
     revoir: (id) => afficherPensee({ id, duree: dureePensee(), surFavori: () => { planifier(); rendre(); } }),
     async favori(id, v) { await definirFavori(id, v); planifier(); },

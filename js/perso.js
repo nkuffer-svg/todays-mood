@@ -1,5 +1,6 @@
-/* Onglet Perso : écran de verrouillage, puis compte-tours, Biscotte et My Love. */
-import { el, icone, carte } from './ui.js';
+/* Onglet Perso : écran de verrouillage, puis compte-tours, Happy Dicky et My Love.
+   (Happy Dicky s'appelait « Biscotte » : les colonnes du Sheet restent biscotte_1 et biscotte_2.) */
+import { el, svg, icone, carte } from './ui.js';
 import { creerJauge } from './jauge.js';
 import { carteMemo } from './onglets.js';
 import * as verrou from './verrou.js';
@@ -55,7 +56,20 @@ function carteVerrou(ctx) {
     actions)];
 }
 
-/* ---------- Biscotte ---------- */
+/* ---------- Happy Dicky ---------- */
+
+const PAUME = 'M7.2 12.2h9.6a2 2 0 0 1 2 2v2.3a5.5 5.5 0 0 1-5.5 5.5h-2.6a5.5 5.5 0 0 1-5.5-5.5v-2.3a2 2 0 0 1 2-2z';
+const GESTES = {
+  1: ['M10.5 12.2V3.8a1.5 1.5 0 0 1 3 0v8.4', PAUME, 'M8.6 12.2v2.4M16 12.2v2.4M5.6 16.2c1.4-.2 2.4.3 3 1.3'], // index levé
+  2: ['M9.6 12.2L7.5 4.2a1.45 1.45 0 0 1 2.8-.8L12 9.6', 'M14.4 12.2l2.1-8a1.45 1.45 0 0 0-2.8-.8L12 9.6', PAUME, 'M16.2 12.2v2.4M5.6 16.2c1.4-.2 2.4.3 3 1.3'], // signe V
+};
+
+function geste(n) {
+  return svg('svg', {
+    viewBox: '0 0 24 24', class: 'geste', fill: 'none', stroke: 'currentColor',
+    'stroke-width': '1.4', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true',
+  }, ...GESTES[n].map((d) => svg('path', { d })));
+}
 
 function carteBiscotte(ctx) {
   const colonnes = [];
@@ -74,15 +88,15 @@ function carteBiscotte(ctx) {
     const aujourdhui = el('span', { class: 'biscotte-jour', 'aria-live': 'polite' });
     const mois = el('dd');
     const total = el('dd');
-    const moins = el('button', { type: 'button', class: 'bouton-rond', 'aria-label': `Biscotte ${n} : moins un` }, icone('moins'));
+    const moins = el('button', { type: 'button', class: 'bouton-rond', 'aria-label': `Happy Dicky ${n} : moins un` }, icone('moins'));
     const changer = async (delta) => {
       const v = Math.max(0, (ctx.fiche[champ] || 0) + delta);
       await ctx.modifier(champ, v === 0 ? null : v);
       actualiser();
     };
     moins.addEventListener('click', () => changer(-1));
-    const grand = el('button', { type: 'button', class: 'bouton-biscotte', 'aria-label': `Biscotte ${n} : plus un`, onClick: () => changer(1) },
-      el('span', { class: 'chiffre' }, String(n)), el('span', { class: 'mention' }, '+1'));
+    const grand = el('button', { type: 'button', class: 'bouton-biscotte', 'aria-label': `Happy Dicky ${n} : plus un`, onClick: () => changer(1) },
+      geste(n), el('span', { class: 'mention' }, '+1'));
     colonnes.push({
       maj(t) {
         const v = ctx.fiche[champ] || 0;
@@ -100,7 +114,7 @@ function carteBiscotte(ctx) {
     });
   }
   actualiser();
-  return carte('Biscotte',
+  return carte('Happy Dicky',
     el('div', { class: 'biscottes' }, ...colonnes.map((c) => c.noeud)),
     el('p', { class: 'sous-titre-champ' }, 'Somme 1 + 2'),
     somme);

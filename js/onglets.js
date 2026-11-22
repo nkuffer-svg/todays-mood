@@ -7,6 +7,7 @@ import { LIBELLES, APPRECIATIONS, BILAN, ACCORDS, NIVEAUX_ACCORD, RESSENTIS } fr
 import { decrireCode } from './meteo.js';
 import { cartesCompteurs } from './compteurs.js';
 import { cartesPerso } from './perso.js';
+import { cartesWhatsUp } from './whatsup.js';
 import { trouverPensee, estFavori, definirFavori } from './pensees.js';
 
 function aVenir(titre, texte, etape) {
@@ -343,6 +344,7 @@ export function rendreOnglet(id, ctx) {
     case 'matin': return matin(ctx);
     case 'journee': return journee(ctx);
     case 'soir': return soir(ctx);
+    case 'whatsup': return cartesWhatsUp(ctx);
     case 'perso': return cartesPerso(ctx);
     default: return [];
   }
