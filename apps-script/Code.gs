@@ -1,5 +1,5 @@
 /**
- * Today's Mood — Web App Apps Script (version 2, partie A).
+ * Today's Mood — Web App Apps Script (version 2, partie B).
  *
  * À coller dans l'éditeur Apps Script du classeur « Today's Mood – données »
  * (Extensions → Apps Script). Voir apps-script/INSTALLATION.md.
@@ -8,7 +8,7 @@
  * et rangé dans les Propriétés du script.
  */
 
-const VERSION = 'v2a-2';
+const VERSION = 'v2b-1';
 
 const COLONNES_FICHES = [
   'date', 'modifie_le', 'pensee_id',
@@ -48,7 +48,7 @@ const CHAMPS_PHOTO = { photo_ciel: 'ciel', photo_jour: 'jour' };
 const REGLAGES_AUTORISES = [
   'bascule', 'objectifEau', 'dureePensee', 'meteoMode', 'lieuNom', 'lieuLat', 'lieuLon',
   'penseesDebutCycle', 'dernierExport',
-  'cuisiniers', 'hiverDebut', 'hiverFin', 'reportsSaisons',
+  'cuisiniers', 'hiverDebut', 'hiverFin', 'reportsSaisons', 'heureSoir',
 ];
 
 const PASTILLES_DEFAUT = ['Job', 'Maison', 'Famille élargie', 'Famille', 'Réflexion', 'Pensée', 'Scène de vie'];

@@ -1,21 +1,24 @@
 /* Today's Mood — point d'entrée de l'app. */
 import { el, icone } from './ui.js';
 import { COLONNES, ONGLETS, PASTILLES_DEFAUT } from './donnees.js';
-import { jourCourant, decaler, formatLong, relatif } from './jour.js';
+import { jourCourant, decaler, formatLong, relatif, maintenant, simulationActive, arreterSimulation, estLeSoir } from './jour.js';
 import { chargerReglages, reglage, definirReglage } from './reglages.js';
 import { synchroniser, planifier, surEtat, surDonnees, surPhotoEnvoyee } from './sync.js';
 import { rendreOnglet, carteMeteo } from './onglets.js';
 import { chercherMeteo } from './meteo.js';
 import { enregistrerPhoto, supprimerPhoto, photoAffichable } from './photos.js';
 import { calculerTotaux } from './stats.js';
+import { calculerSeries } from './series.js';
 import { ouvrirReglages } from './ecran-reglages.js';
 import { traiterPartage } from './ecran-partage.js';
 import * as verrou from './verrou.js';
-import { tirerPensee, definirFavori } from './pensees.js';
+import { tirerPensee, definirFavori, chargerBase } from './pensees.js';
+import { ouvrirBilan, bilanAutomatique } from './ecran-bilan.js';
+import { attendreAucunEcran } from './ecran.js';
 import { afficherPensee, ouvrirFavoris } from './ecran-pensee.js';
 import { ouvrirHistorique } from './ecran-historique.js';
 
-export const VERSION = 'v2a-2';
+export const VERSION = 'v2b-1';
 
 const etat = {
   aujourdhui: null, // jour courant selon l'heure de bascule
@@ -48,6 +51,11 @@ let minuteurTexte = null;
 let texteEnAttente = null; // { date, modifs } : texte en cours de frappe
 
 function sauver(date, modifs) {
+  // Mode simulation : on montre l'effet à l'écran, mais rien n'est enregistré.
+  if (simulationActive()) {
+    majVoyants();
+    return chaine;
+  }
   const modifieLe = new Date().toISOString();
   if (etat.fiche && etat.fiche.date === date) etat.fiche.modifie_le = modifieLe;
   chaine = chaine.then(() => TMDB.modifierFiche(date, modifs, modifieLe)).catch((err) => {
@@ -55,6 +63,7 @@ function sauver(date, modifs) {
     alert('Impossible d’enregistrer sur le téléphone : ' + err.message);
   });
   planifier();
+  chaine.then(() => majVoyants());
   return chaine;
 }
 
@@ -114,6 +123,7 @@ async function actualiserMeteo(date, { auto = false } = {}) {
 
 /** À la première ouverture du jour : la fiche du jour n'a pas encore de météo → on la récupère. */
 async function meteoAutomatique() {
+  if (simulationActive()) return;
   const date = etat.aujourdhui;
   const f = etat.fiche && etat.fiche.date === date ? etat.fiche : await TMDB.lire('fiches', date);
   if (f && f.meteo_code != null) return;
@@ -141,7 +151,11 @@ async function executerPenseeDuJour() {
   const date = etat.aujourdhui;
   try {
     let id = (etat.fiche && etat.fiche.date === date ? etat.fiche : await chargerFiche(date)).pensee_id;
-    if (!id) {
+    if (!id && simulationActive()) {
+      // Simulation : une pensée au hasard, sans rien enregistrer.
+      const base = await chargerBase();
+      id = base[Math.floor(Math.random() * base.length)].id;
+    } else if (!id) {
       id = await tirerPensee(date);
       await appliquerChamps(date, { pensee_id: id });
       planifier();
@@ -149,10 +163,57 @@ async function executerPenseeDuJour() {
     }
     if (reglage('penseeAfficheeLe') === date) return;
     await definirReglage('penseeAfficheeLe', date);
-    await afficherPensee({ id, duree: dureePensee(), surFavori: () => planifier() });
+    await afficherPensee({ id, date, duree: dureePensee(), surFavori: () => planifier() });
   } catch (err) {
     console.warn('Pensée du jour :', err);
   }
+}
+
+/* ---------- Bilan du dimanche ---------- */
+
+/** Le dimanche, à la première ouverture après l'heure du soir : le bilan de la semaine (une fois). */
+async function bilanDuDimanche() {
+  await penseeEnCours;
+  await attendreAucunEcran();
+  await bilanAutomatique({
+    aujourdhui: etat.aujourdhui,
+    heureSoir: heureSoir(),
+    objectifEau: ctx.objectifEau,
+    hiver: ctx.hiver,
+    reports: ctx.reportsSaisons,
+  });
+}
+
+/* ---------- Voyants du tableau de bord ---------- */
+
+const heureSoir = () => Number(reglage('heureSoir')) || 18;
+
+/** Champs à remplir chaque jour, par onglet (`soir` : seulement à partir de l'heure du soir). */
+const VOYANTS = {
+  matin: { soir: false, champs: ['humeur_matin', 'energie', 'inspiration', 'meteo_ressenti'] },
+  journee: { soir: true, champs: ['pas'] },
+  soir: { soir: true, champs: ['humeur_soir', 'bilan', 'evt_appreciation', 'accord_parole', 'accord_personnel', 'accord_supposition', 'accord_mieux'] },
+  whatsup: { soir: true, champs: ['cuisine', 'deplacement'] },
+};
+
+let voyantsEnCours = null;
+async function majVoyants() {
+  if (voyantsEnCours) return voyantsEnCours;
+  voyantsEnCours = (async () => {
+    const jour = etat.aujourdhui;
+    if (!jour) return;
+    const f = etat.fiche && etat.fiche.date === jour ? etat.fiche : await chargerFiche(jour);
+    const leSoir = estLeSoir(jour, heureSoir(), maintenant());
+    for (const b of document.querySelectorAll('.onglet')) {
+      const regle = VOYANTS[b.dataset.onglet];
+      const allume = !!regle && (!regle.soir || leSoir) && regle.champs.some((c) => f[c] == null || f[c] === '');
+      const voyant = b.querySelector('.voyant');
+      if (!voyant) continue;
+      voyant.classList.toggle('allume', allume);
+      b.setAttribute('aria-description', allume ? 'reste à remplir aujourd’hui' : '');
+    }
+  })().finally(() => { voyantsEnCours = null; });
+  return voyantsEnCours;
 }
 
 let demandeEmpreinte = false;
@@ -161,6 +222,14 @@ const CUISINIERS_DEFAUT = 'Nico,Danis,Commande';
 
 const ctx = {
   get fiche() { return etat.fiche; },
+  /** Séries en cours (jours d'affilée) au jour affiché. */
+  async series() {
+    await viderSaisieEnAttente();
+    const [fiches, marches] = await Promise.all([TMDB.tout('fiches'), TMDB.tout('marches')]);
+    // En simulation, la fiche affichée n'est pas enregistrée : on tient compte de ce qui est à l'écran.
+    const avecCourante = fiches.filter((f) => f.date !== etat.fiche.date).concat([etat.fiche]);
+    return calculerSeries(avecCourante, marches, etat.date, ctx.objectifEau);
+  },
   /** Toutes les fiches locales, après enregistrement de la saisie en cours. */
   async fiches() {
     await viderSaisieEnAttente();
@@ -195,7 +264,7 @@ const ctx = {
   get objectifEau() { return Number(reglage('objectifEau')) || 2000; },
   async totaux() {
     await viderSaisieEnAttente();
-    return calculerTotaux(etat.date);
+    return calculerTotaux(etat.date, ctx.objectifEau);
   },
   eau: {
     ajouts: () => ajoutsEau(etat.date),
@@ -216,6 +285,7 @@ const ctx = {
   },
   marches: {
     async ajouter(km) {
+      if (simulationActive()) return;
       const id = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
       await TMDB.ajouterMarche({ id, date: etat.date, km });
       planifier();
@@ -339,6 +409,7 @@ function rendre() {
   const contenu = $('contenu');
   contenu.setAttribute('aria-labelledby', 'onglet-' + etat.onglet);
   contenu.replaceChildren(...rendreOnglet(etat.onglet, ctx));
+  majVoyants();
 }
 
 export async function allerA(date, { onglet } = {}) {
@@ -362,7 +433,7 @@ function changerOnglet(id) {
 }
 
 function ongletSelonHeure() {
-  const h = new Date().getHours();
+  const h = maintenant().getHours();
   if (h >= 4 && h < 11) return 'matin';
   if (h >= 11 && h < 18) return 'journee';
   return 'soir';
@@ -399,7 +470,7 @@ function construireEntete() {
   for (const o of ONGLETS) {
     const b = el('button', {
       type: 'button', role: 'tab', class: 'onglet', id: 'onglet-' + o.id, 'aria-controls': 'contenu',
-    }, o.id === 'perso' ? icone('cadenas', 'petite') : null, o.nom);
+    }, o.id === 'perso' ? icone('cadenas', 'petite') : null, o.nom, el('span', { class: 'voyant', 'aria-hidden': 'true' }));
     b.dataset.onglet = o.id;
     b.addEventListener('click', () => changerOnglet(o.id));
     nav.append(b);
@@ -426,6 +497,9 @@ function construireEntete() {
       categories: triees().map((p) => p.nom),
       allerA: (date, onglet) => allerA(date, { onglet }),
       ouvrirFavoris: () => ctx.pensee.ouvrirFavoris(),
+      ouvrirBilan: () => ouvrirBilan({
+        semaine: etat.aujourdhui, aujourdhui: etat.aujourdhui, objectifEau: ctx.objectifEau, hiver: ctx.hiver, reports: ctx.reportsSaisons,
+      }),
     });
   });
 
@@ -479,6 +553,17 @@ export function reglagesModifies() {
   if (!verifierChangementDeJour()) rendre();
 }
 
+function afficherBandeauSimulation() {
+  if (!simulationActive()) return;
+  const fmt = new Intl.DateTimeFormat('fr-CH', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const texte = el('span');
+  const maj = () => { texte.textContent = `Simulation : ${fmt.format(maintenant())} · rien n’est enregistré`; };
+  maj();
+  setInterval(maj, 30000);
+  document.body.prepend(el('div', { class: 'bandeau-simulation', role: 'status' }, texte,
+    el('button', { type: 'button', class: 'bouton petit', onClick: () => { arreterSimulation(); location.reload(); } }, 'Arrêter')));
+}
+
 async function demarrer() {
   // Nettoyage de la base de test de l'étape 1.
   try { indexedDB.deleteDatabase('todays-mood-partage'); } catch { /* sans importance */ }
@@ -493,6 +578,7 @@ async function demarrer() {
     if (date === etat.date && (etat.onglet === 'matin' || etat.onglet === 'journee')) rendre();
   });
   $('version').textContent = VERSION;
+  afficherBandeauSimulation();
 
   etat.aujourdhui = jourCourant(reglage('bascule'));
   await allerA(etat.aujourdhui, { onglet: ongletSelonHeure() });
@@ -523,8 +609,10 @@ async function demarrer() {
   const premiereSynchro = synchroComplete();
   premiereSynchro.finally(meteoAutomatique);
   if (!ouvertParPartage) {
-    Promise.race([premiereSynchro, new Promise((r) => setTimeout(r, 3000))]).then(penseeDuJour);
+    Promise.race([premiereSynchro, new Promise((r) => setTimeout(r, 3000))]).then(penseeDuJour).then(bilanDuDimanche);
   }
+  // Voyants et passage de 18 h (ou de l'heure de bascule) pendant que l'app reste ouverte.
+  setInterval(() => { verifierChangementDeJour(); majVoyants(); }, 60 * 1000);
 
   // Les copies locales des photos de plus de 60 jours sont effacées (elles restent sur Drive).
   TMDB.purgerPhotos(decaler(etat.aujourdhui, -60)).catch(() => {});
@@ -540,7 +628,9 @@ async function demarrer() {
       const nouveauJour = verifierChangementDeJour();
       synchroComplete();
       meteoAutomatique();
-      if (nouveauJour || reglage('penseeAfficheeLe') !== etat.aujourdhui) penseeDuJour();
+      majVoyants();
+      if (nouveauJour || reglage('penseeAfficheeLe') !== etat.aujourdhui) penseeDuJour().then(bilanDuDimanche);
+      else bilanDuDimanche();
     }
   });
   window.addEventListener('pagehide', () => { viderSaisieEnAttente(); });

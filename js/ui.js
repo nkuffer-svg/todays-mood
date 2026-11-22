@@ -1,4 +1,11 @@
 /* Petits outils pour construire l'interface sans framework. */
+import { reglage } from './reglages.js';
+
+/** Petit « clac » de vibration (≈ 10 ms) sur un compteur ou un cran de jauge, sauf si désactivé. */
+export function clac() {
+  if (reglage('vibration') === false) return;
+  try { navigator.vibrate?.(10); } catch { /* pas de vibreur : sans importance */ }
+}
 
 function ajouter(parent, enfants) {
   for (const e of enfants.flat(Infinity)) {

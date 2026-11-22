@@ -1,7 +1,9 @@
 /* Onglet Journée : boissons (eau + jauge de carburant), sport (pas, marches, natation), totaux.
    ctx (en plus de l'habituel) : totaux(), eau { ajouts(), ajouter(ml), annuler() },
    marches { ajouter(km), supprimer(id) }, objectifEau */
-import { el, svg, icone, carte } from './ui.js';
+import { el, svg, icone, carte, clac } from './ui.js';
+import { odometre } from './odometre.js';
+import { plaque } from './series.js';
 
 const fmt1 = new Intl.NumberFormat('fr-CH', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const fmtKm = new Intl.NumberFormat('fr-CH', { maximumFractionDigits: 2 });
@@ -24,10 +26,22 @@ function lireNombre(texte, { entier = false } = {}) {
 /** Ligne « Aujourd'hui / Mois / Total ». Chaque case : [libellé, valeur, précision facultative]. */
 function blocTotaux() {
   const dl = el('dl', { class: 'totaux' });
-  const remplir = (cases) => dl.replaceChildren(...cases.map(([libelle, valeur, detail], i) => el('div', { class: i === 0 ? 'jour' : '' },
-    el('dt', {}, libelle), el('dd', {}, valeur), detail ? el('dd', { class: 'detail' }, detail) : null)));
+  const remplir = (cases) => (dl.classList.toggle('totaux-deux', cases.length === 2), dl.replaceChildren(...cases.map(([libelle, valeur, detail], i) => el('div', { class: i === 0 ? 'jour' : '' },
+    el('dt', {}, libelle), el('dd', {}, valeur), detail ? el('dd', { class: 'detail' }, detail) : null))));
   remplir([["Aujourd'hui", '…'], ['Mois', '…'], ['Total', '…']]);
   return { dl, remplir };
+}
+
+/** Ligne « Total » avec un compteur kilométrique à rouleaux. */
+function ligneOdometre() {
+  const zone = el('div', { class: 'ligne-odometre' });
+  return {
+    noeud: zone,
+    regler(valeur, options, detail) {
+      zone.replaceChildren(...[el('span', { class: 'odometre-libelle' }, 'Total'), odometre(valeur, options),
+        detail ? el('span', { class: 'odometre-detail' }, detail) : null].filter(Boolean));
+    },
+  };
 }
 
 /* ---------- Jauge d'eau (demi-cadran façon jauge de carburant) ---------- */
@@ -120,13 +134,17 @@ function carteGoulot(ctx, actualisateurs) {
 
   const ajout = (ml) => el('button', {
     type: 'button', class: 'bouton bouton-eau',
-    onClick: async () => { await ctx.eau.ajouter(ml); majEau(); actualisateurs.rafraichir(); },
+    onClick: async () => { clac(); await ctx.eau.ajouter(ml); majEau(); actualisateurs.rafraichir(); },
   }, icone('plus'), `${ml} ml`);
-  annuler.addEventListener('click', async () => { await ctx.eau.annuler(); majEau(); actualisateurs.rafraichir(); });
+  annuler.addEventListener('click', async () => { clac(); await ctx.eau.annuler(); majEau(); actualisateurs.rafraichir(); });
 
-  actualisateurs.push((t) => totauxEau.remplir([
-    ["Aujourd'hui", litres(ctx.fiche.eau_ml)], ['Mois', litres(t.mois.eau_ml)], ['Total', litres(t.total.eau_ml)],
-  ]));
+  const totalEau = ligneOdometre();
+  const plaqueEau = el('div');
+  actualisateurs.push((t) => {
+    totauxEau.remplir([["Aujourd'hui", litres(ctx.fiche.eau_ml)], ['Mois', litres(t.mois.eau_ml)]]);
+    totalEau.regler(t.total.eau_ml / 1000, { decimales: 1, unite: 'L', cle: 'eau-total', minEntiers: 4 });
+    plaqueEau.replaceChildren(plaque(t.series.eau) || '');
+  });
   majEau();
 
   const blocEau = el('div', { class: 'compteur compteur-eau' },
@@ -135,7 +153,9 @@ function carteGoulot(ctx, actualisateurs) {
       el('div', { class: 'eau-jauge' }, jauge.s),
       el('div', { class: 'eau-texte' }, quantite, reste)),
     el('div', { class: 'rangee-boutons' }, ajout(500), ajout(300), annuler),
-    totauxEau.dl);
+    totauxEau.dl,
+    totalEau.noeud,
+    plaqueEau);
 
   const lignes = BOISSONS.map((b) => {
     const valeur = el('span', { class: 'compteur-valeur', 'aria-live': 'polite' });
@@ -148,6 +168,7 @@ function carteGoulot(ctx, actualisateurs) {
       moins.disabled = n === 0;
     };
     const changer = async (delta) => {
+      clac();
       const n = Math.max(0, (ctx.fiche[b.champ] || 0) + delta);
       await ctx.modifier(b.champ, n === 0 ? null : n);
       maj();
@@ -195,10 +216,14 @@ function carteSport(ctx, actualisateurs) {
   const pas = champNombre({
     id: 'champ-pas', valeur: ctx.fiche.pas, entier: true, unite: 'pas', placeholder: 'Total du jour',
     onSaisie: (n) => ctx.modifierTexte('pas', n),
-    onFin: (n) => ctx.modifier('pas', n),
+    onFin: async (n) => { await ctx.modifier('pas', n); actualisateurs.rafraichir(); },
   });
+  const totalPas = ligneOdometre();
+  actualisateurs.push((t) => totalPas.regler(t.total.pas, { cle: 'pas-total', minEntiers: 6 }));
 
   /* Marches */
+  const totalMarche = ligneOdometre();
+  const plaqueMarche = el('div');
   const listeMarches = el('ul', { class: 'liste-marches' });
   const totauxMarche = blocTotaux();
   const formulaire = el('form', { class: 'ajout-marche', hidden: true });
@@ -224,6 +249,7 @@ function carteSport(ctx, actualisateurs) {
     e.preventDefault();
     const n = lireNombre(champKm.value);
     if (!n || n <= 0 || n > 200) { alerteKm.hidden = false; return; }
+    clac();
     await ctx.marches.ajouter(n);
     formulaire.hidden = true;
     boutonAjout.hidden = false;
@@ -246,8 +272,9 @@ function carteSport(ctx, actualisateurs) {
     totauxMarche.remplir([
       ["Aujourd'hui", km(t.jour.marche_km)],
       ['Mois', km(t.mois.marche_km), pluriel(t.mois.marche_nb, 'marche')],
-      ['Total', km(t.total.marche_km), pluriel(t.total.marche_nb, 'marche')],
     ]);
+    totalMarche.regler(t.total.marche_km, { decimales: 1, unite: 'km', cle: 'marche-total', minEntiers: 4 }, pluriel(t.total.marche_nb, 'marche'));
+    plaqueMarche.replaceChildren(plaque(t.series.marche) || '');
   });
 
   /* Natation */
@@ -266,11 +293,14 @@ function carteSport(ctx, actualisateurs) {
   return carte('Comment t’as bougé ton Q ?',
     el('label', { class: 'sous-titre-champ', for: 'champ-pas' }, 'Nombre de pas'),
     pas,
+    totalPas.noeud,
     el('h3', { class: 'sous-titre-champ' }, 'Marche'),
     listeMarches,
     boutonAjout,
     formulaire,
     totauxMarche.dl,
+    totalMarche.noeud,
+    plaqueMarche,
     el('label', { class: 'sous-titre-champ', for: 'champ-natation' }, 'Natation'),
     natation,
     totauxNage.dl);

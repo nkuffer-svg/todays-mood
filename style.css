@@ -1132,3 +1132,164 @@ h1 { font-size: 30px; }
 .liste-reports li { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; border-bottom: 1px solid var(--bordure); color: var(--texte-2); font-size: 15px; }
 .liste-reports li strong { color: var(--texte); font-weight: 600; }
 .liste-reports li.vide { color: var(--texte-discret); font-size: 14px; border-bottom: 0; }
+
+/* ---------- Version 2, partie B ---------- */
+
+/* Voyants du tableau de bord */
+.onglet { position: relative; }
+.voyant {
+  position: absolute;
+  top: 5px;
+  right: 7px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3A3026;
+}
+.voyant.allume { background: #E8862E; box-shadow: 0 0 4px 1px rgba(232, 134, 46, 0.7); }
+.onglet[aria-selected="true"] .voyant:not(.allume) { background: var(--laiton-ombre); }
+
+/* Plaques « N jours d'affilée » */
+.plaque {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 14px auto 0;
+  padding: 6px 12px;
+  width: fit-content;
+  max-width: 100%;
+  border-radius: 6px;
+  border: 1px solid var(--laiton-ombre);
+  background: var(--laiton);
+  box-shadow: inset 0 0 0 2px var(--laiton-clair), inset 0 0 0 3px var(--laiton-fonce);
+  color: #17130F;
+}
+.plaque-texte { font-family: var(--titre); font-size: 20px; letter-spacing: 0.12em; line-height: 1.1; text-transform: uppercase; text-align: center; }
+.plaque .vis { width: 11px; height: 11px; flex: none; fill: var(--laiton-clair); stroke: var(--laiton-ombre); stroke-width: 1.2; }
+
+/* Compteurs kilométriques à rouleaux */
+.ligne-odometre { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-top: 10px; }
+.odometre-libelle { font-family: var(--etroit); text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; color: var(--texte-discret); }
+.odometre-detail { font-family: var(--etroit); font-size: 13px; color: var(--texte-2); }
+.odometre { display: inline-flex; align-items: center; gap: 6px; }
+.odometre-cases {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 6px;
+  background: #0E0B08;
+  border: 1px solid var(--bordure-forte);
+}
+.rouleau {
+  position: relative;
+  width: 20px;
+  height: 30px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #1C1612;
+  box-shadow: inset 0 7px 6px -4px rgba(0, 0, 0, 0.85), inset 0 -7px 6px -4px rgba(0, 0, 0, 0.85);
+}
+.rouleau.decimal { background: var(--creme); box-shadow: inset 0 7px 6px -4px rgba(42, 33, 24, 0.55), inset 0 -7px 6px -4px rgba(42, 33, 24, 0.55); }
+.rouleau-bande { display: flex; flex-direction: column; height: 1000%; }
+.rouleau-bande.anime { transition: transform 0.9s cubic-bezier(0.25, 0.9, 0.35, 1); }
+.rouleau-bande span {
+  height: 10%;
+  display: grid;
+  place-items: center;
+  font-family: var(--titre);
+  font-size: 24px;
+  line-height: 1;
+  color: var(--creme);
+}
+.rouleau.decimal .rouleau-bande span { color: var(--encre); }
+.odometre-virgule { align-self: flex-end; font-family: var(--titre); font-size: 20px; color: var(--creme); line-height: 1; padding-bottom: 2px; }
+.odometre-unite { font-family: var(--titre); font-size: 22px; letter-spacing: 0.06em; color: var(--texte-2); }
+
+/* Clin d'œil Fangio */
+.clin-oeil {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 0;
+  padding: 10px 14px;
+  border: 1.5px dashed var(--laiton);
+  border-radius: 12px;
+  color: var(--texte-2);
+  font-size: 15px;
+}
+.clin-oeil .icone { width: 26px; height: 26px; flex: none; color: var(--laiton-clair); }
+
+/* Bandeau de simulation */
+.bandeau-simulation {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 -16px;
+  padding: 8px 16px;
+  background: #4A2A12;
+  border-bottom: 1px solid #E8862E;
+  color: #F4D6B8;
+  font-family: var(--etroit);
+  font-size: 13px;
+}
+.bandeau-simulation .bouton { min-height: 36px; }
+
+/* Barre de décompte de la pensée : toujours visible en haut */
+.ecran-pensee .pensee-progression {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 4px;
+  margin: 0 0 18px;
+}
+
+/* Il y a un an */
+.il-y-a-un-an {
+  margin-top: 30px;
+  padding: 16px 18px;
+  border: 1px solid var(--bordure-forte);
+  border-radius: 14px;
+  background: var(--carte);
+  box-shadow: inset 0 0 0 5px #1D1813, inset 0 0 0 6px var(--bordure);
+}
+.il-y-a-un-an h3 { margin: 0; font-family: var(--titre); font-weight: 400; font-size: 22px; letter-spacing: 0.12em; color: var(--laiton); }
+.iyau-date { margin: 2px 0 10px; font-family: var(--etroit); font-size: 13px; color: var(--texte-discret); }
+.il-y-a-un-an dl { margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.il-y-a-un-an dl div { display: grid; grid-template-columns: 96px 1fr; gap: 8px; }
+.il-y-a-un-an dt { font-family: var(--etroit); text-transform: uppercase; letter-spacing: 0.1em; font-size: 12px; color: var(--texte-discret); padding-top: 2px; }
+.il-y-a-un-an dd { margin: 0; color: var(--texte); }
+.iyau-texte { margin: 10px 0 0; font-style: italic; color: var(--texte-2); }
+
+/* Bilan du dimanche */
+.bilan-navigation { display: grid; grid-template-columns: 48px 1fr 48px; align-items: center; gap: 8px; margin-top: 12px; }
+.bilan-semaine { margin: 0; text-align: center; font-family: var(--etroit); font-weight: 600; font-size: 15px; color: var(--laiton-clair); }
+.bilan-section h2 { font-size: 22px; }
+.graphique-humeur { width: 100%; height: auto; display: block; }
+.graphique-humeur .grille { stroke: var(--bordure); stroke-width: 1; stroke-dasharray: 3 4; }
+.graphique-humeur .barre-matin { fill: var(--creme); }
+.graphique-humeur .barre-soir { fill: var(--laiton); }
+.graphique-humeur .barre-vide { stroke: var(--bordure-forte); stroke-width: 2; }
+.graphique-humeur .jour-lettre { font-family: var(--etroit); font-size: 12px; fill: var(--texte-discret); text-anchor: middle; }
+.moyennes { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.moyenne { display: flex; align-items: center; gap: 8px; color: var(--texte-2); }
+.moyenne strong { margin-left: auto; color: var(--texte); font-weight: 600; }
+.pastille-couleur { width: 12px; height: 12px; border-radius: 3px; }
+.pastille-couleur.matin { background: var(--creme); }
+.pastille-couleur.soir { background: var(--laiton); }
+.bilan-compte { display: flex; gap: 8px; margin: 0 0 10px; }
+.bilan-evenements { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.bilan-evenements li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-bottom: 8px; border-bottom: 1px solid var(--bordure); }
+.bilan-evenements .resultat-texte { flex-basis: 100%; }
+.bilan-compteur { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 8px 0; border-bottom: 1px solid var(--bordure); }
+.bilan-compteur .odometre-libelle { width: 60px; }
+.bilan-compteur .gain { flex-basis: 100%; font-family: var(--etroit); font-size: 13px; color: var(--vert); }
+.bilan-whatsup { list-style: none; margin: 0; padding: 0; }
+.bilan-whatsup li { display: flex; align-items: center; gap: 8px; min-height: 36px; border-bottom: 1px solid var(--bordure); color: var(--texte-2); }
+.bilan-whatsup li .icone { color: var(--laiton); width: 18px; height: 18px; }
+.bilan-whatsup li strong { margin-left: auto; color: var(--texte); font-weight: 600; text-align: right; }

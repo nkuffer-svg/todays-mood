@@ -1,7 +1,7 @@
 /* Jauge 9 crans « Garage vintage » : cadran crème cerclé de laiton, arc de 240°, aiguille rouge.
    Réglage par appui sur un chiffre du cadran (zone ronde autour de chaque chiffre), au clavier,
    ou avec les boutons − / +. Pas de glisser : un défilement de l'écran ne change jamais la valeur. */
-import { el, svg, icone } from './ui.js';
+import { el, svg, icone, clac } from './ui.js';
 
 const C = 150; // centre du cadran (viewBox 300 × 300)
 const ANGLE_MIN = -120;
@@ -110,7 +110,7 @@ export function creerJauge({ titre, nomCadran, libelles, valeur, onChange, varia
     'aria-valuemin': '1', 'aria-valuemax': '9',
   }, s);
   const libelle = el('p', { class: 'jauge-libelle' });
-  const detail = el('p', { class: 'jauge-detail' }, 'Touche un chiffre du cadran, ou utilise − et +');
+  const detail = el('p', { class: 'jauge-detail' }, 'Touche un chiffre du cadran, ou utilise −\u00a0et\u00a0+');
   const moins = el('button', { type: 'button', class: 'bouton-rond', 'aria-label': 'Baisser d’un cran' }, icone('moins'));
   const plus = el('button', { type: 'button', class: 'bouton-rond', 'aria-label': 'Monter d’un cran' }, icone('plus'));
 
@@ -133,6 +133,7 @@ export function creerJauge({ titre, nomCadran, libelles, valeur, onChange, varia
 
   function changer(n) {
     if (n === v) return;
+    clac();
     v = n;
     dessiner();
     onChange(v);

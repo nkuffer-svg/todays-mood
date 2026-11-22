@@ -3,9 +3,35 @@ import { el, carte, segments, icone } from './ui.js';
 import { LIEU_DEFAUT } from './meteo.js';
 import { empreinteEnregistree, enregistrerEmpreinte, disponibilite } from './verrou.js';
 import { bornesSaison, libelleSaison } from './whatsup.js';
-import { jourCourant, decaler, depuisTexte } from './jour.js';
+import { jourCourant, decaler, depuisTexte, maintenant, simulationActive, demarrerSimulation, arreterSimulation } from './jour.js';
 
 const fmtDateCourte = new Intl.DateTimeFormat('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' });
+
+/** Outils de test : simuler une date et une heure (bilan du dimanche, « il y a un an », séries, voyants). */
+function carteOutilsTest() {
+  const p2 = (n) => String(n).padStart(2, '0');
+  const d = maintenant();
+  const champ = el('input', {
+    id: 'simulation-date', class: 'champ', type: 'datetime-local',
+    value: `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}T${p2(d.getHours())}:${p2(d.getMinutes())}`,
+  });
+  const actif = simulationActive();
+  const message = el('p', { class: 'resultat-test erreur', role: 'status' });
+  const demarrer = el('button', { type: 'button', class: 'bouton' }, actif ? 'Changer la date simulée' : 'Simuler cette date');
+  demarrer.addEventListener('click', () => {
+    const v = new Date(champ.value);
+    if (Number.isNaN(v.getTime())) { message.textContent = 'Date invalide.'; return; }
+    demarrerSimulation(v);
+    location.reload();
+  });
+  return carte('Outils de test',
+    el('p', { class: 'discret' }, 'Pour tester ce qui dépend de la date (bilan du dimanche, « il y a un an », séries, voyants), l’app peut faire comme si on était à une autre date et une autre heure. Pendant la simulation, rien n’est enregistré ni envoyé au Sheet. Elle s’arrête avec le bouton « Arrêter » du bandeau, ou en fermant l’app.'),
+    el('label', { class: 'sous-titre-champ', for: 'simulation-date' }, 'Date et heure à simuler'),
+    champ,
+    el('div', { class: 'rangee-boutons' }, demarrer,
+      actif ? el('button', { type: 'button', class: 'bouton discret', onClick: () => { arreterSimulation(); location.reload(); } }, 'Arrêter la simulation') : null),
+    message);
+}
 
 /** Carte « Feux et barbecues d'avant l'app » : un report par saison, stocké dans l'onglet Reglages. */
 function carteReports(reglagesModifies) {
@@ -282,6 +308,14 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies, categories }
   choixDuree.value = String(Number(reglage('dureePensee')) || 30);
   choixDuree.addEventListener('change', () => definirReglage('dureePensee', Number(choixDuree.value)));
 
+  /* --- Heure du soir, vibration --- */
+  const choixSoir = el('select', { id: 'reglage-heure-soir', class: 'champ' });
+  for (let h = 14; h <= 23; h++) choixSoir.append(el('option', { value: String(h) }, `${h} h`));
+  choixSoir.value = String(Number(reglage('heureSoir')) || 18);
+  choixSoir.addEventListener('change', async () => { await definirReglage('heureSoir', Number(choixSoir.value)); reglagesModifies(); });
+  const caseVibration = el('input', { type: 'checkbox', id: 'reglage-vibration', checked: reglage('vibration') !== false });
+  caseVibration.addEventListener('change', () => definirReglage('vibration', caseVibration.checked));
+
   /* --- What's up --- */
   const champCuisiniers = el('input', {
     id: 'reglage-cuisiniers', class: 'champ', type: 'text', autocomplete: 'off',
@@ -403,7 +437,11 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies, categories }
       choixBascule,
       el('p', { class: 'discret' }, 'Avant cette heure, une saisie compte encore pour la veille.'),
       el('label', { class: 'sous-titre-champ', for: 'reglage-eau' }, 'Objectif d’eau par jour'),
-      choixEau),
+      choixEau,
+      el('label', { class: 'sous-titre-champ', for: 'reglage-heure-soir' }, 'Heure du soir'),
+      choixSoir,
+      el('p', { class: 'discret' }, 'À partir de cette heure, les voyants de Journée, Soir et What’s up s’allument s’il reste quelque chose à remplir ; c’est aussi l’heure du bilan du dimanche.'),
+      el('label', { class: 'case' }, caseVibration, el('span', {}, 'Petite vibration sur les compteurs et les jauges'))),
     carteCategories(categories),
     carte('What’s up',
       el('label', { class: 'sous-titre-champ', for: 'reglage-cuisiniers' }, 'Who’s the cook ? — noms proposés'),
@@ -414,6 +452,7 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies, categories }
       choixDate('hiverFin', '04-30', 'Fin de l’hiver'),
       el('p', { class: 'discret' }, 'Le reste de l’année est l’été (barbecue). Le choix se fait tout seul selon la date, et reste modifiable à la main.')),
     carteReports(reglagesModifies),
+    carteOutilsTest(),
     carte('Pensée du jour',
       el('label', { class: 'sous-titre-champ', for: 'reglage-duree-pensee' }, 'Durée d’affichage à l’ouverture'),
       choixDuree,

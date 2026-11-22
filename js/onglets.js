@@ -8,6 +8,7 @@ import { decrireCode } from './meteo.js';
 import { cartesCompteurs } from './compteurs.js';
 import { cartesPerso } from './perso.js';
 import { cartesWhatsUp } from './whatsup.js';
+import { plaque } from './series.js';
 import { trouverPensee, estFavori, definirFavori } from './pensees.js';
 
 function aVenir(titre, texte, etape) {
@@ -330,8 +331,16 @@ function soir(ctx) {
   const m = ctx.fiche.humeur_matin;
   const rappel = el('p', { class: 'rappel' },
     'Ce matin : ', m ? el('strong', {}, `${LIBELLES.humeur[m - 1]} (${m})`) : el('span', { class: 'discret' }, 'non saisie'));
+  // Série « journal rempli » (humeur du matin et du soir saisies), mise à jour à chaque changement d'humeur.
+  const zoneJournal = el('div');
+  const majJournal = async () => zoneJournal.replaceChildren(plaque((await ctx.series()).journal, 'Journal rempli') || '');
+  majJournal();
+  const carteSoir = carte('Humeur du soir', rappel, creerJauge({
+    titre: 'Humeur du soir', nomCadran: 'Humeur', libelles: LIBELLES.humeur, valeur: ctx.fiche.humeur_soir,
+    onChange: async (v) => { await ctx.modifier('humeur_soir', v); majJournal(); },
+  }), zoneJournal);
   return [
-    carteJauge(ctx, 'Humeur du soir', 'Humeur', 'humeur_soir', LIBELLES.humeur, rappel),
+    carteSoir,
     carteEvenement(ctx),
     carteRecit(ctx),
     carteBilan(ctx),

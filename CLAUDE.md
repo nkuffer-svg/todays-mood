@@ -65,6 +65,8 @@ Pixel 8 Pro
 - Tirage aléatoire, même pensée toute la journée, pas de répétition avant d'avoir fait le tour de la base.
 - La pensée affichée est enregistrée dans la fiche (identifiant de la citation).
 - Bouton « Revoir la pensée » dans l'onglet Matin, étoile pour la mettre en favori, liste « Mes pensées favorites ».
+- **Barre de progression** du décompte de fermeture automatique, en haut de l'écran (toujours visible).
+- **« Il y a un an »** : sous la pensée, si une fiche existe pour la même date l'année précédente, une carte montre l'humeur (moyenne matin et soir, en mot), la météo (température max et ressenti), l'appréciation, la catégorie et le texte de l'événement. Sinon, rien. (Pas de carte un 29 février.)
 
 ## 5. Les 5 onglets de la fiche du jour
 
@@ -124,6 +126,21 @@ Titre de l'écran : « What's up Today ? » (Bebas Neue).
   - **Report de saison** (Réglages, carte « Feux et barbecues d'avant l'app ») : pour une saison donnée (ex. hiver 2026-2027, été 2026), un nombre de feux — ou de barbecues — faits avant l'app, et en option la date du premier feu (ou barbecue). Le report s'ajoute aux totaux « cette saison » et « total » ; une date de premier feu saisie remplace celle calculée depuis les fiches. Les reports sont stockés dans l'onglet `Reglages` (clé `reportsSaisons`, liste JSON `[{type: "hiver"|"ete", saison: "2026-2027"|"2026", nombre, premier?}]`). **Pas de fausses fiches.** Nom d'une saison : « AAAA-AAAA » si elle chevauche deux années (hiver), sinon « AAAA ».
 - **Fangio ou Rossi ?** : deux grandes tuiles. Sur chaque tuile, seulement l'icône (casque, volant) et, en dessous, le nom « Rossi » ou « Fangio » en Bebas Neue 20 px, lettres espacées (pas de texte « Moto » / « Voiture » affiché ; les boutons gardent `aria-label="Moto (Rossi)"` et `aria-label="Voiture (Fangio)"`). Un seul choix par jour (`deplacement` = `moto` / `voiture`). Compteurs mois / total pour chacun.
 
+### Habillage et petits plaisirs (version 2, partie B)
+- **Voyants du tableau de bord** : dans la barre d'onglets, un petit voyant (6 px, orange `#E8862E`, légère lueur) en haut à droite de chaque onglet où il reste quelque chose à remplir **aujourd'hui** ; éteint (`#3A3026`) sinon.
+  - Matin : humeur du matin, énergie, inspiration, météo ressentie.
+  - Journée (à partir de l'heure du soir, 18 h par défaut, réglable) : nombre de pas.
+  - Soir (à partir de 18 h) : humeur du soir, bilan, appréciation de l'événement, 4 accords.
+  - What's up (à partir de 18 h) : cuisinier, déplacement.
+  - Perso : jamais de voyant.
+  - Après minuit, tant que la fiche n'a pas basculé, on reste « le soir ».
+- **Vibration** : petit « clac » (`navigator.vibrate`, environ 10 ms) sur chaque compteur (+1, −1, eau, marche) et chaque changement de cran d'une jauge. Désactivable dans les Réglages (réglage propre au téléphone).
+- **Séries** : plaque laiton « N jours d'affilée » (petites vis aux extrémités, Bebas Neue), affichée dès 2 jours consécutifs pour : guitare, objectif d'eau atteint, au moins une marche, journal rempli (humeur du matin ET du soir saisies). Calculées depuis les données ; si le jour même n'est pas encore réussi, la série compte jusqu'à la veille (« en cours »). Chaque plaque apparaît dans sa rubrique (eau, marche, guitare, humeur du soir pour le journal), et toutes ensemble dans le bilan du dimanche.
+- **Compteurs kilométriques** : les grands totaux de marche (km, une décimale), d'eau (litres, une décimale) et de pas s'affichent avec des chiffres à rouleaux : cases sombres à chiffres crème (Bebas Neue), décimale sur case crème à chiffre foncé, ombre intérieure en haut et en bas, petite animation de déroulement quand la valeur change. Utilisés pour les totaux de l'onglet Journée et dans le bilan du dimanche.
+- **Clin d'œil Fangio** : si Déplacement = Voiture alors que la météo du jour donne au moins 15 °C (max) et au moins 4 h de soleil, un encadré en pointillés laiton avec une icône soleil et une phrase taquine en italique s'affiche sous les tuiles. 5 phrases qui tournent selon la date, avec la vraie température (ex. « 18° et grand soleil… et t'as pris la voiture ? »).
+- **Bilan du dimanche** : le dimanche, à la première ouverture après l'heure du soir (une fois), un écran « Bilan du dimanche » s'affiche (refermable). Aussi accessible depuis l'Historique, pour n'importe quelle semaine passée (flèches semaine précédente / suivante). Contenu : humeur de la semaine (barres matin crème et soir laiton, lundi → dimanche, moyennes et libellé de la moyenne), événements Cool / Pas cool, compteurs kilométriques avec le gain de la semaine, séries en cours, résumé What's up (cuisine, repas, guitare, feux ou barbecues, moto / voiture).
+- **Outils de test** (Réglages) : simulation d'une date et d'une heure pour tester ce qui dépend de la date (voyants, bilan du dimanche, « il y a un an », séries). Pendant la simulation, un bandeau orange l'indique et **rien n'est enregistré ni envoyé au Sheet** ; elle s'arrête avec « Arrêter » ou en fermant l'app (stockée dans `sessionStorage`).
+
 ## 6. Partage depuis l'Enregistreur
 
 1. L'utilisateur dicte dans l'Enregistreur du Pixel, puis Partager → Transcription → Today's Mood.
@@ -137,7 +154,7 @@ Titre de l'écran : « What's up Today ? » (Bebas Neue).
 - **Mémos marqués** : vue de tous les Récits et My Love marqués Favori ou Piment, filtrable.
 - **Export Word** : un fichier .docx des mémos marqués (date, type, marque, texte), à importer dans OneNote. Option « seulement depuis le dernier export ».
 - **Pensées favorites** : liste avec auteur.
-- **Réglages** : heure de bascule (4 h), objectif d'eau (2 L), pastilles de catégorie (ajout, renommage, masquage), durée de la pensée (30 s), position météo (GPS ou lieu fixe), noms proposés pour « Who's the cook ? », dates de début et de fin de l'hiver (1er octobre et 30 avril), reports de saison (feux et barbecues faits avant l'app), URL de la Web App Apps Script, jeton secret, réenregistrement de l'empreinte.
+- **Réglages** : heure de bascule (4 h), objectif d'eau (2 L), pastilles de catégorie (ajout, renommage, masquage), durée de la pensée (30 s), position météo (GPS ou lieu fixe), noms proposés pour « Who's the cook ? », dates de début et de fin de l'hiver (1er octobre et 30 avril), reports de saison (feux et barbecues faits avant l'app), heure du soir (18 h, pour les voyants et le bilan du dimanche), vibration (oui / non), outils de test (simulation de date), URL de la Web App Apps Script, jeton secret, réenregistrement de l'empreinte.
 
 ## 8. Direction visuelle « Garage vintage »
 
@@ -175,6 +192,10 @@ Ambiance : tableau de bord de moto ancienne, adulte et chaleureux, **pas « joue
   - bouton 1 (un piston) : `<svg width="58" height="58" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="1.8" width="10" height="8.4" rx="1.4"/><path d="M7 4.3h10M7 6.2h10"/><circle cx="12" cy="8.4" r="0.9"/><path d="M11.1 9.2L10.5 17.3M12.9 9.2l.6 8.1"/><circle cx="12" cy="19.6" r="2.5"/><circle cx="12" cy="19.6" r="0.6" fill="currentColor"/></svg>`
   - bouton 2 (deux pistons en V) : `<svg width="62" height="62" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g transform="rotate(-26 12 19.6)"><rect x="8.6" y="2.6" width="6.8" height="6.2" rx="1.1"/><path d="M8.6 4.4h6.8M8.6 5.9h6.8"/><circle cx="12" cy="7.3" r="0.7"/><path d="M11.4 8L11 17.4M12.6 8l.4 9.4"/></g><g transform="rotate(26 12 19.6)"><rect x="8.6" y="2.6" width="6.8" height="6.2" rx="1.1"/><path d="M8.6 4.4h6.8M8.6 5.9h6.8"/><circle cx="12" cy="7.3" r="0.7"/><path d="M11.4 8L11 17.4M12.6 8l.4 9.4"/></g><circle cx="12" cy="19.6" r="2.5"/><circle cx="12" cy="19.6" r="0.6" fill="currentColor"/></svg>`
 - **Tableau des chefs** : panneau sombre façon tableau de course (damier, positions P1, P2… en Bebas Neue).
+- **Voyant d'onglet** : pastille de 6 px en haut à droite, orange `#E8862E` avec une légère lueur quand il reste à remplir, `#3A3026` sinon.
+- **Plaque de série** : plaque laiton avec deux petites vis, texte en Bebas Neue capitales.
+- **Compteur kilométrique** : rouleaux sombres `#1C1612` à chiffres crème, décimale sur case crème `#EFE6D2` à chiffre `#2A2118`, ombre intérieure en haut et en bas, déroulement animé.
+- **Clin d'œil** : encadré en pointillés laiton, icône soleil, phrase en italique.
 - **Jauge d'eau** : demi-cadran crème façon jauge de carburant, 0 → 1 L → 2 L, zone verte entre 1,5 et 2 L, aiguille rouge ; à côté, la quantité en grand (« 1,3 L ») et « Encore 0,7 L » ou « Objectif atteint ».
 - **Bilan** : 5 visages SVG au trait dans des tuiles ; sélection = bordure laiton.
 - **Accords** : sélecteur segmenté en pilule Bon / Moyen / Pas bon ; segment actif plein laiton.
@@ -196,7 +217,7 @@ Classeur « Today's Mood – données », 5 onglets. Première ligne = en-têtes
 
 Colonnes de `Fiches` : date, modifie_le, pensee_id, meteo_tmin, meteo_tmax, meteo_pluie_mm, meteo_soleil_h, meteo_nuages_pct, meteo_code, meteo_ressenti, photo_ciel, photo_jour, humeur_matin, humeur_soir, energie, inspiration, energie_sexuelle, bilan, evt_appreciation, evt_categorie, evt_texte, accord_parole, accord_personnel, accord_supposition, accord_mieux, pas, natation_m, eau_ml, cafe, deca, biere, vin, biscotte_1, biscotte_2, recit, recit_favori, recit_piment, mylove, mylove_favori, mylove_piment, puis (version 2, **toujours ajoutées à la fin**, sans déplacer les colonnes existantes) : cuisine, repas_type, guitare, feux_poele, barbecues, deplacement.
 
-L'Apps Script ajoute automatiquement à droite toute colonne attendue qui manque. Tous les totaux restent calculés, jamais stockés. L'onglet `Reglages` reçoit les réglages partagés (bascule, objectif d'eau, durée de la pensée, position météo, dernier export, cuisiniers, dates de l'hiver, reports de saison), jamais l'URL ni le jeton.
+L'Apps Script ajoute automatiquement à droite toute colonne attendue qui manque. Tous les totaux restent calculés, jamais stockés. L'onglet `Reglages` reçoit les réglages partagés (bascule, objectif d'eau, durée de la pensée, position météo, dernier export, cuisiniers, dates de l'hiver, reports de saison, heure du soir), jamais l'URL ni le jeton (ni la vibration, propre au téléphone).
 
 Les données numériques restent numériques (pour les futurs graphiques). Une valeur non saisie reste vide (pas de 0).
 
@@ -215,5 +236,6 @@ Les étapes 1 à 7 sont terminées.
 ### Version 2
 - **Partie A — nouvelles rubriques et jauges** : jauges réglées par appui sur un chiffre (plus de glisser), Biscotte renommé Happy Dicky avec boutons à gestes, nouvel onglet What's up (Who's the cook ?, Tu grattes ou quoi ?, Burn on the fire, Fangio ou Rossi ?), nouvelles colonnes à la fin de `Fiches`.
 - **Corrections après la partie A** : report de saison pour les feux et barbecues faits avant l'app (Réglages, stocké dans `Reglages`), tuiles Fangio / Rossi sans les mots Moto / Voiture, Happy Dicky avec des pistons à la place des gestes.
+- **Partie B — habillage et petits plaisirs** : voyants du tableau de bord, vibration, séries (plaques laiton), compteurs kilométriques à rouleaux, clin d'œil Fangio, bilan du dimanche, « Il y a un an » et barre de décompte sur l'écran d'ouverture, outils de test (simulation de date).
 
 Plus tard (hors périmètre pour l'instant) : graphiques de tendances (humeur × météo, matin × soir, accords dans le temps).

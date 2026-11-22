@@ -2,6 +2,33 @@
 import { el, bascule } from './ui.js';
 import { ouvrirEcran } from './ecran.js';
 import { trouverPensee, estFavori, definirFavori, favoris } from './pensees.js';
+import { ilYAUnAn, depuisTexte } from './jour.js';
+import { LIBELLES, RESSENTIS } from './donnees.js';
+
+const fmtAnnee = new Intl.DateTimeFormat('fr-CH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+/** Carte « Il y a un an » : la fiche du même jour l'année précédente (rien si elle n'existe pas). */
+async function carteIlYAUnAn(date) {
+  const avant = date && ilYAUnAn(date);
+  const f = avant ? await TMDB.lire('fiches', avant) : null;
+  if (!f) return null;
+  const humeurs = [f.humeur_matin, f.humeur_soir].filter((v) => v != null).map(Number);
+  const humeur = humeurs.length ? LIBELLES.humeur[Math.round(humeurs.reduce((a, b) => a + b, 0) / humeurs.length) - 1] : null;
+  const ressenti = RESSENTIS.find((r) => r.valeur === Number(f.meteo_ressenti));
+  const meteo = [f.meteo_tmax != null ? `${Math.round(Number(f.meteo_tmax))}°` : null, ressenti ? ressenti.libelle.toLowerCase() : null].filter(Boolean).join(', ');
+  const lignes = [
+    humeur ? ['Humeur', humeur] : null,
+    meteo ? ['Météo', meteo] : null,
+    f.evt_appreciation || f.evt_categorie ? ['Événement', [f.evt_appreciation, f.evt_categorie].filter(Boolean).join(' · ')] : null,
+  ].filter(Boolean);
+  if (!lignes.length && !f.evt_texte) return null;
+  const titre = fmtAnnee.format(depuisTexte(avant)).replace(',', '');
+  return el('section', { class: 'il-y-a-un-an' },
+    el('h3', {}, 'Il y a un an'),
+    el('p', { class: 'iyau-date' }, titre.charAt(0).toUpperCase() + titre.slice(1)),
+    el('dl', {}, ...lignes.map(([k, v]) => el('div', {}, el('dt', {}, k), el('dd', {}, v)))),
+    f.evt_texte ? el('p', { class: 'iyau-texte' }, `« ${f.evt_texte} »`) : null);
+}
 
 function citation(p) {
   return el('figure', { class: 'pensee' },
@@ -15,7 +42,7 @@ function citation(p) {
  * Affiche une citation en plein écran pendant `duree` secondes (refermable à tout moment).
  * `surFavori(favori)` est appelé quand l'étoile change.
  */
-export async function afficherPensee({ id, duree = 30, surFavori }) {
+export async function afficherPensee({ id, date, duree = 30, surFavori }) {
   const p = await trouverPensee(id);
   if (!p) return;
   let minuteur = null;
@@ -31,13 +58,15 @@ export async function afficherPensee({ id, duree = 30, surFavori }) {
   });
   const zone = citation(p);
   zone.addEventListener('click', fermer);
+  const annee = await carteIlYAUnAn(date);
   corps.append(
+    barre,
     el('p', { class: 'pensee-categorie' }, p.categorie),
     zone,
     el('div', { class: 'pensee-actions' },
       etoile,
       el('button', { type: 'button', class: 'bouton', onClick: fermer }, 'Fermer')),
-    barre);
+    annee);
   // Barre qui se vide pendant la durée d'affichage.
   const remplissage = barre.firstChild;
   remplissage.style.transitionDuration = `${duree}s`;

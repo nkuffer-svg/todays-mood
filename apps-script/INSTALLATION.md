@@ -139,6 +139,12 @@ Pas de nouvelle autorisation : recopie le nouveau `Code.gs`, enregistre, puis
 **Déployer → Gérer les déploiements → crayon → Nouvelle version → Déployer**.
 Les reports de saison saisis dans l'app arrivent dans l'onglet `Reglages`, sur la ligne `reportsSaisons`.
 
+## Mise à jour de la version 2, partie B
+
+Pas de nouvelle autorisation : recopie le nouveau `Code.gs` (Ctrl+A puis Suppr avant de coller),
+enregistre, puis **Déployer → Gérer les déploiements → crayon → Nouvelle version → Déployer**.
+Il permet d'enregistrer l'heure du soir dans l'onglet `Reglages`.
+
 ## En cas de problème
 
 | Message dans l'app | Que faire |

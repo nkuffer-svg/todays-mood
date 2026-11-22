@@ -1,6 +1,6 @@
 /* Onglet Perso : écran de verrouillage, puis compte-tours, Happy Dicky et My Love.
    (Happy Dicky s'appelait « Biscotte » : les colonnes du Sheet restent biscotte_1 et biscotte_2.) */
-import { el, icone, carte } from './ui.js';
+import { el, icone, carte, clac } from './ui.js';
 import { creerJauge } from './jauge.js';
 import { carteMemo } from './onglets.js';
 import * as verrou from './verrou.js';
@@ -92,6 +92,7 @@ function carteBiscotte(ctx) {
     const total = el('dd');
     const moins = el('button', { type: 'button', class: 'bouton-rond', 'aria-label': `Happy Dicky ${n} : moins un` }, icone('moins'));
     const changer = async (delta) => {
+      clac();
       const v = Math.max(0, (ctx.fiche[champ] || 0) + delta);
       await ctx.modifier(champ, v === 0 ? null : v);
       actualiser();

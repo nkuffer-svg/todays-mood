@@ -1,8 +1,9 @@
 /* Onglet What's up : cuisine du soir, guitare, feux de poêle / barbecues, moto ou voiture.
    Tous les totaux sont calculés à partir des fiches, jamais stockés.
    ctx (en plus de l'habituel) : fiches() → toutes les fiches locales, cuisiniers, hiver { debut, fin } (« MM-JJ ») */
-import { el, svg, icone, carte, segments } from './ui.js';
+import { el, svg, icone, carte, segments, clac } from './ui.js';
 import { depuisTexte, decaler } from './jour.js';
+import { plaque } from './series.js';
 
 const fmt = new Intl.NumberFormat('fr-CH', { maximumFractionDigits: 0 });
 const fmtDate = new Intl.DateTimeFormat('fr-CH', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
@@ -69,9 +70,10 @@ function compteur(ctx, { champ, nomIcone, libelle, totaux }) {
     const n = nombre(ctx.fiche[champ]);
     valeur.textContent = fmt.format(n);
     moins.disabled = n === 0;
-    zoneTotaux.replaceChildren(...(await totaux(await ctx.fiches())));
+    zoneTotaux.replaceChildren(...(await totaux(await ctx.fiches())).filter(Boolean));
   }
   async function changer(delta) {
+    clac();
     const n = Math.max(0, nombre(ctx.fiche[champ]) + delta);
     await ctx.modifier(champ, n === 0 ? null : n);
     maj();
@@ -172,8 +174,9 @@ function carteCuisine(ctx) {
 function carteGuitare(ctx) {
   return carte('Tu grattes ou quoi ?', compteur(ctx, {
     champ: 'guitare', nomIcone: 'mediator', libelle: 'Guitare',
-    totaux: (fiches) => {
+    totaux: async (fiches) => {
       const mois = ctx.fiche.date.slice(0, 7);
+      const serie = (await ctx.series()).guitare;
       let m = 0;
       let t = 0;
       for (const f of fiches) {
@@ -181,7 +184,7 @@ function carteGuitare(ctx) {
         t += n;
         if (f.date.startsWith(mois)) m += n;
       }
-      return [blocTotaux([['Mois', pluriel(m, 'session')], ['Total', pluriel(t, 'session')]])];
+      return [blocTotaux([['Mois', pluriel(m, 'session')], ['Total', pluriel(t, 'session')]]), plaque(serie)];
     },
   }));
 }
@@ -249,6 +252,24 @@ function carteFeu(ctx) {
 
 /* ---------- Fangio ou Rossi ? ---------- */
 
+/** Phrases taquines quand on prend la voiture par beau temps ({t} = température max du jour). */
+const CLINS_FANGIO = [
+  '{t}° et grand soleil… et t’as pris la voiture ?',
+  '{t}° au thermomètre, et la moto qui prend la poussière au garage…',
+  'Fangio, vraiment ? Avec {t}° et ce soleil, Rossi te regarde de travers.',
+  '{t}° et du soleil à revendre : le casque s’est senti bien seul aujourd’hui.',
+  'Un temps à rouler cheveux au vent, {t}°… et toi, tu choisis la clim ?',
+];
+
+/** Phrase du jour (elle tourne d'un jour à l'autre), ou null si le clin d'œil n'a pas lieu d'être. */
+export function clinFangio(fiche) {
+  const t = Number(fiche.meteo_tmax);
+  const soleil = Number(fiche.meteo_soleil_h);
+  if (fiche.deplacement !== 'voiture' || fiche.meteo_tmax == null || fiche.meteo_soleil_h == null || t < 15 || soleil < 4) return null;
+  const n = Number(fiche.date.replace(/-/g, '')) % CLINS_FANGIO.length;
+  return CLINS_FANGIO[n].replace('{t}', String(Math.round(t)));
+}
+
 function carteDeplacement(ctx) {
   let choix = ctx.fiche.deplacement ?? null;
   const OPTIONS = [
@@ -273,8 +294,15 @@ function carteDeplacement(ctx) {
       majCompteurs();
     },
   }, icone(o.icone, 'icone-grande'), el('span', { class: 'tuile-nom' }, o.sous), compteurs[i]));
+  const zoneClin = el('div');
+  const majClin = () => {
+    const phrase = clinFangio(ctx.fiche);
+    zoneClin.replaceChildren(phrase ? el('p', { class: 'clin-oeil' }, icone('soleil'), el('em', {}, phrase)) : '');
+  };
+  tuiles.forEach((t) => t.addEventListener('click', () => setTimeout(majClin, 0)));
+  majClin();
   majCompteurs();
-  return carte('Fangio ou Rossi ?', el('div', { class: 'grandes-tuiles' }, ...tuiles));
+  return carte('Fangio ou Rossi ?', el('div', { class: 'grandes-tuiles' }, ...tuiles), zoneClin);
 }
 
 export function cartesWhatsUp(ctx) {

@@ -2,6 +2,13 @@
 import { el, icone } from './ui.js';
 
 let courant = null;
+let attentes = [];
+
+/** Promesse résolue quand aucun écran plein écran n'est ouvert. */
+export function attendreAucunEcran() {
+  if (!courant) return Promise.resolve();
+  return new Promise((r) => attentes.push(r));
+}
 
 window.addEventListener('popstate', () => {
   if (courant) fermerSansHistorique();
@@ -13,6 +20,12 @@ function fermerSansHistorique() {
   e.noeud.remove();
   document.body.classList.remove('ecran-ouvert');
   e.surFermeture?.();
+  setTimeout(() => {
+    if (courant) return;
+    const a = attentes;
+    attentes = [];
+    a.forEach((r) => r());
+  }, 0);
 }
 
 /** Ouvre un écran. Renvoie { corps, fermer }. */

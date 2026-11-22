@@ -1,15 +1,16 @@
 /* Totaux calculés (jamais stockés) : jour, mois et depuis le début, à partir des fiches et des marches locales. */
+import { calculerSeries } from './series.js';
 
 const COMPTEURS = ['cafe', 'deca', 'biere', 'vin', 'biscotte_1', 'biscotte_2'];
 
 function vide() {
-  return { cafe: 0, deca: 0, biere: 0, vin: 0, biscotte_1: 0, biscotte_2: 0, eau_ml: 0, natation_m: 0, natation_nb: 0, marche_km: 0, marche_nb: 0 };
+  return { cafe: 0, deca: 0, biere: 0, vin: 0, biscotte_1: 0, biscotte_2: 0, eau_ml: 0, pas: 0, natation_m: 0, natation_nb: 0, marche_km: 0, marche_nb: 0 };
 }
 
 const nombre = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 
 /** Totaux du mois de `date` et depuis le début, plus les marches de ce jour. */
-export async function calculerTotaux(date) {
+export async function calculerTotaux(date, objectifEau = 2000) {
   const [fiches, marches] = await Promise.all([TMDB.tout('fiches'), TMDB.tout('marches')]);
   const prefixeMois = date.slice(0, 7);
   const mois = vide();
@@ -20,6 +21,7 @@ export async function calculerTotaux(date) {
     for (const c of cibles) {
       for (const k of COMPTEURS) c[k] += nombre(f[k]);
       c.eau_ml += nombre(f.eau_ml);
+      c.pas += nombre(f.pas);
       if (nombre(f.natation_m) > 0) {
         c.natation_m += nombre(f.natation_m);
         c.natation_nb += 1;
@@ -37,5 +39,6 @@ export async function calculerTotaux(date) {
 
   const marchesDuJour = marches.filter((m) => m.date === date).sort((a, b) => (a.id < b.id ? -1 : 1));
   const jour = { marche_km: Math.round(marchesDuJour.reduce((s, m) => s + nombre(m.km), 0) * 100) / 100 };
-  return { jour, mois, total, marchesDuJour };
+  const series = calculerSeries(fiches, marches, date, objectifEau);
+  return { jour, mois, total, marchesDuJour, series };
 }
