@@ -14,7 +14,7 @@ const DEFAUTS = {
 export const REGLAGES_PARTAGES = [
   'bascule', 'objectifEau', 'dureePensee', 'meteoMode', 'lieuNom', 'lieuLat', 'lieuLon',
   'penseesDebutCycle', 'dernierExport',
-  'cuisiniers', 'hiverDebut', 'hiverFin',
+  'cuisiniers', 'hiverDebut', 'hiverFin', 'reportsSaisons',
 ];
 
 const cache = { ...DEFAUTS };

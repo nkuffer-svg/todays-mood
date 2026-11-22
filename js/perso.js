@@ -1,6 +1,6 @@
 /* Onglet Perso : écran de verrouillage, puis compte-tours, Happy Dicky et My Love.
    (Happy Dicky s'appelait « Biscotte » : les colonnes du Sheet restent biscotte_1 et biscotte_2.) */
-import { el, svg, icone, carte } from './ui.js';
+import { el, icone, carte } from './ui.js';
 import { creerJauge } from './jauge.js';
 import { carteMemo } from './onglets.js';
 import * as verrou from './verrou.js';
@@ -58,17 +58,19 @@ function carteVerrou(ctx) {
 
 /* ---------- Happy Dicky ---------- */
 
-const PAUME = 'M7.2 12.2h9.6a2 2 0 0 1 2 2v2.3a5.5 5.5 0 0 1-5.5 5.5h-2.6a5.5 5.5 0 0 1-5.5-5.5v-2.3a2 2 0 0 1 2-2z';
-const GESTES = {
-  1: ['M10.5 12.2V3.8a1.5 1.5 0 0 1 3 0v8.4', PAUME, 'M8.6 12.2v2.4M16 12.2v2.4M5.6 16.2c1.4-.2 2.4.3 3 1.3'], // index levé
-  2: ['M9.6 12.2L7.5 4.2a1.45 1.45 0 0 1 2.8-.8L12 9.6', 'M14.4 12.2l2.1-8a1.45 1.45 0 0 0-2.8-.8L12 9.6', PAUME, 'M16.2 12.2v2.4M5.6 16.2c1.4-.2 2.4.3 3 1.3'], // signe V
+/* Pistons dessinés au trait (couleur currentColor, sur les boutons laiton) :
+   bouton 1 = un piston, bouton 2 = deux pistons en V (bicylindre). Dessins repris tels quels. */
+const PISTONS = {
+  1: '<svg width="58" height="58" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="1.8" width="10" height="8.4" rx="1.4"/><path d="M7 4.3h10M7 6.2h10"/><circle cx="12" cy="8.4" r="0.9"/><path d="M11.1 9.2L10.5 17.3M12.9 9.2l.6 8.1"/><circle cx="12" cy="19.6" r="2.5"/><circle cx="12" cy="19.6" r="0.6" fill="currentColor"/></svg>',
+  2: '<svg width="62" height="62" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g transform="rotate(-26 12 19.6)"><rect x="8.6" y="2.6" width="6.8" height="6.2" rx="1.1"/><path d="M8.6 4.4h6.8M8.6 5.9h6.8"/><circle cx="12" cy="7.3" r="0.7"/><path d="M11.4 8L11 17.4M12.6 8l.4 9.4"/></g><g transform="rotate(26 12 19.6)"><rect x="8.6" y="2.6" width="6.8" height="6.2" rx="1.1"/><path d="M8.6 4.4h6.8M8.6 5.9h6.8"/><circle cx="12" cy="7.3" r="0.7"/><path d="M11.4 8L11 17.4M12.6 8l.4 9.4"/></g><circle cx="12" cy="19.6" r="2.5"/><circle cx="12" cy="19.6" r="0.6" fill="currentColor"/></svg>',
 };
 
-function geste(n) {
-  return svg('svg', {
-    viewBox: '0 0 24 24', class: 'geste', fill: 'none', stroke: 'currentColor',
-    'stroke-width': '1.4', 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'aria-hidden': 'true',
-  }, ...GESTES[n].map((d) => svg('path', { d })));
+function piston(n) {
+  const gabarit = document.createElement('template');
+  gabarit.innerHTML = PISTONS[n];
+  const dessin = gabarit.content.firstElementChild;
+  dessin.classList.add('piston');
+  return dessin;
 }
 
 function carteBiscotte(ctx) {
@@ -96,7 +98,7 @@ function carteBiscotte(ctx) {
     };
     moins.addEventListener('click', () => changer(-1));
     const grand = el('button', { type: 'button', class: 'bouton-biscotte', 'aria-label': `Happy Dicky ${n} : plus un`, onClick: () => changer(1) },
-      geste(n), el('span', { class: 'mention' }, '+1'));
+      piston(n), el('span', { class: 'mention' }, '+1'));
     colonnes.push({
       maj(t) {
         const v = ctx.fiche[champ] || 0;

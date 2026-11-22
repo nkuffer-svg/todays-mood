@@ -1122,3 +1122,13 @@ h1 { font-size: 30px; }
 .grande-tuile[aria-pressed="true"] { border-color: var(--laiton); background: var(--selection); color: var(--laiton-clair); }
 .grande-tuile[aria-pressed="true"] .tuile-sous { color: var(--laiton); }
 .totaux-deux { grid-template-columns: 1fr 1fr; }
+
+/* ---------- Corrections après la partie A ---------- */
+
+.bouton-biscotte .piston { display: block; }
+.grande-tuile .tuile-nom { font-family: var(--titre); font-size: 20px; letter-spacing: 0.16em; color: var(--texte); text-transform: uppercase; }
+.grande-tuile[aria-pressed="true"] .tuile-nom { color: var(--laiton-clair); }
+.liste-reports { list-style: none; margin: 8px 0 12px; padding: 0; }
+.liste-reports li { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; border-bottom: 1px solid var(--bordure); color: var(--texte-2); font-size: 15px; }
+.liste-reports li strong { color: var(--texte); font-weight: 600; }
+.liste-reports li.vide { color: var(--texte-discret); font-size: 14px; border-bottom: 0; }

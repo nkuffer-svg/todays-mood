@@ -2,6 +2,121 @@
 import { el, carte, segments, icone } from './ui.js';
 import { LIEU_DEFAUT } from './meteo.js';
 import { empreinteEnregistree, enregistrerEmpreinte, disponibilite } from './verrou.js';
+import { bornesSaison, libelleSaison } from './whatsup.js';
+import { jourCourant, decaler, depuisTexte } from './jour.js';
+
+const fmtDateCourte = new Intl.DateTimeFormat('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' });
+
+/** Carte « Feux et barbecues d'avant l'app » : un report par saison, stocké dans l'onglet Reglages. */
+function carteReports(reglagesModifies) {
+  const hiver = { debut: reglage('hiverDebut') || '10-01', fin: reglage('hiverFin') || '04-30' };
+  const lire = () => {
+    try { const r = JSON.parse(reglage('reportsSaisons') || '[]'); return Array.isArray(r) ? r : []; } catch { return []; }
+  };
+  const NOMS = { hiver: 'Hiver', ete: 'Été' };
+  const liste = el('ul', { class: 'liste-reports' });
+  const message = el('p', { class: 'resultat-test', role: 'status' });
+  let type = 'hiver';
+
+  // Saisons proposées : la saison en cours (ou la dernière) et les 5 précédentes.
+  function saisons(t) {
+    const res = [];
+    let d = jourCourant(reglage('bascule'));
+    for (let i = 0; i < 6; i++) {
+      const b = bornesSaison(d, t, hiver);
+      res.push({ libelle: libelleSaison(b), ...b });
+      d = decaler(b.debut, -1);
+    }
+    return res;
+  }
+
+  function dessinerListe() {
+    const reports = lire().sort((a, b) => (a.type + a.saison < b.type + b.saison ? 1 : -1));
+    liste.replaceChildren(...(reports.length ? reports.map((r) => el('li', {},
+      el('span', {},
+        el('strong', {}, `${NOMS[r.type]} ${r.saison}`),
+        ` : ${r.nombre} ${r.type === 'hiver' ? (r.nombre > 1 ? 'feux' : 'feu') : (r.nombre > 1 ? 'barbecues' : 'barbecue')}`,
+        r.premier ? ` · premier le ${fmtDateCourte.format(depuisTexte(r.premier))}` : ''),
+      el('button', {
+        type: 'button', class: 'bouton-info', 'aria-label': `Supprimer le report ${NOMS[r.type]} ${r.saison}`,
+        onClick: async () => {
+          await definirReglage('reportsSaisons', JSON.stringify(lire().filter((x) => !(x.type === r.type && x.saison === r.saison))));
+          dessinerListe();
+          reglagesModifies();
+        },
+      }, icone('corbeille'))))
+      : [el('li', { class: 'vide' }, 'Aucun report pour l’instant.')]));
+  }
+
+  const choixSaison = el('select', { id: 'report-saison', class: 'champ' });
+  const champNombre = el('input', { id: 'report-nombre', class: 'champ', type: 'text', inputmode: 'numeric', autocomplete: 'off', placeholder: 'ex. 12' });
+  const champPremier = el('input', { id: 'report-premier', class: 'champ', type: 'date' });
+  const blocPremier = el('div', {},
+    el('label', { class: 'sous-titre-champ', for: 'report-premier' }, 'Date du premier feu (facultatif)'),
+    champPremier);
+  let parLibelle = new Map();
+  function remplirSaisons() {
+    const s = saisons(type);
+    parLibelle = new Map(s.map((x) => [x.libelle, x]));
+    choixSaison.replaceChildren(...s.map((x) => el('option', { value: x.libelle }, `${NOMS[type]} ${x.libelle}`)));
+    blocPremier.querySelector('label').textContent = type === 'hiver' ? 'Date du premier feu (facultatif)' : 'Date du premier barbecue (facultatif)';
+    preremplir();
+  }
+  function preremplir() {
+    const r = lire().find((x) => x.type === type && x.saison === choixSaison.value);
+    champNombre.value = r ? String(r.nombre) : '';
+    champPremier.value = r?.premier || '';
+    const b = parLibelle.get(choixSaison.value);
+    if (b) { champPremier.min = b.debut; champPremier.max = b.fin; }
+  }
+  choixSaison.addEventListener('change', preremplir);
+
+  const choixType = segments({
+    etiquette: 'Type de report', obligatoire: true, valeur: type,
+    options: [{ valeur: 'hiver', libelle: 'Hiver (poêle)' }, { valeur: 'ete', libelle: 'Été (barbecue)' }],
+    onChange: (v) => { type = v; remplirSaisons(); },
+  });
+
+  const bouton = el('button', { type: 'button', class: 'bouton' }, 'Enregistrer le report');
+  bouton.addEventListener('click', async () => {
+    message.className = 'resultat-test';
+    const n = Number(String(champNombre.value).replace(/['’\s]/g, ''));
+    if (!Number.isInteger(n) || n < 0) {
+      message.classList.add('erreur');
+      message.textContent = 'Indique un nombre entier (0 ou plus).';
+      return;
+    }
+    const b = parLibelle.get(choixSaison.value);
+    const premier = champPremier.value || null;
+    if (premier && b && (premier < b.debut || premier > b.fin)) {
+      message.classList.add('erreur');
+      message.textContent = `La date doit être comprise dans la saison (du ${fmtDateCourte.format(depuisTexte(b.debut))} au ${fmtDateCourte.format(depuisTexte(b.fin))}).`;
+      return;
+    }
+    const autres = lire().filter((x) => !(x.type === type && x.saison === choixSaison.value));
+    const nouveau = { type, saison: choixSaison.value, nombre: n };
+    if (premier) nouveau.premier = premier;
+    await definirReglage('reportsSaisons', JSON.stringify([...autres, nouveau]));
+    message.classList.add('succes');
+    message.textContent = 'Report enregistré.';
+    dessinerListe();
+    reglagesModifies();
+  });
+
+  remplirSaisons();
+  dessinerListe();
+  return carte('Feux et barbecues d’avant l’app',
+    el('p', { class: 'discret' }, 'Pour une saison commencée avant l’app : le nombre de feux (ou de barbecues) déjà faits s’ajoute à « cette saison » et au « total ». Une date de premier feu saisie ici remplace celle calculée depuis les fiches.'),
+    liste,
+    choixType,
+    el('label', { class: 'sous-titre-champ', for: 'report-saison' }, 'Saison'),
+    choixSaison,
+    el('label', { class: 'sous-titre-champ', for: 'report-nombre' }, 'Nombre déjà fait avant l’app'),
+    champNombre,
+    blocPremier,
+    el('div', { class: 'rangee-boutons' }, bouton),
+    message);
+}
 import { ouvrirEcran } from './ecran.js';
 import { reglage, definirReglage } from './reglages.js';
 import { appeler, surEtat, planifier } from './sync.js';
@@ -298,6 +413,7 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies, categories }
       choixDate('hiverDebut', '10-01', 'Début de l’hiver (poêle)'),
       choixDate('hiverFin', '04-30', 'Fin de l’hiver'),
       el('p', { class: 'discret' }, 'Le reste de l’année est l’été (barbecue). Le choix se fait tout seul selon la date, et reste modifiable à la main.')),
+    carteReports(reglagesModifies),
     carte('Pensée du jour',
       el('label', { class: 'sous-titre-champ', for: 'reglage-duree-pensee' }, 'Durée d’affichage à l’ouverture'),
       choixDuree,

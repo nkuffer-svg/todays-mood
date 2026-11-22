@@ -34,6 +34,18 @@ export function bornesSaison(date, type, hiver) {
   return { debut, fin };
 }
 
+/** Nom d'une saison : « 2026-2027 » (à cheval sur deux années) ou « 2026 ». */
+export function libelleSaison({ debut, fin }) {
+  const a = debut.slice(0, 4);
+  const b = fin.slice(0, 4);
+  return a === b ? a : `${a}-${b}`;
+}
+
+/** Report d'une saison (feux ou barbecues faits avant l'app) : { nombre, premier } ou null. */
+function reportDe(reports, type, saison) {
+  return reports.find((r) => r.type === type && r.saison === saison) || null;
+}
+
 /* ---------- Petits composants ---------- */
 
 /** Totaux sous un compteur : le chiffre du jour est déjà affiché en grand à côté du bouton. */
@@ -193,8 +205,11 @@ function carteFeu(ctx) {
       libelle: hiver ? 'Feu de poêle' : 'Barbecue',
       totaux: (fiches) => {
         const saison = bornesSaison(date, mode, ctx.hiver);
-        let s = 0;
-        let t = 0;
+        // Reports de saison (Réglages) : feux ou barbecues faits avant l'app, ajoutés aux totaux.
+        const reports = ctx.reportsSaisons.filter((r) => r.type === mode);
+        const reportActuel = reportDe(reports, mode, libelleSaison(saison));
+        let s = nombre(reportActuel?.nombre);
+        let t = reports.reduce((somme, r) => somme + nombre(r.nombre), 0);
         for (const f of fiches) {
           const n = nombre(f[champ]);
           t += n;
@@ -204,8 +219,9 @@ function carteFeu(ctx) {
         const blocs = [blocTotaux([['Cette saison', compte(s)], ['Total', compte(t)]])];
         if (hiver) {
           const precedente = bornesSaison(decaler(saison.debut, -1), 'hiver', ctx.hiver);
-          const premier = (b) => fiches.filter((f) => nombre(f.feux_poele) > 0 && f.date >= b.debut && f.date <= b.fin)
-            .map((f) => f.date).sort()[0];
+          // Une date de premier feu saisie dans le report remplace celle calculée depuis les fiches.
+          const premier = (b) => reportDe(reports, 'hiver', libelleSaison(b))?.premier
+            || fiches.filter((f) => nombre(f.feux_poele) > 0 && f.date >= b.debut && f.date <= b.fin).map((f) => f.date).sort()[0];
           const p1 = premier(saison);
           const p0 = premier(precedente);
           blocs.push(el('dl', { class: 'premiers-feux' },
@@ -256,7 +272,7 @@ function carteDeplacement(ctx) {
       await ctx.modifier('deplacement', choix);
       majCompteurs();
     },
-  }, icone(o.icone, 'icone-grande'), el('span', { class: 'tuile-titre' }, o.libelle), el('span', { class: 'tuile-sous' }, o.sous), compteurs[i]));
+  }, icone(o.icone, 'icone-grande'), el('span', { class: 'tuile-nom' }, o.sous), compteurs[i]));
   majCompteurs();
   return carte('Fangio ou Rossi ?', el('div', { class: 'grandes-tuiles' }, ...tuiles));
 }

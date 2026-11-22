@@ -8,7 +8,7 @@
  * et rangé dans les Propriétés du script.
  */
 
-const VERSION = 'v2a-1';
+const VERSION = 'v2a-2';
 
 const COLONNES_FICHES = [
   'date', 'modifie_le', 'pensee_id',
@@ -48,7 +48,7 @@ const CHAMPS_PHOTO = { photo_ciel: 'ciel', photo_jour: 'jour' };
 const REGLAGES_AUTORISES = [
   'bascule', 'objectifEau', 'dureePensee', 'meteoMode', 'lieuNom', 'lieuLat', 'lieuLon',
   'penseesDebutCycle', 'dernierExport',
-  'cuisiniers', 'hiverDebut', 'hiverFin',
+  'cuisiniers', 'hiverDebut', 'hiverFin', 'reportsSaisons',
 ];
 
 const PASTILLES_DEFAUT = ['Job', 'Maison', 'Famille élargie', 'Famille', 'Réflexion', 'Pensée', 'Scène de vie'];

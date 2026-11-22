@@ -15,7 +15,7 @@ import { tirerPensee, definirFavori } from './pensees.js';
 import { afficherPensee, ouvrirFavoris } from './ecran-pensee.js';
 import { ouvrirHistorique } from './ecran-historique.js';
 
-export const VERSION = 'v2a-1';
+export const VERSION = 'v2a-2';
 
 const etat = {
   aujourdhui: null, // jour courant selon l'heure de bascule
@@ -168,6 +168,15 @@ const ctx = {
   },
   get cuisiniers() {
     return String(reglage('cuisiniers') ?? CUISINIERS_DEFAUT).split(',').map((x) => x.trim()).filter(Boolean);
+  },
+  /** Reports de saison (Réglages) : [{ type: 'hiver' | 'ete', saison, nombre, premier? }] */
+  get reportsSaisons() {
+    try {
+      const r = JSON.parse(reglage('reportsSaisons') || '[]');
+      return Array.isArray(r) ? r : [];
+    } catch {
+      return [];
+    }
   },
   get hiver() {
     return { debut: reglage('hiverDebut') || '10-01', fin: reglage('hiverFin') || '04-30' };

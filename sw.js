@@ -4,7 +4,7 @@
 'use strict';
 importScripts('./db.js');
 
-const VERSION = 'v2a-1';
+const VERSION = 'v2a-2';
 const CACHE = 'todays-mood-' + VERSION;
 const CACHE_POLICES = 'todays-mood-polices';
 const FICHIERS = [

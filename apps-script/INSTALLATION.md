@@ -133,6 +133,12 @@ s'ajoutent toutes seules **à la fin** de l'onglet `Fiches` à la première sync
 les créer tout de suite en lançant la fonction **initialiser** (sans danger : elle n'efface rien et ne
 change pas le jeton). Ne déplace pas les colonnes existantes.
 
+## Mise à jour après la partie A (reports de saison)
+
+Pas de nouvelle autorisation : recopie le nouveau `Code.gs`, enregistre, puis
+**Déployer → Gérer les déploiements → crayon → Nouvelle version → Déployer**.
+Les reports de saison saisis dans l'app arrivent dans l'onglet `Reglages`, sur la ligne `reportsSaisons`.
+
 ## En cas de problème
 
 | Message dans l'app | Que faire |
