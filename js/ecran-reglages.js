@@ -16,11 +16,11 @@ function carteOutilsTest() {
     value: `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}T${p2(d.getHours())}:${p2(d.getMinutes())}`,
   });
   const actif = simulationActive();
-  const message = el('p', { class: 'resultat-test erreur', role: 'status' });
+  const message = el('p', { class: 'resultat-test', role: 'status' });
   const demarrer = el('button', { type: 'button', class: 'bouton' }, actif ? 'Changer la date simulée' : 'Simuler cette date');
   demarrer.addEventListener('click', () => {
     const v = new Date(champ.value);
-    if (Number.isNaN(v.getTime())) { message.textContent = 'Date invalide.'; return; }
+    if (Number.isNaN(v.getTime())) { message.className = 'resultat-test erreur'; message.textContent = 'Date invalide.'; return; }
     demarrerSimulation(v);
     location.reload();
   });
