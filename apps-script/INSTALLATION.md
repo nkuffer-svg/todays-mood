@@ -156,6 +156,30 @@ Le nouveau code accepte aussi la photo du ciel du soir (fichier `AAAA-MM-JJ_ciel
 dossier Drive) et les seuils de la bise dans l'onglet `Reglages`. Sans cette mise à jour, la photo du
 soir resterait « Envoi vers Drive en attente » et les nouvelles valeurs ne seraient pas gardées dans le Sheet.
 
+## Mise à jour de la version 3, partie B (mot du jour et sauvegarde automatique)
+
+1. Recopie le nouveau `Code.gs` (Ctrl+A puis Suppr avant de coller), enregistre, puis
+   **Déployer → Gérer les déploiements → crayon → Nouvelle version → Déployer**.
+   La colonne `mot_du_jour` s'ajoute toute seule à la fin de l'onglet `Fiches`.
+2. Vérifie le fuseau horaire du projet : **Paramètres du projet** (roue dentée à gauche) →
+   « Fuseau horaire » = **(GMT+01:00) Heure d'Europe centrale – Zurich** (ou Paris, Berlin…).
+   C'est lui qui décide de « dimanche vers 23 h ».
+3. **Une seule fois** : en haut de l'éditeur, choisis la fonction **installerSauvegarde** dans le menu
+   déroulant, puis **Exécuter**. Google demande une nouvelle autorisation (le script veut créer un
+   déclencheur) : **Examiner les autorisations** → ton compte → **Paramètres avancés** →
+   **Accéder à … (non sécurisé)** → **Autoriser**. C'est ton propre script, c'est normal.
+4. Le journal d'exécution affiche « Sauvegarde automatique installée… » puis « Sauvegarde faite… ».
+   Dans Drive, un dossier **Today's Mood – sauvegardes** contient une première copie datée.
+5. Pour vérifier le déclencheur : icône **réveil** (« Déclencheurs ») à gauche : une ligne
+   `sauvegarder`, « Basé sur le temps », chaque semaine le dimanche, 23 h à minuit.
+
+Ensuite tout se fait seul : chaque dimanche soir une copie, les 12 plus récentes sont gardées (les plus
+anciennes vont à la corbeille de Drive). Tu peux aussi lancer **sauvegarder** à la main à tout moment.
+Si tu relances **installerSauvegarde**, l'ancien déclencheur est remplacé (jamais de doublon).
+
+Pour restaurer : ouvre la copie voulue dans le dossier des sauvegardes et recopie les onglets dans le
+classeur principal (ou demande-moi de l'aide).
+
 ## En cas de problème
 
 | Message dans l'app | Que faire |

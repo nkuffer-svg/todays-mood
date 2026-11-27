@@ -4,7 +4,7 @@
 'use strict';
 importScripts('./db.js');
 
-const VERSION = 'v3a-1';
+const VERSION = 'v3b-1';
 const CACHE = 'todays-mood-' + VERSION;
 const CACHE_POLICES = 'todays-mood-polices';
 const FICHIERS = [
@@ -30,6 +30,7 @@ const FICHIERS = [
   './js/jauge.js',
   './js/jour.js',
   './js/meteo.js',
+  './js/mots.js',
   './js/odometre.js',
   './js/onglets.js',
   './js/pensees.js',
@@ -46,6 +47,9 @@ const FICHIERS = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
+  './icons/raccourci-eau-192.png',
+  './icons/raccourci-cafe-192.png',
+  './icons/raccourci-guitare-192.png',
 ];
 
 self.addEventListener('install', (event) => {

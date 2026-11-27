@@ -73,6 +73,21 @@ function blocHumeur(jours, parDate) {
     el('div', { class: 'moyennes' }, ligne('Matin', 'matin', m), ligne('Soir', 'soir', s)));
 }
 
+/* ---------- Mots du jour ---------- */
+
+function blocMots(jours, parDate) {
+  const fmtJourSemaine = new Intl.DateTimeFormat('fr-CH', { weekday: 'long' });
+  const nb = jours.filter((d) => parDate.get(d)?.mot_du_jour).length;
+  return section('Mots de la semaine',
+    el('ul', { class: 'bilan-mots' }, ...jours.map((d) => {
+      const mot = parDate.get(d)?.mot_du_jour;
+      return el('li', {},
+        el('span', { class: 'mot-jour' }, fmtJourSemaine.format(depuisTexte(d))),
+        mot ? el('strong', { class: 'mot' }, mot) : el('span', { class: 'mot vide' }, '—'));
+    })),
+    nb ? null : el('p', { class: 'etat-vide' }, 'Aucun mot du jour cette semaine.'));
+}
+
 /* ---------- Événements ---------- */
 
 function blocEvenements(jours, parDate) {
@@ -170,6 +185,7 @@ export async function ouvrirBilan({ semaine, aujourdhui, objectifEau }) {
     const finSeries = dimanche < aujourdhui ? dimanche : aujourdhui;
     zone.replaceChildren(
       blocHumeur(jours, parDate),
+      blocMots(jours, parDate),
       blocEvenements(jours, parDate),
       blocCompteurs(fiches, marches, lundi, dimanche),
       blocSeries(fiches, marches, finSeries, objectifEau),

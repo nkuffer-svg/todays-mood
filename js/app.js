@@ -1,5 +1,5 @@
 /* Today's Mood — point d'entrée de l'app. */
-import { el, icone } from './ui.js';
+import { el, icone, clac } from './ui.js';
 import { COLONNES, ONGLETS, PASTILLES_DEFAUT } from './donnees.js';
 import { jourCourant, decaler, formatLong, relatif, maintenant, simulationActive, arreterSimulation, estLeSoir } from './jour.js';
 import { chargerReglages, reglage, definirReglage } from './reglages.js';
@@ -20,7 +20,7 @@ import { attendreAucunEcran } from './ecran.js';
 import { afficherPensee, ouvrirFavoris } from './ecran-pensee.js';
 import { ouvrirHistorique } from './ecran-historique.js';
 
-export const VERSION = 'v3a-1';
+export const VERSION = 'v3b-1';
 
 const etat = {
   aujourdhui: null, // jour courant selon l'heure de bascule
@@ -304,7 +304,7 @@ const heureSoir = () => Number(reglage('heureSoir')) || 18;
 const VOYANTS = {
   matin: { soir: false, champs: ['humeur_matin', 'energie', 'inspiration', 'meteo_ressenti'] },
   journee: { soir: true, champs: ['pas'] },
-  soir: { soir: true, champs: ['meteo_soir_ressenti', 'humeur_soir', 'bilan', 'evt_appreciation', 'accord_parole', 'accord_personnel', 'accord_supposition', 'accord_mieux'] },
+  soir: { soir: true, champs: ['meteo_soir_ressenti', 'humeur_soir', 'bilan', 'mot_du_jour', 'evt_appreciation', 'accord_parole', 'accord_personnel', 'accord_supposition', 'accord_mieux'] },
   whatsup: { soir: true, champs: ['cuisine', 'deplacement'] },
 };
 
@@ -629,6 +629,54 @@ function construireEntete() {
   });
 }
 
+/* ---------- Raccourcis de l'icône de l'app (manifest « shortcuts ») ---------- */
+
+const litres = new Intl.NumberFormat('fr-CH', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const plusUn = (champ) => ctx.modifier(champ, (Number(etat.fiche[champ]) || 0) + 1);
+
+const RACCOURCIS = {
+  eau: {
+    onglet: 'journee',
+    faire: () => ctx.eau.ajouter(500),
+    message: () => `+ 500 ml d’eau · ${litres.format((etat.fiche.eau_ml || 0) / 1000)} L aujourd’hui`,
+  },
+  cafe: {
+    onglet: 'journee',
+    faire: () => plusUn('cafe'),
+    message: () => `+ 1 café · ${etat.fiche.cafe} aujourd’hui`,
+  },
+  guitare: {
+    onglet: 'whatsup',
+    faire: () => plusUn('guitare'),
+    message: () => `+ 1 session de guitare · ${etat.fiche.guitare} aujourd’hui`,
+  },
+};
+
+let minuteurMessage = null;
+/** Bref message de confirmation en bas de l'écran. */
+function afficherMessage(texte) {
+  let zone = document.getElementById('message-bref');
+  if (!zone) {
+    zone = el('div', { id: 'message-bref', class: 'message-bref', role: 'status', 'aria-live': 'polite' });
+    document.body.append(zone);
+  }
+  zone.textContent = texte;
+  zone.classList.add('visible');
+  clearTimeout(minuteurMessage);
+  minuteurMessage = setTimeout(() => zone.classList.remove('visible'), 3000);
+}
+
+/** Enregistre l'action d'un raccourci dans la fiche du jour, puis affiche l'onglet concerné. */
+async function executerRaccourci(nom) {
+  const r = RACCOURCIS[nom];
+  if (!r) return;
+  await allerA(etat.aujourdhui, { onglet: r.onglet });
+  await r.faire();
+  clac(); // Chrome peut refuser la vibration tant qu'on n'a pas touché l'écran
+  rendre();
+  afficherMessage(r.message() + (simulationActive() ? ' (simulation : rien n’est enregistré)' : ''));
+}
+
 /* ---------- Synchronisation ---------- */
 
 async function apresSynchro(resultat) {
@@ -700,6 +748,11 @@ async function demarrer() {
   await allerA(etat.aujourdhui, { onglet: ongletSelonHeure() });
 
   const params = new URLSearchParams(location.search);
+  const raccourci = params.get('raccourci');
+  if (raccourci) {
+    history.replaceState(null, '', location.pathname);
+    await executerRaccourci(raccourci);
+  }
   const ouvertParPartage = params.has('partage') || params.has('erreur-partage');
   if (ouvertParPartage) {
     history.replaceState(null, '', location.pathname);
@@ -724,7 +777,8 @@ async function demarrer() {
   // automatique. La pensée n'attend la synchro que 3 s au plus, pour s'afficher dès l'ouverture.
   const premiereSynchro = synchroComplete();
   premiereSynchro.finally(() => { meteoAutomatique(); completerHistorique(); });
-  if (!ouvertParPartage) {
+  // Ouverture par un partage ou un raccourci : pas de pensée en plein écran (elle viendra à la prochaine ouverture).
+  if (!ouvertParPartage && !raccourci) {
     Promise.race([premiereSynchro, new Promise((r) => setTimeout(r, 3000))]).then(penseeDuJour).then(bilanDuDimanche);
   }
   // Voyants et passage de 18 h (ou de l'heure de bascule) pendant que l'app reste ouverte.

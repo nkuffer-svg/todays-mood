@@ -31,6 +31,8 @@ Pixel 8 Pro
 - **PWA** : `manifest.webmanifest` (nom « Today's Mood », thème sombre, icônes), service worker pour le fonctionnement hors ligne.
 - **Share Target** : le manifest déclare l'app comme cible de partage Android. La transcription de l'Enregistreur peut arriver en **texte** ou en **fichier .txt** : gérer les deux (méthode POST, `multipart/form-data`, le service worker intercepte la requête, lit le contenu, le stocke, puis redirige vers l'écran de choix de destination).
 - **Stockage local** : IndexedDB est la source de vérité sur le téléphone. Toute saisie y est écrite immédiatement (enregistrement automatique, pas de bouton Valider), puis placée dans une **file de synchronisation** envoyée à Apps Script dès que le réseau est disponible. Au démarrage, l'app récupère les données du Sheet pour reconstituer l'historique (totaux, recherche).
+- **Raccourcis de l'icône** (version 3, partie B) : le manifest déclare des `shortcuts` Android (appui long sur l'icône) : « + 500 ml d'eau », « + 1 café », « Tu grattes ? + 1 », chacun avec une petite icône laiton (`icons/raccourci-*.png`). Ils ouvrent `./?raccourci=eau|cafe|guitare` : l'app enregistre l'action dans la fiche du jour (selon l'heure de bascule), vibre si Chrome le permet (il refuse la vibration tant qu'on n'a pas touché l'écran, donc en pratique pas à l'ouverture par un raccourci), affiche un bref message de confirmation en bas de l'écran puis l'onglet concerné (Journée ou What's up). Pas de pensée en plein écran à cette ouverture (elle viendra à la suivante).
+- **Icône de l'app** : petit cadran crème cerclé de laiton, graduations foncées, aiguille rouge, moyeu cerclé de laiton, sur fond `#17130F` (`icons/icon.svg`, version « maskable » plus petite pour la zone sûre ; PNG régénérés par `node outils/generer-icones.js`).
 - **Verrou Perso** : WebAuthn avec l'authentificateur de la plateforme (empreinte du Pixel), `userVerification: "required"`. C'est un verrou d'interface, pas un chiffrement. L'onglet se reverrouille quand on le quitte ou quand l'app passe en arrière-plan.
 
 ### Back (dossier `apps-script/` du dépôt)
@@ -39,6 +41,7 @@ Pixel 8 Pro
 - L'utilisateur **copie-colle** le code de `apps-script/` dans l'éditeur Apps Script. Garde peu de fichiers (`Code.gs`, éventuellement un ou deux autres), et rappelle-lui à chaque modification de faire « Gérer les déploiements → Modifier → Nouvelle version » pour garder la même URL.
 - **Sécurité** : chaque requête contient un **jeton secret** (longue chaîne aléatoire). Le jeton est stocké côté Apps Script dans les Propriétés du script, et côté téléphone dans les Réglages de l'app (saisi une fois par l'utilisateur). **Le jeton ne doit jamais apparaître dans le dépôt** : le dépôt est public (GitHub Pages gratuit).
 - **CORS** : appeler la Web App avec `fetch` en POST et `Content-Type: text/plain;charset=utf-8` (corps JSON en texte) pour éviter la requête préalable OPTIONS. Réponses en JSON via `ContentService`.
+- **Sauvegarde automatique** (version 3, partie B) : la fonction `sauvegarder` copie le classeur dans un dossier Drive « Today's Mood – sauvegardes », nommé « Today's Mood – sauvegarde AAAA-MM-JJ », et ne garde que les **12 copies** les plus récentes (les autres vont à la corbeille de Drive). Un déclencheur hebdomadaire (dimanche vers 23 h, fuseau du projet) est installé en lançant **une seule fois** `installerSauvegarde` depuis l'éditeur (relançable sans doublon ; fait aussi une première sauvegarde). La date de la dernière sauvegarde est gardée dans les Propriétés du script (`DERNIERE_SAUVEGARDE`), renvoyée par `lire` et `ping`, et affichée dans les Réglages de l'app (avec un avertissement au-delà de 8 jours).
 - **Photos** : compressées sur le téléphone avant l'envoi (JPEG, côté le plus long 1600 px, qualité ≈ 0,8), envoyées en base64, enregistrées dans un dossier Drive « Today's Mood – photos ». La fiche stocke l'identifiant ou le lien du fichier.
 
 ### Météo
@@ -75,7 +78,7 @@ Pixel 8 Pro
 - La pensée affichée est enregistrée dans la fiche (identifiant de la citation).
 - Bouton « Revoir la pensée » dans l'onglet Matin, étoile pour la mettre en favori, liste « Mes pensées favorites ».
 - **Barre de progression** du décompte de fermeture automatique, en haut de l'écran (toujours visible).
-- **« Il y a un an »** : sous la pensée, si une fiche existe pour la même date l'année précédente, une carte montre l'humeur (moyenne matin et soir, en mot), la météo (température max et ressenti), l'appréciation, la catégorie et le texte de l'événement. Sinon, rien. (Pas de carte un 29 février.)
+- **« Il y a un an »** : sous la pensée, si une fiche existe pour la même date l'année précédente, une carte montre l'humeur (moyenne matin et soir, en mot), le mot du jour, la météo (température max et ressenti), l'appréciation, la catégorie et le texte de l'événement. Sinon, rien. (Pas de carte un 29 février.)
 
 ## 5. Les 5 onglets de la fiche du jour
 
@@ -116,6 +119,7 @@ Libellés des jauges (le mot du cran sélectionné s'affiche en grand) :
 - **Humeur du soir** : même jauge que le matin, avec un rappel de l'humeur du matin.
 - **Événement marquant** (un par jour) : appréciation Cool / Pas cool (pastilles), une catégorie parmi Job · Maison · Famille élargie · Famille · Réflexion · Pensée · Scène de vie + catégories ajoutées depuis l'app (pastille « + Nouvelle »), description courte.
 - **Récit du jour** : texte long reçu via le partage de l'Enregistreur (voir section 6), modifiable. Marques : Favori (étoile) et/ou Piment.
+- **Mot du jour** (version 3, partie B) : un seul mot pour résumer la journée (pas d'espace : les espaces sont retirés pendant la saisie ; 25 caractères au plus). Pendant la saisie, les mots déjà utilisés sont proposés en pastilles (commençant par ce qui est tapé, les plus fréquents d'abord, majuscules et accents ignorés). Stockage `mot_du_jour` (texte). Affiché aussi dans le bilan du dimanche (les 7 mots de la semaine) et dans la carte « Il y a un an ».
 - **Bilan du jour** : 5 visages dessinés en SVG (pas d'emoji), de « Pas content » à « Très content ». Stockage 1–5.
 - **Les 4 accords toltèques** : Parole impeccable · Ne pas en faire une affaire personnelle · Pas de supposition · Faire de son mieux. Pour chacun, un sélecteur Bon / Moyen / Pas bon (stockage 3 / 2 / 1) et un bouton « i » qui ouvre un court résumé de l'accord (un seul ouvert à la fois). Résumés :
   - Parole impeccable : « Parler avec intégrité et dire ce que l'on pense vraiment. Ne pas retourner ses mots contre soi ni contre les autres : pas de médisance, pas de jugement gratuit. »
@@ -141,7 +145,7 @@ Titre de l'écran : « What's up Today ? » (Bebas Neue).
 - **Voyants du tableau de bord** : dans la barre d'onglets, un petit voyant (6 px, orange `#E8862E`, légère lueur) en haut à droite de chaque onglet où il reste quelque chose à remplir **aujourd'hui** ; éteint (`#3A3026`) sinon.
   - Matin : humeur du matin, énergie, inspiration, météo ressentie.
   - Journée (à partir de l'heure du soir, 18 h par défaut, réglable) : nombre de pas.
-  - Soir (à partir de 18 h) : ressenti du soir, humeur du soir, bilan, appréciation de l'événement, 4 accords.
+  - Soir (à partir de 18 h) : ressenti du soir, humeur du soir, bilan, mot du jour, appréciation de l'événement, 4 accords.
   - What's up (à partir de 18 h) : cuisinier, déplacement.
   - Perso : jamais de voyant.
   - Après minuit, tant que la fiche n'a pas basculé, on reste « le soir ».
@@ -149,7 +153,7 @@ Titre de l'écran : « What's up Today ? » (Bebas Neue).
 - **Séries** : plaque laiton « N jours d'affilée » (petites vis aux extrémités, Bebas Neue), affichée dès 2 jours consécutifs pour : guitare, objectif d'eau atteint, au moins une marche, journal rempli (humeur du matin ET du soir saisies). Calculées depuis les données ; si le jour même n'est pas encore réussi, la série compte jusqu'à la veille (« en cours »). Chaque plaque apparaît dans sa rubrique (eau, marche, guitare, humeur du soir pour le journal), et toutes ensemble dans le bilan du dimanche.
 - **Compteurs kilométriques** : les grands totaux de marche (km, une décimale), d'eau (litres, une décimale) et de pas s'affichent avec des chiffres à rouleaux : cases sombres à chiffres crème (Bebas Neue), décimale sur case crème à chiffre foncé, ombre intérieure en haut et en bas, petite animation de déroulement quand la valeur change. Utilisés pour les totaux de l'onglet Journée et dans le bilan du dimanche.
 - **Clin d'œil Fangio** : si Déplacement = Voiture alors que la météo du jour donne au moins 15 °C (max) et au moins 4 h de soleil, un encadré en pointillés laiton avec une icône soleil et une phrase taquine en italique s'affiche sous les tuiles. 5 phrases qui tournent selon la date, avec la vraie température (ex. « 18° et grand soleil… et t'as pris la voiture ? »).
-- **Bilan du dimanche** : le dimanche, à la première ouverture après l'heure du soir (une fois), un écran « Bilan du dimanche » s'affiche (refermable). Aussi accessible depuis l'Historique, pour n'importe quelle semaine passée (flèches semaine précédente / suivante). Contenu : humeur de la semaine (barres matin crème et soir laiton, lundi → dimanche, moyennes et libellé de la moyenne), événements Cool / Pas cool, compteurs kilométriques avec le gain de la semaine, séries en cours, résumé What's up (cuisine, repas, guitare, feux ou barbecues, moto / voiture).
+- **Bilan du dimanche** : le dimanche, à la première ouverture après l'heure du soir (une fois), un écran « Bilan du dimanche » s'affiche (refermable). Aussi accessible depuis l'Historique, pour n'importe quelle semaine passée (flèches semaine précédente / suivante). Contenu : humeur de la semaine (barres matin crème et soir laiton, lundi → dimanche, moyennes et libellé de la moyenne), mots de la semaine (le mot du jour de chaque jour, lundi → dimanche), événements Cool / Pas cool, compteurs kilométriques avec le gain de la semaine, séries en cours, résumé What's up (cuisine, repas, guitare, feux ou barbecues, moto / voiture).
 - **Outils de test** (Réglages) : simulation d'une date et d'une heure pour tester ce qui dépend de la date (voyants, bilan du dimanche, « il y a un an », séries). Pendant la simulation, un bandeau orange l'indique et **rien n'est enregistré ni envoyé au Sheet** ; elle s'arrête avec « Arrêter » ou en fermant l'app (stockée dans `sessionStorage`).
 
 ## 6. Partage depuis l'Enregistreur
@@ -161,11 +165,21 @@ Titre de l'écran : « What's up Today ? » (Bebas Neue).
 
 ## 7. Historique, recherche, export, réglages
 
-- **Historique** : recherche par date (calendrier) et par événement (filtres combinables : appréciation × une ou plusieurs catégories). Résultats en liste (date, appréciation, catégorie, début du texte), un appui ouvre la fiche complète.
+- **Historique** : sélecteur de vue **Date · Événement · Météo · Mot · Mémos**. Recherche par date (calendrier) et par événement (filtres combinables : appréciation × une ou plusieurs catégories). Résultats en liste (date, appréciation, catégorie, début du texte), un appui ouvre la fiche complète.
+- **Recherche par météo** (version 3, partie B) : filtres combinables (tous doivent être vrais) : Grand soleil, Pluie, Neige, Bise, Gel (< 0°), Chaud (> 25°), Pression basse (< 1005 hPa), Pleine lune ; choix du moment : relevé de 8 h, de 16 h ou journée. Règles :
+  - Grand soleil : code météo 0 ou 1 ; sinon, pour un relevé, nuages ≤ 20 % ; pour la journée, soleil ≥ 70 % de la durée du jour.
+  - Pluie : code de pluie ou d'orage, ou précipitations (≥ 0,1 mm pour un relevé, ≥ 1 mm pour la journée) sans code de neige. Neige : code de neige.
+  - Bise : vent du relevé (seuils des Réglages) ; journée = bise à 8 h ou à 16 h.
+  - Gel / Chaud : température du relevé ; journée = min < 0° / max > 25°.
+  - Pression basse : pression du relevé ; journée = la plus basse des deux relevés.
+  - Pleine lune : phase « Pleine lune » (indépendante du moment).
+  - Avec un filtre météo, seuls les jours qui ont la météo du moment choisi comptent.
+  - En tête des résultats : nombre de jours trouvés, humeur moyenne de ces jours (moyenne matin et soir de chaque jour, en chiffre et en mot) et celle des autres jours, avec l'écart. Liste : date, icône météo, températures, humeur matin → soir (vert si elle monte, rouge si elle baisse), appréciation de l'événement ; un appui ouvre la fiche (Matin, ou Soir pour le relevé de 16 h).
+- **Recherche par mot du jour** : champ de recherche (contient, sans tenir compte des majuscules et accents) et nuage des 30 mots les plus utilisés (un appui = ce mot exactement). Même en-tête (nombre de jours, humeur moyenne comparée aux autres jours) et liste (date, mot, humeur matin → soir, appréciation).
 - **Mémos marqués** : vue de tous les Récits et My Love marqués Favori ou Piment, filtrable.
 - **Export Word** : un fichier .docx des mémos marqués (date, type, marque, texte), à importer dans OneNote. Option « seulement depuis le dernier export ».
 - **Pensées favorites** : liste avec auteur.
-- **Réglages** : heure de bascule (4 h), objectif d'eau (2 L), pastilles de catégorie (ajout, renommage, masquage), durée de la pensée (30 s), position météo (GPS ou lieu fixe), noms proposés pour « Who's the cook ? », seuils de la bise (15 km/h, de 20° à 100°), dates de début et de fin de l'hiver (1er octobre et 30 avril), reports de saison (feux et barbecues faits avant l'app), heure du soir (18 h, pour les voyants et le bilan du dimanche), vibration (oui / non), outils de test (simulation de date), URL de la Web App Apps Script, jeton secret, réenregistrement de l'empreinte.
+- **Réglages** : heure de bascule (4 h), objectif d'eau (2 L), pastilles de catégorie (ajout, renommage, masquage), durée de la pensée (30 s), position météo (GPS ou lieu fixe), noms proposés pour « Who's the cook ? », seuils de la bise (15 km/h, de 20° à 100°), dates de début et de fin de l'hiver (1er octobre et 30 avril), reports de saison (feux et barbecues faits avant l'app), date de la dernière sauvegarde du classeur (affichage), heure du soir (18 h, pour les voyants et le bilan du dimanche), vibration (oui / non), outils de test (simulation de date), URL de la Web App Apps Script, jeton secret, réenregistrement de l'empreinte.
 
 ## 8. Direction visuelle « Garage vintage »
 
@@ -210,6 +224,9 @@ Ambiance : tableau de bord de moto ancienne, adulte et chaleureux, **pas « joue
 - **Pastilles météo** : petites pastilles arrondies ; vent discret (bordure `#3A3026`, texte discret) ; bise allumée (bordure laiton, fond `#2E2519`, texte laiton clair) ; pression avec flèche de tendance.
 - **Relevé en attente** : encadré en tirets, « RELEVÉ À 8 H » en Archivo Narrow capitales.
 - **Encadré « La journée »** : zone creuse sous le relevé de 8 h, titre Bebas Neue laiton, détails compacts.
+- **Mot du jour** : champ en Bebas Neue, suggestions en pastilles ; dans le bilan et les résultats, le mot en Bebas Neue laiton clair.
+- **Message de confirmation** (raccourcis) : pilule en bas de l'écran, fond `#2E2519`, bordure laiton, texte laiton clair, disparaît après 3 s.
+- **Résumé de recherche** : encadré creux, nombre de jours en grand (Bebas Neue laiton), humeurs moyennes, écart en vert (mieux) ou rouge (moins bien).
 - **Pastille de lune** (en-tête) : dessin de 22 px (disque `#2A2219`, part éclairée crème, filet laiton foncé) et pourcentage en dessous, sans bordure (non cliquable).
 - **Jauge d'eau** : demi-cadran crème façon jauge de carburant, 0 → 1 L → 2 L, zone verte entre 1,5 et 2 L, aiguille rouge ; à côté, la quantité en grand (« 1,3 L ») et « Encore 0,7 L » ou « Objectif atteint ».
 - **Bilan** : 5 visages SVG au trait dans des tuiles ; sélection = bordure laiton.
@@ -230,9 +247,9 @@ Classeur « Today's Mood – données », 5 onglets. Première ligne = en-têtes
 | `Pastilles` | une catégorie d'événement | nom, ordre, visible |
 | `Reglages` | un réglage | clé, valeur |
 
-Colonnes de `Fiches` : date, modifie_le, pensee_id, meteo_tmin, meteo_tmax, meteo_pluie_mm, meteo_soleil_h, meteo_nuages_pct, meteo_code, meteo_ressenti, photo_ciel, photo_jour, humeur_matin, humeur_soir, energie, inspiration, energie_sexuelle, bilan, evt_appreciation, evt_categorie, evt_texte, accord_parole, accord_personnel, accord_supposition, accord_mieux, pas, natation_m, eau_ml, cafe, deca, biere, vin, biscotte_1, biscotte_2, recit, recit_favori, recit_piment, mylove, mylove_favori, mylove_piment, puis (version 2, **toujours ajoutées à la fin**, sans déplacer les colonnes existantes) : cuisine, repas_type, guitare, feux_poele, barbecues, deplacement, puis (version 3, à la fin) : meteo8_temp, meteo8_nuages, meteo8_pluie, meteo8_code, meteo8_vent, meteo8_vent_dir, meteo8_pression, meteo16_temp, meteo16_nuages, meteo16_pluie, meteo16_code, meteo16_vent, meteo16_vent_dir, meteo16_pression, meteo_soir_ressenti, coucher_soleil, duree_jour_min, lune_phase, lune_pct, photo_ciel_soir.
+Colonnes de `Fiches` : date, modifie_le, pensee_id, meteo_tmin, meteo_tmax, meteo_pluie_mm, meteo_soleil_h, meteo_nuages_pct, meteo_code, meteo_ressenti, photo_ciel, photo_jour, humeur_matin, humeur_soir, energie, inspiration, energie_sexuelle, bilan, evt_appreciation, evt_categorie, evt_texte, accord_parole, accord_personnel, accord_supposition, accord_mieux, pas, natation_m, eau_ml, cafe, deca, biere, vin, biscotte_1, biscotte_2, recit, recit_favori, recit_piment, mylove, mylove_favori, mylove_piment, puis (version 2, **toujours ajoutées à la fin**, sans déplacer les colonnes existantes) : cuisine, repas_type, guitare, feux_poele, barbecues, deplacement, puis (version 3, à la fin) : meteo8_temp, meteo8_nuages, meteo8_pluie, meteo8_code, meteo8_vent, meteo8_vent_dir, meteo8_pression, meteo16_temp, meteo16_nuages, meteo16_pluie, meteo16_code, meteo16_vent, meteo16_vent_dir, meteo16_pression, meteo_soir_ressenti, coucher_soleil, duree_jour_min, lune_phase, lune_pct, photo_ciel_soir, puis (version 3, partie B, à la fin) : mot_du_jour.
 
-Colonnes de texte : `coucher_soleil` (« HH:MM ») et `photo_ciel_soir` (lien Drive, fichier `AAAA-MM-JJ_ciel_soir.jpg`) ; les autres colonnes version 3 sont numériques.
+Colonnes de texte : `coucher_soleil` (« HH:MM »), `photo_ciel_soir` (lien Drive, fichier `AAAA-MM-JJ_ciel_soir.jpg`) et `mot_du_jour` ; les autres colonnes version 3 sont numériques.
 
 L'Apps Script ajoute automatiquement à droite toute colonne attendue qui manque. Tous les totaux restent calculés, jamais stockés. L'onglet `Reglages` reçoit les réglages partagés (bascule, objectif d'eau, durée de la pensée, position météo, dernier export, cuisiniers, dates de l'hiver, reports de saison, heure du soir, seuils de la bise), jamais l'URL ni le jeton (ni la vibration, propre au téléphone).
 
@@ -257,5 +274,6 @@ Les étapes 1 à 7 sont terminées.
 
 ### Version 3
 - **Partie A — météo du matin et du soir** : relevés horaires de 8 h (Matin) et 16 h (Soir) avec vent, pression et tendance, encadré « La journée », pastilles bise et pression, carte Météo du soir avec ressenti du soir, carte Coucher de soleil (durée du jour, écart avec la veille, solstices, photo du ciel du soir), phase de lune dans l'en-tête, voyant du Soir avec le ressenti du soir, rattrapage rétroactif des fiches existantes (`past_days`), nouvelles colonnes à la fin de `Fiches`.
+- **Partie B — mot du jour, raccourcis, recherche météo, sauvegarde** : mot du jour (onglet Soir, suggestions, voyant, bilan du dimanche, « Il y a un an », colonne `mot_du_jour`), raccourcis Android sur l'icône (+ 500 ml d'eau, + 1 café, Tu grattes ? + 1) et nouvelle icône cadran, recherches Météo et Mot dans l'Historique avec humeur moyenne comparée, sauvegarde hebdomadaire automatique du classeur (12 copies) et sa date dans les Réglages.
 
 Plus tard (hors périmètre pour l'instant) : graphiques de tendances (humeur × météo, matin × soir, accords dans le temps).

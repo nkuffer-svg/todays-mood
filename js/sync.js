@@ -267,6 +267,10 @@ async function recevoir(resultat) {
   if (Array.isArray(rep.pensees) && await TMDB.fusionnerPensees(rep.pensees)) {
     resultat.penseesModifiees = true;
   }
+  // Date de la dernière sauvegarde automatique du classeur (gardée sur le téléphone, pour les Réglages).
+  if ('sauvegarde' in rep && rep.sauvegarde !== reglage('derniereSauvegarde')) {
+    await definirReglage('derniereSauvegarde', rep.sauvegarde || null);
+  }
   if (rep.reglages && typeof rep.reglages === 'object') {
     resultat.reglagesModifies = (await fusionnerReglages(rep.reglages)).length > 0;
   }

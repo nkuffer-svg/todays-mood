@@ -18,6 +18,7 @@ async function carteIlYAUnAn(date) {
   const meteo = [f.meteo_tmax != null ? `${Math.round(Number(f.meteo_tmax))}°` : null, ressenti ? ressenti.libelle.toLowerCase() : null].filter(Boolean).join(', ');
   const lignes = [
     humeur ? ['Humeur', humeur] : null,
+    f.mot_du_jour ? ['Mot du jour', f.mot_du_jour] : null,
     meteo ? ['Météo', meteo] : null,
     f.evt_appreciation || f.evt_categorie ? ['Événement', [f.evt_appreciation, f.evt_categorie].filter(Boolean).join(' · ')] : null,
   ].filter(Boolean);

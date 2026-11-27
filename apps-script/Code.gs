@@ -1,5 +1,5 @@
 /**
- * Today's Mood — Web App Apps Script (version 3, partie A).
+ * Today's Mood — Web App Apps Script (version 3, partie B).
  *
  * À coller dans l'éditeur Apps Script du classeur « Today's Mood – données »
  * (Extensions → Apps Script). Voir apps-script/INSTALLATION.md.
@@ -8,7 +8,7 @@
  * et rangé dans les Propriétés du script.
  */
 
-const VERSION = 'v3a-1';
+const VERSION = 'v3b-1';
 
 const COLONNES_FICHES = [
   'date', 'modifie_le', 'pensee_id',
@@ -25,6 +25,8 @@ const COLONNES_FICHES = [
   'meteo8_temp', 'meteo8_nuages', 'meteo8_pluie', 'meteo8_code', 'meteo8_vent', 'meteo8_vent_dir', 'meteo8_pression',
   'meteo16_temp', 'meteo16_nuages', 'meteo16_pluie', 'meteo16_code', 'meteo16_vent', 'meteo16_vent_dir', 'meteo16_pression',
   'meteo_soir_ressenti', 'coucher_soleil', 'duree_jour_min', 'lune_phase', 'lune_pct', 'photo_ciel_soir',
+  // Version 3, partie B
+  'mot_du_jour',
 ];
 
 /** Colonnes de texte (les autres sont numériques). */
@@ -32,7 +34,7 @@ const COLONNES_TEXTE = [
   'date', 'modifie_le', 'pensee_id', 'photo_ciel', 'photo_jour',
   'evt_appreciation', 'evt_categorie', 'evt_texte', 'recit', 'mylove',
   'cuisine', 'repas_type', 'deplacement',
-  'coucher_soleil', 'photo_ciel_soir',
+  'coucher_soleil', 'photo_ciel_soir', 'mot_du_jour',
 ];
 
 /** Colonnes oui / vide (marques Favori et Piment). */
@@ -47,6 +49,8 @@ const ONGLETS = {
 };
 
 const NOM_DOSSIER_PHOTOS = "Today's Mood – photos";
+const NOM_DOSSIER_SAUVEGARDES = "Today's Mood – sauvegardes";
+const NB_SAUVEGARDES = 12;
 const CHAMPS_PHOTO = { photo_ciel: 'ciel', photo_jour: 'jour', photo_ciel_soir: 'ciel_soir' };
 
 /** Réglages que l'app peut enregistrer dans l'onglet Reglages (jamais l'adresse ni le jeton). */
@@ -106,6 +110,68 @@ function nouveauJeton() {
   Logger.log(jeton);
 }
 
+/**
+ * À lancer UNE SEULE FOIS : installe la sauvegarde automatique chaque dimanche vers 23 h
+ * (heure du fuseau du projet, voir Paramètres du projet), puis fait une première sauvegarde tout de suite.
+ * Sans danger si on la relance : l'ancien déclencheur est remplacé, jamais doublé.
+ */
+function installerSauvegarde() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'sauvegarder') ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger('sauvegarder').timeBased().onWeekDay(ScriptApp.WeekDay.SUNDAY).atHour(23).everyWeeks(1).create();
+  Logger.log('Sauvegarde automatique installée : chaque dimanche vers 23 h (fuseau du projet : ' + Session.getScriptTimeZone() + ').');
+  sauvegarder();
+}
+
+/**
+ * Copie le classeur dans le dossier Drive « Today's Mood – sauvegardes », nommée avec la date,
+ * et ne garde que les 12 copies les plus récentes (les plus anciennes vont à la corbeille de Drive).
+ * Lancée chaque dimanche par le déclencheur ; on peut aussi la lancer à la main.
+ */
+function sauvegarder() {
+  const ss = classeur_();
+  const dossier = dossierSauvegardes_();
+  const tz = ss.getSpreadsheetTimeZone();
+  const nom = "Today's Mood – sauvegarde " + Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
+  // Une seule copie par jour : celle du même jour est remplacée.
+  const memeNom = dossier.getFilesByName(nom);
+  while (memeNom.hasNext()) memeNom.next().setTrashed(true);
+  DriveApp.getFileById(ss.getId()).makeCopy(nom, dossier);
+
+  const copies = [];
+  const fichiers = dossier.getFiles();
+  while (fichiers.hasNext()) {
+    const f = fichiers.next();
+    if (!f.isTrashed()) copies.push(f);
+  }
+  copies.sort(function (a, b) { return b.getDateCreated() - a.getDateCreated(); });
+  copies.slice(NB_SAUVEGARDES).forEach(function (f) { f.setTrashed(true); });
+
+  PropertiesService.getScriptProperties().setProperty('DERNIERE_SAUVEGARDE', new Date().toISOString());
+  Logger.log('Sauvegarde faite : « ' + nom + ' » (' + Math.min(copies.length, NB_SAUVEGARDES) + ' copie(s) gardée(s)).');
+}
+
+/** Le dossier des sauvegardes (créé au besoin ; son identifiant est gardé dans les Propriétés du script). */
+function dossierSauvegardes_() {
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('DOSSIER_SAUVEGARDES');
+  if (id) {
+    try {
+      const d = DriveApp.getFolderById(id);
+      if (!d.isTrashed()) return d;
+    } catch (err) { /* dossier supprimé : on en recrée un */ }
+  }
+  const trouves = DriveApp.getFoldersByName(NOM_DOSSIER_SAUVEGARDES);
+  const dossier = trouves.hasNext() ? trouves.next() : DriveApp.createFolder(NOM_DOSSIER_SAUVEGARDES);
+  props.setProperty('DOSSIER_SAUVEGARDES', dossier.getId());
+  return dossier;
+}
+
+function derniereSauvegarde_() {
+  return PropertiesService.getScriptProperties().getProperty('DERNIERE_SAUVEGARDE') || '';
+}
+
 /* =====================================================================
    Web App
    ===================================================================== */
@@ -148,7 +214,7 @@ function traiter_(requete) {
   switch (requete.action) {
     case 'ping': {
       const fiches = onglet_(ss, 'Fiches');
-      return { ok: true, version: VERSION, classeur: ss.getName(), nbFiches: Math.max(0, fiches.getLastRow() - 1) };
+      return { ok: true, version: VERSION, classeur: ss.getName(), nbFiches: Math.max(0, fiches.getLastRow() - 1), sauvegarde: derniereSauvegarde_() };
     }
     case 'enregistrer': {
       const resultat = enregistrerFiches_(ss, Array.isArray(requete.fiches) ? requete.fiches : []);
@@ -161,7 +227,7 @@ function traiter_(requete) {
       return { ok: true, enregistrees: resultat.enregistrees, ignorees: resultat.ignorees };
     }
     case 'lire':
-      return { ok: true, fiches: lireFiches_(ss), pastilles: lirePastilles_(ss), marches: lireMarches_(ss), pensees: lirePensees_(ss), reglages: lireReglages_(ss) };
+      return { ok: true, fiches: lireFiches_(ss), pastilles: lirePastilles_(ss), marches: lireMarches_(ss), pensees: lirePensees_(ss), reglages: lireReglages_(ss), sauvegarde: derniereSauvegarde_() };
     case 'envoyerPhoto':
       return envoyerPhoto_(requete);
     case 'lirePhoto':

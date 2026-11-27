@@ -10,6 +10,7 @@ import { cartesCompteurs } from './compteurs.js';
 import { cartesPerso } from './perso.js';
 import { cartesWhatsUp } from './whatsup.js';
 import { plaque } from './series.js';
+import { nettoyerMot, cleMot, motsUtilises, LONGUEUR_MOT } from './mots.js';
 import { trouverPensee, estFavori, definirFavori } from './pensees.js';
 
 function aVenir(titre, texte, etape) {
@@ -102,6 +103,49 @@ function carteBilan(ctx) {
     },
   }, visage(i + 1), el('span', {}, nom)));
   return carte('Bilan du jour', el('div', { class: 'visages' }, ...tuiles));
+}
+
+/** Mot du jour : un seul mot, avec les mots déjà utilisés en suggestion. */
+function carteMotDuJour(ctx) {
+  const champ = el('input', {
+    id: 'mot-du-jour', class: 'champ champ-mot', type: 'text', maxlength: String(LONGUEUR_MOT),
+    autocomplete: 'off', spellcheck: 'false', enterkeyhint: 'done', placeholder: 'Un seul mot',
+    'aria-describedby': 'mot-aide', value: ctx.fiche.mot_du_jour ?? '',
+  });
+  const suggestions = el('div', { class: 'pastilles suggestions-mot', role: 'group', 'aria-label': 'Mots déjà utilisés', hidden: true });
+  let mots = [];
+  let focus = false;
+
+  function proposer() {
+    const saisie = cleMot(champ.value);
+    const liste = (focus || saisie)
+      ? mots.filter((m) => cleMot(m.mot) !== saisie && cleMot(m.mot).startsWith(saisie)).slice(0, 8)
+      : [];
+    suggestions.replaceChildren(...liste.map((m) => el('button', {
+      type: 'button', class: 'pastille suggestion',
+      // pointerdown : garder le clavier ouvert et ne pas perdre le focus avant le choix
+      onPointerdown: (e) => e.preventDefault(),
+      onClick: () => { champ.value = m.mot; ctx.modifierTexte('mot_du_jour', m.mot); focus = false; champ.blur(); proposer(); },
+    }, m.mot, m.nombre > 1 ? el('small', {}, ` ×${m.nombre}`) : null)));
+    suggestions.hidden = liste.length === 0;
+  }
+
+  champ.addEventListener('input', () => {
+    const propre = nettoyerMot(champ.value);
+    if (propre !== champ.value) champ.value = propre; // pas d'espace : un seul mot
+    ctx.modifierTexte('mot_du_jour', propre);
+    proposer();
+  });
+  champ.addEventListener('focus', () => { focus = true; proposer(); });
+  champ.addEventListener('blur', () => { focus = false; setTimeout(proposer, 150); });
+  champ.addEventListener('keydown', (e) => { if (e.key === 'Enter') champ.blur(); });
+  ctx.fiches().then((fiches) => { mots = motsUtilises(fiches, { sauf: ctx.fiche.date }); proposer(); });
+
+  return carte('Mot du jour',
+    el('label', { class: 'sous-titre-champ', for: 'mot-du-jour' }, 'Un mot pour résumer la journée'),
+    champ,
+    suggestions,
+    el('p', { class: 'discret', id: 'mot-aide' }, `Sans espace, ${LONGUEUR_MOT} caractères au plus.`));
 }
 
 function carteAccords(ctx) {
@@ -226,6 +270,7 @@ function soir(ctx) {
     carteEvenement(ctx),
     carteRecit(ctx),
     carteBilan(ctx),
+    carteMotDuJour(ctx),
     carteAccords(ctx),
   ];
 }

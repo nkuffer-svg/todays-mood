@@ -5,6 +5,10 @@ import { depuisTexte, versTexte } from './jour.js';
 import { reglage, definirReglage } from './reglages.js';
 import { creerDocx } from './docx.js';
 import * as verrou from './verrou.js';
+import { LIBELLES } from './donnees.js';
+import { decrireCode, estBise, seuilsBise } from './meteo.js';
+import { lune, nomPhase } from './astro.js';
+import { cleMot, motsUtilises } from './mots.js';
 
 const fmtCourt = new Intl.DateTimeFormat('fr-CH', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const fmtLong = new Intl.DateTimeFormat('fr-CH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -121,6 +125,234 @@ function vueEvenements({ fiches, categories, ouvrir, etatVue }) {
     el('p', { class: 'sous-titre-champ' }, 'Catégories'),
     pastillesMultiples({ options: toutesCategories.map((c) => ({ valeur: c, libelle: c })), choisies: etatVue.categories, onChange: filtrer, etiquette: 'Catégories' }),
     el('p', { class: 'discret aide-filtre' }, 'Sans choix : toutes les catégories.'),
+    resultats);
+}
+
+/* ---------- Humeur moyenne (recherches Météo et Mot) ---------- */
+
+const nf = new Intl.NumberFormat('fr-CH', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+/** Humeur d'un jour : moyenne du matin et du soir (ce qui est saisi), ou null. */
+function humeurDuJour(f) {
+  const v = [f.humeur_matin, f.humeur_soir].filter((x) => x != null && x !== '').map(Number);
+  return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+}
+
+function humeurMoyenne(fiches) {
+  const v = fiches.map(humeurDuJour).filter((x) => x != null);
+  return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null;
+}
+
+const texteHumeur = (m) => (m == null ? '—' : `${nf.format(m)} · ${LIBELLES.humeur[Math.min(9, Math.max(1, Math.round(m))) - 1]}`);
+
+/** En-tête des résultats : nombre de jours, humeur moyenne de ces jours et des autres jours. */
+function resumeRecherche(trouves, autres) {
+  const m = humeurMoyenne(trouves);
+  const a = humeurMoyenne(autres);
+  const ecart = m != null && a != null ? m - a : null;
+  const signe = ecart == null ? '' : ecart > 0.05 ? '+' : ecart < -0.05 ? '−' : '±';
+  return el('div', { class: 'resume-recherche' },
+    el('p', { class: 'resume-nombre' }, el('strong', {}, String(trouves.length)), trouves.length > 1 ? ' jours trouvés' : ' jour trouvé'),
+    el('dl', { class: 'resume-humeurs' },
+      el('div', {}, el('dt', {}, 'Humeur de ces jours'), el('dd', {}, texteHumeur(m))),
+      el('div', {}, el('dt', {}, 'Les autres jours'), el('dd', {}, texteHumeur(a),
+        ecart != null ? el('span', { class: 'ecart-humeur' + (ecart > 0.05 ? ' plus' : ecart < -0.05 ? ' moins' : '') }, ` (${signe}${nf.format(Math.abs(ecart))} pour ces jours)`) : null))));
+}
+
+/** « 6 → 7 » : humeur du matin vers le soir. */
+function evolutionHumeur(f) {
+  const m = f.humeur_matin ?? null;
+  const s = f.humeur_soir ?? null;
+  if (m == null && s == null) return null;
+  const titre = `Humeur : matin ${m == null ? 'non saisie' : LIBELLES.humeur[m - 1]}, soir ${s == null ? 'non saisie' : LIBELLES.humeur[s - 1]}`;
+  const sens = m != null && s != null ? (s > m ? ' monte' : s < m ? ' baisse' : '') : '';
+  return el('span', { class: 'evolution-humeur' + sens, title: titre, 'aria-label': titre },
+    m ?? '–', el('span', { 'aria-hidden': 'true' }, ' → '), s ?? '–');
+}
+
+const pastilleAppreciation = (f) => (f.evt_appreciation
+  ? el('span', { class: 'pastille statique ' + (f.evt_appreciation === 'Cool' ? 'cool' : 'pascool') }, f.evt_appreciation)
+  : null);
+
+/* ---------- Météo ---------- */
+
+const FILTRES_METEO = [
+  { valeur: 'soleil', libelle: 'Grand soleil' },
+  { valeur: 'pluie', libelle: 'Pluie' },
+  { valeur: 'neige', libelle: 'Neige' },
+  { valeur: 'bise', libelle: 'Bise' },
+  { valeur: 'gel', libelle: 'Gel (< 0°)' },
+  { valeur: 'chaud', libelle: 'Chaud (> 25°)' },
+  { valeur: 'pression', libelle: 'Pression basse' },
+  { valeur: 'lune', libelle: 'Pleine lune' },
+];
+
+const MOMENTS = [
+  { valeur: '8', libelle: '8 h' },
+  { valeur: '16', libelle: '16 h' },
+  { valeur: 'journee', libelle: 'Journée' },
+];
+
+const num = (v) => (v == null || v === '' || !Number.isFinite(Number(v)) ? null : Number(v));
+
+/** Météo d'une fiche pour un moment (relevé de 8 h, de 16 h ou journée), ou null si elle manque. */
+function meteoDe(f, moment) {
+  if (moment === 'journee') {
+    if (f.meteo_code == null && f.meteo_tmax == null && f.meteo_tmin == null) return null;
+    const pressions = [num(f.meteo8_pression), num(f.meteo16_pression)].filter((p) => p != null);
+    const seuils = seuilsBise();
+    return {
+      code: num(f.meteo_code), tmin: num(f.meteo_tmin), tmax: num(f.meteo_tmax),
+      pluie: num(f.meteo_pluie_mm), nuages: num(f.meteo_nuages_pct),
+      soleil: num(f.meteo_soleil_h), dureeJour: num(f.duree_jour_min),
+      bise: estBise(f.meteo8_vent, f.meteo8_vent_dir, seuils) || estBise(f.meteo16_vent, f.meteo16_vent_dir, seuils),
+      pression: pressions.length ? Math.min(...pressions) : null,
+    };
+  }
+  const v = (c) => num(f[`meteo${moment}_${c}`]);
+  if (v('temp') == null) return null;
+  return {
+    code: v('code'), tmin: v('temp'), tmax: v('temp'), temp: v('temp'),
+    pluie: v('pluie'), nuages: v('nuages'),
+    bise: estBise(v('vent'), v('vent_dir')),
+    pression: v('pression'),
+  };
+}
+
+const TESTS_METEO = {
+  soleil: (m, moment) => [0, 1].includes(m.code)
+    || (moment === 'journee'
+      ? m.soleil != null && m.dureeJour ? (m.soleil * 60) / m.dureeJour >= 0.7 : false
+      : m.nuages != null && m.nuages <= 20),
+  pluie: (m, moment) => {
+    const ic = decrireCode(m.code)?.icone;
+    return ic === 'pluie' || ic === 'orage' || (ic !== 'neige' && m.pluie != null && m.pluie >= (moment === 'journee' ? 1 : 0.1));
+  },
+  neige: (m) => decrireCode(m.code)?.icone === 'neige',
+  bise: (m) => m.bise,
+  gel: (m) => m.tmin != null && m.tmin < 0,
+  chaud: (m) => m.tmax != null && m.tmax > 25,
+  pression: (m) => m.pression != null && m.pression < 1005,
+};
+
+const pleineLune = (f) => nomPhase(f.lune_phase ?? lune(f.date).phase) === 'Pleine lune';
+
+function temperatures(f, moment) {
+  const m = meteoDe(f, moment);
+  if (!m) return null;
+  const t = (x) => `${nf.format(x).replace(/,0$/, '')}°`;
+  if (moment === 'journee') return m.tmin == null && m.tmax == null ? null : `${m.tmin == null ? '–' : t(m.tmin)} / ${m.tmax == null ? '–' : t(m.tmax)}`;
+  return `${moment} h : ${t(m.temp)}`;
+}
+
+function vueMeteo({ fiches, ouvrir, etatVue }) {
+  const resultats = el('div', { class: 'resultats' });
+  const remplies = fiches.filter(ficheRemplie);
+
+  function filtrer() {
+    const choisis = [...etatVue.meteo];
+    if (!choisis.length) {
+      resultats.replaceChildren(el('p', { class: 'etat-vide' }, 'Choisis au moins un filtre.'));
+      return;
+    }
+    const moment = etatVue.moment;
+    const tests = choisis.filter((c) => c !== 'lune');
+    // Avec un filtre météo, seuls les jours qui ont la météo de ce moment comptent (aussi pour « les autres jours »).
+    const base = tests.length ? remplies.filter((f) => meteoDe(f, moment)) : remplies;
+    const trouves = base.filter((f) => {
+      if (etatVue.meteo.has('lune') && !pleineLune(f)) return false;
+      const m = tests.length ? meteoDe(f, moment) : null;
+      return tests.every((c) => TESTS_METEO[c](m, moment));
+    }).sort((a, b) => (a.date < b.date ? 1 : -1));
+    const ids = new Set(trouves.map((f) => f.date));
+    const autres = base.filter((f) => !ids.has(f.date));
+    const onglet = moment === '16' ? 'soir' : 'matin';
+    resultats.replaceChildren(
+      resumeRecherche(trouves, autres),
+      trouves.length
+        ? el('ul', { class: 'liste-resultats' }, ...trouves.map((f) => {
+          const icone_ = decrireCode(meteoDe(f, moment)?.code);
+          return el('li', {},
+            el('button', { type: 'button', class: 'resultat resultat-meteo', onClick: () => ouvrir(f.date, onglet) },
+              el('span', { class: 'resultat-date' }, dateCourte(f.date)),
+              el('span', { class: 'resultat-marques' },
+                icone_ ? el('span', { class: 'resultat-icone', title: icone_.texte }, icone(icone_.icone, 'petite')) : null,
+                temperatures(f, moment) ? el('span', { class: 'resultat-temp' }, temperatures(f, moment)) : null,
+                evolutionHumeur(f),
+                pastilleAppreciation(f))));
+        }))
+        : el('p', { class: 'etat-vide' }, 'Aucun jour ne correspond.'));
+  }
+
+  filtrer();
+  return el('div', {},
+    el('p', { class: 'sous-titre-champ' }, 'Moment'),
+    segments({
+      etiquette: 'Moment', obligatoire: true, valeur: etatVue.moment, options: MOMENTS,
+      onChange: (v) => { etatVue.moment = v; filtrer(); },
+    }),
+    el('p', { class: 'sous-titre-champ' }, 'Météo'),
+    pastillesMultiples({ options: FILTRES_METEO, choisies: etatVue.meteo, onChange: filtrer, etiquette: 'Filtres météo' }),
+    el('p', { class: 'discret aide-filtre' }, 'Les filtres se combinent (tous doivent être vrais). Pleine lune ne dépend pas du moment.'),
+    resultats);
+}
+
+/* ---------- Mot du jour ---------- */
+
+function vueMots({ fiches, ouvrir, etatVue }) {
+  const resultats = el('div', { class: 'resultats' });
+  const avecMot = fiches.filter((f) => f.mot_du_jour);
+  const mots = motsUtilises(fiches);
+  const champ = el('input', {
+    type: 'search', class: 'champ', placeholder: 'Chercher un mot', 'aria-label': 'Mot du jour à chercher',
+    autocomplete: 'off', spellcheck: 'false', enterkeyhint: 'search', value: etatVue.mot,
+  });
+  const nuage = el('div', { class: 'pastilles nuage-mots', role: 'group', 'aria-label': 'Mots les plus utilisés' });
+
+  function filtrer() {
+    const cle = cleMot(etatVue.mot.trim());
+    for (const b of nuage.children) b.setAttribute('aria-pressed', String(!!cle && cleMot(b.dataset.mot) === cle));
+    if (!cle) {
+      resultats.replaceChildren(el('p', { class: 'etat-vide' },
+        avecMot.length ? 'Tape un mot ou touche un des mots ci-dessus.' : 'Aucun mot du jour pour l’instant (onglet Soir).'));
+      return;
+    }
+    const trouves = avecMot
+      .filter((f) => (etatVue.motExact ? cleMot(f.mot_du_jour) === cle : cleMot(f.mot_du_jour).includes(cle)))
+      .sort((a, b) => (a.date < b.date ? 1 : -1));
+    const ids = new Set(trouves.map((f) => f.date));
+    const autres = fiches.filter(ficheRemplie).filter((f) => !ids.has(f.date));
+    resultats.replaceChildren(
+      resumeRecherche(trouves, autres),
+      trouves.length
+        ? el('ul', { class: 'liste-resultats' }, ...trouves.map((f) => el('li', {},
+          el('button', { type: 'button', class: 'resultat', onClick: () => ouvrir(f.date, 'soir') },
+            el('span', { class: 'resultat-date' }, dateCourte(f.date)),
+            el('span', { class: 'resultat-marques' },
+              el('strong', { class: 'resultat-mot' }, f.mot_du_jour),
+              evolutionHumeur(f),
+              pastilleAppreciation(f))))))
+        : el('p', { class: 'etat-vide' }, 'Aucun jour avec ce mot.'));
+  }
+
+  nuage.append(...mots.slice(0, 30).map((m) => {
+    const b = el('button', { type: 'button', class: 'pastille', 'aria-pressed': 'false' }, m.mot, el('small', {}, ` ${m.nombre}`));
+    b.dataset.mot = m.mot;
+    b.addEventListener('click', () => {
+      const deja = cleMot(etatVue.mot) === cleMot(m.mot);
+      etatVue.mot = deja ? '' : m.mot;
+      etatVue.motExact = !deja;
+      champ.value = etatVue.mot;
+      filtrer();
+    });
+    return b;
+  }));
+  champ.addEventListener('input', () => { etatVue.mot = champ.value; etatVue.motExact = false; filtrer(); });
+  filtrer();
+  return el('div', {},
+    champ,
+    mots.length ? el('p', { class: 'sous-titre-champ' }, 'Mots les plus utilisés') : null,
+    nuage,
     resultats);
 }
 
@@ -284,6 +516,10 @@ export async function ouvrirHistorique({ aujourdhui, categories, allerA, ouvrirF
     marques: new Set(['favori', 'piment']),
     depuisDernier: true,
     viaPartage: false,
+    moment: 'journee',
+    meteo: new Set(),
+    mot: '',
+    motExact: false,
   };
   const zone = el('div', { class: 'historique-vue' });
 
@@ -297,6 +533,8 @@ export async function ouvrirHistorique({ aujourdhui, categories, allerA, ouvrirF
     const vues = {
       calendrier: () => vueCalendrier({ fiches, aujourdhui, ouvrir, etatVue }),
       evenements: () => vueEvenements({ fiches, categories, ouvrir, etatVue }),
+      meteo: () => vueMeteo({ fiches, ouvrir, etatVue }),
+      mots: () => vueMots({ fiches, ouvrir, etatVue }),
       memos: () => vueMemos({ fiches, ouvrir, etatVue, redessiner }),
     };
     zone.replaceChildren(vues[etatVue.vue]());
@@ -305,12 +543,16 @@ export async function ouvrirHistorique({ aujourdhui, categories, allerA, ouvrirF
   // Si Perso se reverrouille (app en arrière-plan), les My Love disparaissent aussitôt de la liste.
   desabonner = verrou.surChangement(() => { if (etatVue.vue === 'memos') redessiner(); });
 
-  corps.append(
-    segments({
+  const choixVue = segments({
       etiquette: 'Vue', obligatoire: true, valeur: etatVue.vue,
-      options: [{ valeur: 'calendrier', libelle: 'Calendrier' }, { valeur: 'evenements', libelle: 'Événements' }, { valeur: 'memos', libelle: 'Mémos' }],
+      options: [
+        { valeur: 'calendrier', libelle: 'Date' }, { valeur: 'evenements', libelle: 'Événement' },
+        { valeur: 'meteo', libelle: 'Météo' }, { valeur: 'mots', libelle: 'Mot' }, { valeur: 'memos', libelle: 'Mémos' }],
       onChange: (v) => { etatVue.vue = v; redessiner(); },
-    }),
+    });
+  choixVue.classList.add('segments-vues');
+  corps.append(
+    choixVue,
     zone,
     el('div', { class: 'rangee-boutons' },
       el('button', { type: 'button', class: 'bouton petit discret', onClick: () => ouvrirBilan() }, icone('calendrier', 'petite'), ' Bilan du dimanche'),

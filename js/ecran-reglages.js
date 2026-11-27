@@ -255,6 +255,7 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies, categories }
       const rep = await appeler('ping', {}, { url: champUrl.value, jeton: champJeton.value });
       resultatTest.classList.add('succes');
       resultatTest.textContent = `Connexion réussie. Classeur : « ${rep.classeur} », ${rep.nbFiches} fiche(s) enregistrée(s).`;
+      if ('sauvegarde' in rep) { await definirReglage('derniereSauvegarde', rep.sauvegarde || null); majEtat({ message: 'Connexion réussie' }); }
     } catch (err) {
       resultatTest.classList.add('erreur');
       resultatTest.textContent = err.message;
@@ -278,7 +279,16 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies, categories }
     etatTexte.replaceChildren(
       el('span', {}, 'État : ', el('strong', {}, s.message || '…')), el('br'),
       el('span', {}, 'Modifications en attente d’envoi : ', el('strong', {}, String(s.attente ?? 0))), el('br'),
-      el('span', {}, 'Dernière synchronisation réussie : ', el('strong', {}, d ? fmt.format(new Date(d)) : 'jamais')));
+      el('span', {}, 'Dernière synchronisation réussie : ', el('strong', {}, d ? fmt.format(new Date(d)) : 'jamais')), el('br'),
+      texteSauvegarde());
+  };
+  /** Date de la dernière sauvegarde automatique du classeur (envoyée par l'Apps Script). */
+  const texteSauvegarde = () => {
+    const sv = reglage('derniereSauvegarde');
+    if (!sv) return el('span', {}, 'Dernière sauvegarde du classeur : ', el('strong', {}, 'aucune pour l’instant'));
+    const vieille = Date.now() - new Date(sv).getTime() > 8 * 24 * 3600 * 1000;
+    return el('span', {}, 'Dernière sauvegarde du classeur : ', el('strong', {}, fmt.format(new Date(sv))),
+      vieille ? el('span', { class: 'erreur' }, ' (plus d’une semaine)') : null);
   };
   desabonner = surEtat(majEtat);
 

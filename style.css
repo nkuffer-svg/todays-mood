@@ -1393,3 +1393,73 @@ h1 { white-space: nowrap; }
   h1 { font-size: 26px; }
   .entete { gap: 8px; }
 }
+
+/* ---------- Version 3, partie B : mot du jour, recherches Météo et Mot, raccourcis ---------- */
+
+.champ-mot { font-family: var(--titre); font-size: 26px; letter-spacing: 0.08em; padding-top: 6px; padding-bottom: 4px; }
+.suggestions-mot { margin-top: 10px; }
+.pastille.suggestion { min-height: 38px; padding: 0 14px; }
+.pastille small, .nuage-mots small { color: var(--texte-discret); font-size: 12px; margin-left: 2px; }
+.nuage-mots { margin-top: 8px; }
+
+.segments-vues .segment { font-size: 12px; letter-spacing: 0.03em; padding: 0 2px; }
+
+.resume-recherche {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  background: var(--creux);
+  border: 1px solid var(--bordure-forte);
+  border-radius: 12px;
+}
+.resume-nombre { margin: 0 0 6px; color: var(--texte-2); }
+.resume-nombre strong { font-family: var(--titre); font-weight: 400; font-size: 30px; letter-spacing: 0.04em; color: var(--laiton); margin-right: 4px; }
+.resume-humeurs { margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.resume-humeurs div { display: grid; grid-template-columns: 150px 1fr; gap: 8px; align-items: baseline; }
+.resume-humeurs dt { font-family: var(--etroit); text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; color: var(--texte-discret); }
+.resume-humeurs dd { margin: 0; color: var(--texte); font-weight: 600; }
+.ecart-humeur { font-weight: 400; font-size: 14px; color: var(--texte-2); }
+.ecart-humeur.plus { color: var(--vert); }
+.ecart-humeur.moins { color: var(--rouge); }
+
+.evolution-humeur {
+  font-family: var(--titre);
+  font-size: 19px;
+  letter-spacing: 0.04em;
+  color: var(--texte);
+  padding: 0 4px;
+}
+.evolution-humeur.monte { color: var(--vert); }
+.evolution-humeur.baisse { color: var(--rouge); }
+.resultat-temp { font-family: var(--etroit); font-size: 14px; color: var(--texte-2); }
+.resultat-icone { display: inline-grid; color: var(--laiton-clair); }
+.resultat-icone .icone { width: 20px; height: 20px; }
+.resultat-mot { font-family: var(--titre); font-weight: 400; font-size: 21px; letter-spacing: 0.06em; color: var(--laiton-clair); margin-right: 4px; }
+
+.bilan-mots { list-style: none; margin: 0; padding: 0; }
+.bilan-mots li { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; min-height: 36px; padding: 4px 0; border-bottom: 1px solid var(--bordure); }
+.bilan-mots .mot-jour { font-family: var(--etroit); text-transform: capitalize; font-size: 14px; color: var(--texte-discret); }
+.bilan-mots .mot { font-family: var(--titre); font-weight: 400; font-size: 22px; letter-spacing: 0.06em; color: var(--laiton-clair); }
+.bilan-mots .mot.vide { color: var(--bordure-forte); }
+
+.message-bref {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  z-index: 60;
+  max-width: min(92vw, 420px);
+  padding: 12px 18px;
+  transform: translate(-50%, 20px);
+  opacity: 0;
+  pointer-events: none;
+  background: var(--selection);
+  border: 1px solid var(--laiton);
+  border-radius: 999px;
+  color: var(--laiton-clair);
+  font-family: var(--etroit);
+  font-weight: 600;
+  font-size: 15px;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  transition: opacity 0.25s, transform 0.25s;
+}
+.message-bref.visible { opacity: 1; transform: translate(-50%, 0); }

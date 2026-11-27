@@ -4,6 +4,8 @@ import { reglage } from './reglages.js';
 /** Petit « clac » de vibration (≈ 10 ms) sur un compteur ou un cran de jauge, sauf si désactivé. */
 export function clac() {
   if (reglage('vibration') === false) return;
+  // Chrome refuse la vibration tant qu'on n'a pas touché l'écran (ex. ouverture par un raccourci).
+  if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
   try { navigator.vibrate?.(10); } catch { /* pas de vibreur : sans importance */ }
 }
 
