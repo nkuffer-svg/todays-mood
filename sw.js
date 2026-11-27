@@ -4,7 +4,7 @@
 'use strict';
 importScripts('./db.js');
 
-const VERSION = 'v2b-1';
+const VERSION = 'v3a-1';
 const CACHE = 'todays-mood-' + VERSION;
 const CACHE_POLICES = 'todays-mood-polices';
 const FICHIERS = [
@@ -15,6 +15,9 @@ const FICHIERS = [
   './manifest.webmanifest',
   './data/pensees.json',
   './js/app.js',
+  './js/astro.js',
+  './js/carte-photo.js',
+  './js/cartes-meteo.js',
   './js/compteurs.js',
   './js/docx.js',
   './js/ecran-bilan.js',

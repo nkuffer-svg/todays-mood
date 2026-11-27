@@ -1,5 +1,5 @@
 /**
- * Today's Mood — Web App Apps Script (version 2, partie B).
+ * Today's Mood — Web App Apps Script (version 3, partie A).
  *
  * À coller dans l'éditeur Apps Script du classeur « Today's Mood – données »
  * (Extensions → Apps Script). Voir apps-script/INSTALLATION.md.
@@ -8,7 +8,7 @@
  * et rangé dans les Propriétés du script.
  */
 
-const VERSION = 'v2b-1';
+const VERSION = 'v3a-1';
 
 const COLONNES_FICHES = [
   'date', 'modifie_le', 'pensee_id',
@@ -21,6 +21,10 @@ const COLONNES_FICHES = [
   'recit', 'recit_favori', 'recit_piment', 'mylove', 'mylove_favori', 'mylove_piment',
   // Version 2 : ajoutées à la fin. Si elles manquent dans le Sheet, elles sont créées automatiquement.
   'cuisine', 'repas_type', 'guitare', 'feux_poele', 'barbecues', 'deplacement',
+  // Version 3 : relevés de 8 h et 16 h, météo du soir, coucher du soleil, lune (ajoutées à la fin, créées si besoin).
+  'meteo8_temp', 'meteo8_nuages', 'meteo8_pluie', 'meteo8_code', 'meteo8_vent', 'meteo8_vent_dir', 'meteo8_pression',
+  'meteo16_temp', 'meteo16_nuages', 'meteo16_pluie', 'meteo16_code', 'meteo16_vent', 'meteo16_vent_dir', 'meteo16_pression',
+  'meteo_soir_ressenti', 'coucher_soleil', 'duree_jour_min', 'lune_phase', 'lune_pct', 'photo_ciel_soir',
 ];
 
 /** Colonnes de texte (les autres sont numériques). */
@@ -28,6 +32,7 @@ const COLONNES_TEXTE = [
   'date', 'modifie_le', 'pensee_id', 'photo_ciel', 'photo_jour',
   'evt_appreciation', 'evt_categorie', 'evt_texte', 'recit', 'mylove',
   'cuisine', 'repas_type', 'deplacement',
+  'coucher_soleil', 'photo_ciel_soir',
 ];
 
 /** Colonnes oui / vide (marques Favori et Piment). */
@@ -42,13 +47,14 @@ const ONGLETS = {
 };
 
 const NOM_DOSSIER_PHOTOS = "Today's Mood – photos";
-const CHAMPS_PHOTO = { photo_ciel: 'ciel', photo_jour: 'jour' };
+const CHAMPS_PHOTO = { photo_ciel: 'ciel', photo_jour: 'jour', photo_ciel_soir: 'ciel_soir' };
 
 /** Réglages que l'app peut enregistrer dans l'onglet Reglages (jamais l'adresse ni le jeton). */
 const REGLAGES_AUTORISES = [
   'bascule', 'objectifEau', 'dureePensee', 'meteoMode', 'lieuNom', 'lieuLat', 'lieuLon',
   'penseesDebutCycle', 'dernierExport',
   'cuisiniers', 'hiverDebut', 'hiverFin', 'reportsSaisons', 'heureSoir',
+  'biseVitesse', 'biseDirMin', 'biseDirMax',
 ];
 
 const PASTILLES_DEFAUT = ['Job', 'Maison', 'Famille élargie', 'Famille', 'Réflexion', 'Pensée', 'Scène de vie'];

@@ -56,20 +56,29 @@ export async function position() {
 }
 
 const arrondi = (v, decimales = 1) => (v == null || !Number.isFinite(Number(v)) ? null : Math.round(Number(v) * 10 ** decimales) / 10 ** decimales);
+const entier = (v) => (v == null || !Number.isFinite(Number(v)) ? null : Math.round(Number(v)));
 
-/** Récupère la météo d'une journée. Renvoie les champs de la fiche + le nom du lieu. */
-export async function chercherMeteo(date) {
+/** Heures des deux relevés (onglet Matin et onglet Soir). */
+export const HEURES_RELEVES = [8, 16];
+
+/** Vrai quand l'heure du relevé est passée pour la fiche `date` (à `quand`). */
+export function heurePassee(date, heure, quand) {
+  const [a, m, j] = date.split('-').map(Number);
+  return quand >= new Date(a, m - 1, j, heure, 0, 0);
+}
+
+const HORAIRE = 'temperature_2m,cloud_cover,precipitation,weather_code,wind_speed_10m,wind_direction_10m,pressure_msl';
+const JOURNALIER = 'temperature_2m_min,temperature_2m_max,precipitation_sum,sunshine_duration,weather_code,sunset,daylight_duration';
+
+async function interroger(base, extra) {
   const pos = await position();
-  const ancien = date < decaler(versTexte(new Date()), -80); // au-delà, on passe par les archives
-  const base = ancien ? 'https://archive-api.open-meteo.com/v1/archive' : 'https://api.open-meteo.com/v1/forecast';
   const params = new URLSearchParams({
     latitude: pos.lat.toFixed(4),
     longitude: pos.lon.toFixed(4),
-    daily: 'temperature_2m_min,temperature_2m_max,precipitation_sum,sunshine_duration,weather_code',
-    hourly: 'cloud_cover',
+    daily: JOURNALIER,
+    hourly: HORAIRE,
     timezone: 'Europe/Zurich',
-    start_date: date,
-    end_date: date,
+    ...extra,
   });
   let rep;
   try {
@@ -79,19 +88,118 @@ export async function chercherMeteo(date) {
   }
   const json = await rep.json().catch(() => ({}));
   if (!rep.ok || json.error) throw new Error('Open-Meteo : ' + (json.reason || `erreur ${rep.status}`));
+  return { lieu: pos.nom, jours: analyser(json) };
+}
 
-  const jour = (cle) => (json.daily && Array.isArray(json.daily[cle]) ? json.daily[cle][0] : null);
-  const nuages = ((json.hourly && json.hourly.cloud_cover) || []).filter((v) => v != null);
-  const soleilSecondes = jour('sunshine_duration');
-  return {
-    lieu: pos.nom,
-    champs: {
-      meteo_tmin: arrondi(jour('temperature_2m_min')),
-      meteo_tmax: arrondi(jour('temperature_2m_max')),
-      meteo_pluie_mm: arrondi(jour('precipitation_sum')),
-      meteo_soleil_h: soleilSecondes == null ? null : arrondi(soleilSecondes / 3600),
-      meteo_nuages_pct: nuages.length ? Math.round(nuages.reduce((a, b) => a + b, 0) / nuages.length) : null,
-      meteo_code: jour('weather_code') == null ? null : Number(jour('weather_code')),
-    },
-  };
+/**
+ * Découpe la réponse d'Open-Meteo par jour. Pour chaque date :
+ *  - journee : résumé de la journée (champs meteo_*) ;
+ *  - soleil  : coucher_soleil (« HH:MM ») et duree_jour_min ;
+ *  - releves : { 8: champs meteo8_*, 16: champs meteo16_* } (absent si l'heure manque) ;
+ *  - extra   : tendances de pression (t8, t16 : 1, 0 ou −1), durée du jour et de la veille en secondes.
+ */
+function analyser(json) {
+  const jours = new Map();
+  const d = json.daily || {};
+  const h = json.hourly || {};
+  const temps = d.time || [];
+  const indexHeure = new Map((h.time || []).map((t, i) => [t, i]));
+  const val = (cle, i) => (Array.isArray(h[cle]) ? h[cle][i] : null);
+  const dureeS = new Map(temps.map((t, k) => [t, (d.daylight_duration || [])[k]]));
+
+  temps.forEach((date, k) => {
+    const jd = (cle) => (Array.isArray(d[cle]) ? d[cle][k] : null);
+    const nuagesJour = (h.time || []).map((t, i) => (t.startsWith(date) ? val('cloud_cover', i) : null)).filter((v) => v != null);
+    const soleilS = jd('sunshine_duration');
+    const coucher = jd('sunset');
+    const duree = jd('daylight_duration');
+    const veille = decaler(date, -1);
+
+    const entree = {
+      journee: {
+        meteo_tmin: arrondi(jd('temperature_2m_min')),
+        meteo_tmax: arrondi(jd('temperature_2m_max')),
+        meteo_pluie_mm: arrondi(jd('precipitation_sum')),
+        meteo_soleil_h: soleilS == null ? null : arrondi(soleilS / 3600),
+        meteo_nuages_pct: nuagesJour.length ? Math.round(nuagesJour.reduce((a, b) => a + b, 0) / nuagesJour.length) : null,
+        meteo_code: entier(jd('weather_code')),
+      },
+      soleil: {
+        coucher_soleil: typeof coucher === 'string' && coucher.includes('T') ? coucher.slice(11, 16) : null,
+        duree_jour_min: duree == null ? null : arrondi(duree / 60),
+      },
+      releves: {},
+      extra: { jourS: duree ?? null, veilleS: dureeS.get(veille) ?? null },
+    };
+
+    for (const heure of HEURES_RELEVES) {
+      const i = indexHeure.get(`${date}T${String(heure).padStart(2, '0')}:00`);
+      if (i == null || val('temperature_2m', i) == null) continue;
+      const p = (cle) => `meteo${heure}_${cle}`;
+      entree.releves[heure] = {
+        [p('temp')]: arrondi(val('temperature_2m', i)),
+        [p('nuages')]: entier(val('cloud_cover', i)),
+        [p('pluie')]: arrondi(val('precipitation', i)),
+        [p('code')]: entier(val('weather_code', i)),
+        [p('vent')]: entier(val('wind_speed_10m', i)),
+        [p('vent_dir')]: entier(val('wind_direction_10m', i)),
+        [p('pression')]: arrondi(val('pressure_msl', i)),
+      };
+      const avant = indexHeure.get(`${date}T${String(heure - 3).padStart(2, '0')}:00`);
+      const p0 = avant == null ? null : val('pressure_msl', avant);
+      const p1 = val('pressure_msl', i);
+      entree.extra['t' + heure] = p0 == null || p1 == null ? null : tendance(p1 - p0);
+    }
+    jours.set(date, entree);
+  });
+  return jours;
+}
+
+/** Tendance de la pression sur 3 h : 1 (hausse), −1 (baisse) ou 0 (stable), seuil 1 hPa. */
+export const tendance = (ecart) => (ecart >= 1 ? 1 : ecart <= -1 ? -1 : 0);
+
+/** Météo d'une journée (et de la veille, pour l'écart de durée du jour). */
+export async function chercherMeteo(date) {
+  const ancien = date < decaler(versTexte(new Date()), -80); // au-delà, on passe par les archives
+  const base = ancien ? 'https://archive-api.open-meteo.com/v1/archive' : 'https://api.open-meteo.com/v1/forecast';
+  return interroger(base, { start_date: decaler(date, -1), end_date: date });
+}
+
+/** Les 92 derniers jours d'un coup (paramètre past_days), pour compléter les fiches existantes. */
+export function chercherDerniersJours() {
+  return interroger('https://api.open-meteo.com/v1/forecast', { past_days: '92', forecast_days: '1' });
+}
+
+/** Une période plus ancienne, depuis les archives d'Open-Meteo. */
+export function chercherArchives(debut, fin) {
+  return interroger('https://archive-api.open-meteo.com/v1/archive', { start_date: decaler(debut, -1), end_date: fin });
+}
+
+/* ---------- Vent, bise et pression ---------- */
+
+const POINTS = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
+
+/** Direction du vent (degrés, d'où il vient) → N, NE, E… */
+export function pointCardinal(deg) {
+  if (deg == null || !Number.isFinite(Number(deg))) return '';
+  return POINTS[Math.round((((Number(deg) % 360) + 360) % 360) / 45) % 8];
+}
+
+/** Seuils de la bise (réglables) : vent du nord-est entre dirMin et dirMax degrés, à vitesseMin km/h ou plus. */
+export function seuilsBise() {
+  const n = (cle, defaut) => (Number.isFinite(Number(reglage(cle))) && reglage(cle) !== '' && reglage(cle) != null ? Number(reglage(cle)) : defaut);
+  return { vitesseMin: n('biseVitesse', 15), dirMin: n('biseDirMin', 20), dirMax: n('biseDirMax', 100) };
+}
+
+/** Vrai si le vent est de la bise. Calculé, jamais stocké. */
+export function estBise(vitesse, direction, seuils = seuilsBise()) {
+  if (vitesse == null || direction == null) return false;
+  return Number(vitesse) >= seuils.vitesseMin && Number(direction) >= seuils.dirMin && Number(direction) <= seuils.dirMax;
+}
+
+export const FLECHES_TENDANCE = { 1: '↗', 0: '→', '-1': '↘' };
+
+/** « 1 021 » : espace fine insécable pour les milliers. */
+export function formatPression(hpa) {
+  return String(Math.round(Number(hpa))).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }

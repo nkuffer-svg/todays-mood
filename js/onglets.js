@@ -3,8 +3,9 @@
            meteo, actualiserMeteo(), photo: { affichable(champ), ajouter(champ, fichier), supprimer(champ) } } */
 import { el, svg, icone, carte, choixPastilles, segments, bascule, texteExtensible } from './ui.js';
 import { creerJauge } from './jauge.js';
-import { LIBELLES, APPRECIATIONS, BILAN, ACCORDS, NIVEAUX_ACCORD, RESSENTIS } from './donnees.js';
-import { decrireCode } from './meteo.js';
+import { LIBELLES, APPRECIATIONS, BILAN, ACCORDS, NIVEAUX_ACCORD } from './donnees.js';
+import { carteMeteoMatin, carteRessentiMatin, carteMeteoSoir, carteCoucher } from './cartes-meteo.js';
+import { cartePhoto } from './carte-photo.js';
 import { cartesCompteurs } from './compteurs.js';
 import { cartesPerso } from './perso.js';
 import { cartesWhatsUp } from './whatsup.js';
@@ -23,127 +24,6 @@ function carteJauge(ctx, titre, nomCadran, champ, libelles, ...avant) {
     titre, nomCadran, libelles, valeur: ctx.fiche[champ],
     onChange: (v) => ctx.modifier(champ, v),
   }));
-}
-
-/* ---------- Météo ---------- */
-
-const nombre = new Intl.NumberFormat('fr-CH', { maximumFractionDigits: 1 });
-const fmt = (v) => (v == null ? '–' : nombre.format(v));
-
-export function carteMeteo(ctx) {
-  const f = ctx.fiche;
-  const m = ctx.meteo;
-  const a = decrireCode(f.meteo_code);
-  const aDesDonnees = f.meteo_code != null || f.meteo_tmax != null || f.meteo_tmin != null;
-
-  const detail = (libelle, valeur, unite) => el('div', {},
-    el('dt', {}, libelle), el('dd', {}, valeur, el('span', { class: 'unite' }, ' ' + unite)));
-  const corps = aDesDonnees
-    ? [
-      el('div', { class: 'meteo-principal' },
-        el('div', { class: 'meteo-icone' }, icone(a ? a.icone : 'nuage')),
-        el('div', {},
-          el('p', { class: 'meteo-temp' }, `${fmt(f.meteo_tmin)}° / ${fmt(f.meteo_tmax)}°`),
-          el('p', { class: 'meteo-desc' }, a ? a.texte : ''))),
-      el('dl', { class: 'meteo-details' },
-        detail('Pluie', fmt(f.meteo_pluie_mm), 'mm'),
-        detail('Soleil', fmt(f.meteo_soleil_h), 'h'),
-        detail('Nuages', fmt(f.meteo_nuages_pct), '%')),
-    ]
-    : [el('p', { class: 'etat-vide' }, 'Pas encore de météo pour ce jour.')];
-
-  let statut = null;
-  if (m.etat === 'encours') statut = el('p', { class: 'meteo-statut' }, 'Récupération de la météo…');
-  else if (m.etat === 'erreur') statut = el('p', { class: 'meteo-statut erreur' }, m.message);
-  else if (m.etat === 'ok' && m.lieu) statut = el('p', { class: 'meteo-statut' }, 'Lieu : ' + m.lieu);
-
-  const bouton = el('button', {
-    type: 'button', class: 'bouton petit discret bouton-actualiser', disabled: m.etat === 'encours',
-    onClick: () => ctx.actualiserMeteo(),
-  }, icone('actualiser'), aDesDonnees ? 'Actualiser' : 'Récupérer la météo');
-
-  return el('section', { class: 'carte', id: 'carte-meteo' },
-    el('h2', {}, 'Météo'), ...corps, statut, bouton);
-}
-
-function carteRessenti(ctx) {
-  let actuel = ctx.fiche.meteo_ressenti ?? null;
-  const tuiles = RESSENTIS.map((r) => el('button', {
-    type: 'button', class: 'tuile-visage tuile-ressenti', 'aria-pressed': String(actuel === r.valeur), 'aria-label': r.libelle,
-    onClick: () => {
-      actuel = actuel === r.valeur ? null : r.valeur;
-      tuiles.forEach((t, i) => t.setAttribute('aria-pressed', String(actuel === RESSENTIS[i].valeur)));
-      ctx.modifier('meteo_ressenti', actuel);
-    },
-  }, icone(r.icone), el('span', {}, r.libelle)));
-  return carte('Météo ressentie', el('div', { class: 'ressentis' }, ...tuiles));
-}
-
-/* ---------- Photos ---------- */
-
-function cartePhoto(ctx, champ, titre) {
-  const zone = el('div', { class: 'photo-zone' });
-  const statut = el('p', { class: 'photo-statut', role: 'status' });
-  const camera = el('input', { type: 'file', accept: 'image/*', capture: 'environment', hidden: true });
-  const galerie = el('input', { type: 'file', accept: 'image/*', hidden: true });
-  const boutons = el('div', { class: 'rangee-boutons' });
-
-  const boutonCamera = (texte) => el('button', { type: 'button', class: 'bouton', onClick: () => camera.click() }, icone('appareil'), texte);
-  const boutonGalerie = el('button', { type: 'button', class: 'bouton discret', onClick: () => galerie.click() }, icone('galerie'), 'Galerie');
-  const boutonSupprimer = el('button', {
-    type: 'button', class: 'bouton discret', onClick: async () => {
-      if (!confirm('Supprimer cette photo ?')) return;
-      await ctx.photo.supprimer(champ);
-      afficher();
-    },
-  }, icone('corbeille'), 'Supprimer');
-
-  async function recevoir(e) {
-    const fichier = e.target.files && e.target.files[0];
-    e.target.value = '';
-    if (!fichier) return;
-    statut.className = 'photo-statut';
-    statut.textContent = 'Compression de la photo…';
-    try {
-      await ctx.photo.ajouter(champ, fichier);
-      afficher();
-    } catch (err) {
-      statut.className = 'photo-statut erreur';
-      statut.textContent = 'Photo non enregistrée : ' + err.message;
-    }
-  }
-  camera.addEventListener('change', recevoir);
-  galerie.addEventListener('change', recevoir);
-
-  async function afficher() {
-    statut.className = 'photo-statut';
-    statut.textContent = '';
-    let r = null;
-    try {
-      if (ctx.fiche[champ]) statut.textContent = 'Chargement de la photo…';
-      r = await ctx.photo.affichable(champ);
-      statut.textContent = '';
-    } catch (err) {
-      zone.replaceChildren(el('div', { class: 'photo-vide' }, icone('galerie'), 'Photo enregistrée sur Drive'));
-      statut.className = 'photo-statut erreur';
-      statut.textContent = 'Impossible de l’afficher pour l’instant : ' + err.message;
-      boutons.replaceChildren(boutonCamera('Reprendre'), boutonGalerie, boutonSupprimer);
-      return;
-    }
-    if (!r) {
-      zone.replaceChildren(el('div', { class: 'photo-vide' }, icone('appareil'), 'Pas encore de photo'));
-      boutons.replaceChildren(boutonCamera('Prendre une photo'), boutonGalerie);
-      return;
-    }
-    zone.replaceChildren(el('img', { src: r.url, alt: titre, class: 'photo' }));
-    statut.textContent = r.etat === 'attente' ? 'Envoi vers Drive en attente' : 'Enregistrée sur Drive';
-    statut.classList.toggle('attente', r.etat === 'attente');
-    boutons.replaceChildren(boutonCamera('Reprendre'), boutonGalerie, boutonSupprimer);
-  }
-  afficher();
-
-  return el('section', { class: 'carte carte-photo', 'data-champ': champ },
-    el('h2', {}, titre), zone, statut, boutons, camera, galerie);
 }
 
 /* ---------- Pensée du jour ---------- */
@@ -176,8 +56,8 @@ function cartePensee(ctx) {
 function matin(ctx) {
   return [
     cartePensee(ctx),
-    carteMeteo(ctx),
-    carteRessenti(ctx),
+    carteMeteoMatin(ctx),
+    carteRessentiMatin(ctx),
     cartePhoto(ctx, 'photo_ciel', 'Photo du ciel'),
     carteJauge(ctx, 'Humeur du matin', 'Humeur', 'humeur_matin', LIBELLES.humeur),
     carteJauge(ctx, 'Énergie', 'Énergie', 'energie', LIBELLES.energie),
@@ -340,6 +220,8 @@ function soir(ctx) {
     onChange: async (v) => { await ctx.modifier('humeur_soir', v); majJournal(); },
   }), zoneJournal);
   return [
+    carteMeteoSoir(ctx),
+    carteCoucher(ctx),
     carteSoir,
     carteEvenement(ctx),
     carteRecit(ctx),

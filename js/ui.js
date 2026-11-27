@@ -57,6 +57,7 @@ const TRACES = {
   neige: '<path d="M7 14.5h10a4.2 4.2 0 0 0 .6-8.35 5.6 5.6 0 0 0-10.6-1A4.7 4.7 0 0 0 7 14.5z"/><path d="M8 18v.1M12 17.5v.1M16 18v.1M10 21v.1M14 21v.1" stroke-width="2.6"/>',
   brouillard: '<path d="M7 13h10a4 4 0 0 0 .6-7.95 5.4 5.4 0 0 0-10.2-1A4.5 4.5 0 0 0 7 13z"/><path d="M4 16.5h16M6 20h12"/>',
   orage: '<path d="M7 14.5h10a4.2 4.2 0 0 0 .6-8.35 5.6 5.6 0 0 0-10.6-1A4.7 4.7 0 0 0 7 14.5z"/><path d="M12.8 15.5l-2.6 3.6h3.2l-2.2 3.4"/>',
+  coucher: '<path d="M2.5 18.5h19M5.5 21.5h13"/><path d="M6.5 18.5a5.5 5.5 0 0 1 11 0"/><path d="M12 3v6.5M9.3 7l2.7 2.7L14.7 7"/><path d="M3.8 13.2l1.4.8M20.2 13.2l-1.4.8"/>',
   appareil: '<path d="M4 8.5h3l1.6-2.5h6.8L17 8.5h3v11H4z"/><circle cx="12" cy="13.5" r="3.6"/>',
   galerie: '<rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-4.5 3.5 3 3-2.5 4.5 4"/>',
   corbeille: '<path d="M5 7h14M10 7V4.5h4V7M7 7l1 13h8l1-13"/>',

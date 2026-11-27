@@ -12,6 +12,10 @@ export const COLONNES = [
   'recit', 'recit_favori', 'recit_piment', 'mylove', 'mylove_favori', 'mylove_piment',
   // Version 2 (ajoutées à la fin, sans déplacer les colonnes existantes)
   'cuisine', 'repas_type', 'guitare', 'feux_poele', 'barbecues', 'deplacement',
+  // Version 3 (ajoutées à la fin) : relevés de 8 h et 16 h, météo du soir, coucher du soleil, lune
+  'meteo8_temp', 'meteo8_nuages', 'meteo8_pluie', 'meteo8_code', 'meteo8_vent', 'meteo8_vent_dir', 'meteo8_pression',
+  'meteo16_temp', 'meteo16_nuages', 'meteo16_pluie', 'meteo16_code', 'meteo16_vent', 'meteo16_vent_dir', 'meteo16_pression',
+  'meteo_soir_ressenti', 'coucher_soleil', 'duree_jour_min', 'lune_phase', 'lune_pct', 'photo_ciel_soir',
 ];
 
 export const LIBELLES = {

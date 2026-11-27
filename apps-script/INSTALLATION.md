@@ -145,6 +145,17 @@ Pas de nouvelle autorisation : recopie le nouveau `Code.gs` (Ctrl+A puis Suppr a
 enregistre, puis **Déployer → Gérer les déploiements → crayon → Nouvelle version → Déployer**.
 Il permet d'enregistrer l'heure du soir dans l'onglet `Reglages`.
 
+## Mise à jour de la version 3, partie A (météo du matin et du soir)
+
+Pas de nouvelle autorisation : recopie le nouveau `Code.gs` (Ctrl+A puis Suppr avant de coller),
+enregistre, puis **Déployer → Gérer les déploiements → crayon → Nouvelle version → Déployer**.
+
+Les 20 nouvelles colonnes (`meteo8_temp` … `photo_ciel_soir`) s'ajoutent toutes seules **à la fin**
+de l'onglet `Fiches` à la première synchronisation (ou tout de suite en lançant **initialiser**).
+Le nouveau code accepte aussi la photo du ciel du soir (fichier `AAAA-MM-JJ_ciel_soir.jpg` dans le
+dossier Drive) et les seuils de la bise dans l'onglet `Reglages`. Sans cette mise à jour, la photo du
+soir resterait « Envoi vers Drive en attente » et les nouvelles valeurs ne seraient pas gardées dans le Sheet.
+
 ## En cas de problème
 
 | Message dans l'app | Que faire |

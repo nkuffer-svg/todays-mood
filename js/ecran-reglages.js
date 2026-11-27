@@ -1,6 +1,6 @@
 /* Écran Réglages (minimal à l'étape 2) : Web App, jeton, heure de bascule. */
 import { el, carte, segments, icone } from './ui.js';
-import { LIEU_DEFAUT } from './meteo.js';
+import { LIEU_DEFAUT, seuilsBise } from './meteo.js';
 import { empreinteEnregistree, enregistrerEmpreinte, disponibilite } from './verrou.js';
 import { bornesSaison, libelleSaison } from './whatsup.js';
 import { jourCourant, decaler, depuisTexte, maintenant, simulationActive, demarrerSimulation, arreterSimulation } from './jour.js';
@@ -396,6 +396,22 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies, categories }
     },
   }, 'Revenir à Lavaux');
 
+  /* --- Bise --- */
+  const seuils = seuilsBise();
+  const champBise = (id, cle, seuil, min, max) => {
+    const c = el('input', { id, class: 'champ', type: 'number', inputmode: 'numeric', min: String(min), max: String(max), step: '1', value: String(seuils[seuil]) });
+    c.addEventListener('change', async () => {
+      const n = Math.round(Number(c.value));
+      if (!Number.isFinite(n) || c.value === '' || n < min || n > max) { c.value = String(seuilsBise()[seuil]); return; }
+      await definirReglage(cle, n);
+      reglagesModifies();
+    });
+    return c;
+  };
+  const champBiseVitesse = champBise('reglage-bise-vitesse', 'biseVitesse', 'vitesseMin', 1, 150);
+  const champBiseMin = champBise('reglage-bise-min', 'biseDirMin', 'dirMin', 0, 360);
+  const champBiseMax = champBise('reglage-bise-max', 'biseDirMax', 'dirMax', 0, 360);
+
   /* --- Empreinte --- */
   const etatEmpreinte = el('p', { class: 'discret' });
   const resultatEmpreinte = el('p', { class: 'resultat-test', role: 'status' });
@@ -472,5 +488,13 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies, categories }
         el('div', {}, el('label', { class: 'sous-titre-champ', for: 'reglage-lieu-lon' }, 'Longitude'), champLon)),
       alerteLieu,
       el('div', { class: 'rangee-boutons' }, boutonLavaux)),
+    carte('Bise',
+      el('p', { class: 'discret' }, 'La pastille du vent s’allume en laiton (« Bise ») quand le vent vient du nord-est, entre les deux directions ci-dessous, à la vitesse indiquée ou plus.'),
+      el('label', { class: 'sous-titre-champ', for: 'reglage-bise-vitesse' }, 'Vitesse minimale (km/h)'),
+      champBiseVitesse,
+      el('div', { class: 'deux-colonnes' },
+        el('div', {}, el('label', { class: 'sous-titre-champ', for: 'reglage-bise-min' }, 'Direction de (°)'), champBiseMin),
+        el('div', {}, el('label', { class: 'sous-titre-champ', for: 'reglage-bise-max' }, 'à (°)'), champBiseMax)),
+      el('p', { class: 'discret' }, 'Directions en degrés, d’où vient le vent : 0 = nord, 45 = nord-est, 90 = est. Par défaut : de 20 à 100°, dès 15 km/h.')),
   );
 }

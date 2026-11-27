@@ -4,8 +4,10 @@ import { COLONNES, ONGLETS, PASTILLES_DEFAUT } from './donnees.js';
 import { jourCourant, decaler, formatLong, relatif, maintenant, simulationActive, arreterSimulation, estLeSoir } from './jour.js';
 import { chargerReglages, reglage, definirReglage } from './reglages.js';
 import { synchroniser, planifier, surEtat, surDonnees, surPhotoEnvoyee } from './sync.js';
-import { rendreOnglet, carteMeteo } from './onglets.js';
-import { chercherMeteo } from './meteo.js';
+import { rendreOnglet } from './onglets.js';
+import { carteMeteoMatin, carteMeteoSoir, carteCoucher, contenuLune } from './cartes-meteo.js';
+import { chercherMeteo, chercherDerniersJours, chercherArchives, heurePassee, HEURES_RELEVES } from './meteo.js';
+import { lune } from './astro.js';
 import { enregistrerPhoto, supprimerPhoto, photoAffichable } from './photos.js';
 import { calculerTotaux } from './stats.js';
 import { calculerSeries } from './series.js';
@@ -18,7 +20,7 @@ import { attendreAucunEcran } from './ecran.js';
 import { afficherPensee, ouvrirFavoris } from './ecran-pensee.js';
 import { ouvrirHistorique } from './ecran-historique.js';
 
-export const VERSION = 'v2b-1';
+export const VERSION = 'v3a-1';
 
 const etat = {
   aujourdhui: null, // jour courant selon l'heure de bascule
@@ -97,37 +99,147 @@ function appliquerChamps(date, champs) {
 /* ---------- Météo ---------- */
 
 const meteoEtat = { date: null, etat: 'repos', message: '', lieu: '' };
-const meteoTentees = new Set();
+const meteoTentees = new Set(); // « date:quoi » déjà tentés automatiquement (une fois par ouverture)
 
-function majCarteMeteo() {
-  const ancienne = document.getElementById('carte-meteo');
-  if (ancienne) ancienne.replaceWith(carteMeteo(ctx));
+/** Redessine les cartes météo affichées (la carte du coucher seulement si demandé : elle contient une photo). */
+function majCartesMeteo(avecCoucher = false) {
+  const remplacer = (id, fabrique) => {
+    const ancienne = document.getElementById(id);
+    if (ancienne) ancienne.replaceWith(fabrique(ctx));
+  };
+  remplacer('carte-meteo', carteMeteoMatin);
+  remplacer('carte-meteo-soir', carteMeteoSoir);
+  if (avecCoucher) remplacer('carte-coucher', carteCoucher);
 }
 
-async function actualiserMeteo(date, { auto = false } = {}) {
+/* Données météo gardées sur ce téléphone seulement (pas de colonne dans le Sheet) :
+   tendance de la pression sur 3 h (t8, t16) et durées du jour et de la veille en secondes (jourS, veilleS). */
+const extrasMeteo = () => reglage('meteoExtra') || {};
+
+async function memoriserExtras(parDate) {
+  if (simulationActive() || !Object.keys(parDate).length) return;
+  const tout = { ...extrasMeteo() };
+  for (const [date, e] of Object.entries(parDate)) tout[date] = { ...(tout[date] || {}), ...e };
+  await definirReglage('meteoExtra', tout);
+}
+
+/**
+ * Inscrit dans la fiche d'un jour les données reçues d'Open-Meteo.
+ * Les relevés de 8 h et 16 h ne sont pris que si leur heure est passée.
+ * `remplacer` : faux = ne remplit que les champs vides (automatique), vrai = met tout à jour (bouton Actualiser).
+ * Renvoie les données « extra » à mémoriser sur le téléphone.
+ */
+async function enregistrerMeteoJour(date, d, { remplacer, journee = true }) {
+  const quand = maintenant();
+  let champs = { ...(journee ? d.journee : {}), ...d.soleil };
+  const extra = { jourS: d.extra.jourS, veilleS: d.extra.veilleS };
+  for (const h of HEURES_RELEVES) {
+    if (!d.releves[h] || !heurePassee(date, h, quand)) continue;
+    Object.assign(champs, d.releves[h]);
+    extra['t' + h] = d.extra['t' + h];
+  }
+  const f = etat.fiche && etat.fiche.date === date ? etat.fiche : await chargerFiche(date);
+  champs = Object.fromEntries(Object.entries(champs)
+    .filter(([k, v]) => v != null && (remplacer || f[k] == null || f[k] === '')));
+  if (Object.keys(champs).length) await appliquerChamps(date, champs);
+  return Object.fromEntries(Object.entries(extra).filter(([, v]) => v != null));
+}
+
+async function actualiserMeteo(date, { auto = false, quoi = 'jour' } = {}) {
   if (auto) {
-    if (meteoTentees.has(date) || !navigator.onLine) return;
-    meteoTentees.add(date);
+    const cle = `${date}:${quoi}`;
+    if (meteoTentees.has(cle) || !navigator.onLine) return;
+    meteoTentees.add(cle);
   }
   Object.assign(meteoEtat, { date, etat: 'encours', message: '' });
-  majCarteMeteo();
+  majCartesMeteo();
   try {
-    const { lieu, champs } = await chercherMeteo(date);
-    await appliquerChamps(date, champs);
+    const { lieu, jours } = await chercherMeteo(date);
+    const d = jours.get(date);
+    if (!d) throw new Error('Open-Meteo n’a pas renvoyé de données pour ce jour.');
+    const extra = await enregistrerMeteoJour(date, d, { remplacer: !auto });
+    await memoriserExtras({ [date]: extra });
     Object.assign(meteoEtat, { date, etat: 'ok', lieu });
   } catch (err) {
     Object.assign(meteoEtat, { date, etat: 'erreur', message: err.message });
   }
-  majCarteMeteo();
+  majCartesMeteo(true);
 }
 
-/** À la première ouverture du jour : la fiche du jour n'a pas encore de météo → on la récupère. */
+/**
+ * Météo automatique de la fiche du jour :
+ *  - à la première ouverture du jour : résumé de la journée et coucher du soleil ;
+ *  - à la première ouverture de l'onglet Matin après 8 h : relevé de 8 h ;
+ *  - à la première ouverture de l'onglet Soir après 16 h : relevé de 16 h.
+ */
 async function meteoAutomatique() {
   if (simulationActive()) return;
   const date = etat.aujourdhui;
-  const f = etat.fiche && etat.fiche.date === date ? etat.fiche : await TMDB.lire('fiches', date);
-  if (f && f.meteo_code != null) return;
-  actualiserMeteo(date, { auto: true });
+  const f = etat.fiche && etat.fiche.date === date ? etat.fiche : await chargerFiche(date);
+  const quand = maintenant();
+  const surOnglet = (o) => etat.date === date && etat.onglet === o;
+  const pasTente = (quoi) => !meteoTentees.has(`${date}:${quoi}`);
+  if ((f.meteo_code == null || f.coucher_soleil == null) && pasTente('jour')) return actualiserMeteo(date, { auto: true, quoi: 'jour' });
+  if (surOnglet('matin') && f.meteo8_temp == null && heurePassee(date, 8, quand) && pasTente('r8')) return actualiserMeteo(date, { auto: true, quoi: 'r8' });
+  if (surOnglet('soir') && f.meteo16_temp == null && heurePassee(date, 16, quand) && pasTente('r16')) return actualiserMeteo(date, { auto: true, quoi: 'r16' });
+}
+
+/**
+ * Rattrapage (une fois par jour) pour les fiches déjà existantes :
+ * phase de la lune (calculée), relevés de 8 h et 16 h, coucher du soleil et durée du jour (Open-Meteo :
+ * les 92 derniers jours d'un coup avec past_days, les fiches plus anciennes depuis les archives).
+ * Aucune fiche n'est créée.
+ */
+async function completerHistorique() {
+  const auj = etat.aujourdhui;
+  if (simulationActive() || reglage('retroMeteoLe') === auj) return;
+  try {
+    await viderSaisieEnAttente();
+    const fiches = (await TMDB.tout('fiches')).filter((f) => f.date <= auj);
+    for (const f of fiches) {
+      if (f.lune_pct != null && f.lune_phase != null) continue;
+      const l = lune(f.date);
+      await appliquerChamps(f.date, { lune_phase: l.phase, lune_pct: l.pct });
+    }
+    if (!navigator.onLine) return;
+    const extras = extrasMeteo();
+    const manque = fiches.filter((f) => f.date < auj && (f.meteo8_temp == null || f.meteo16_temp == null
+      || f.coucher_soleil == null || f.duree_jour_min == null || !extras[f.date]));
+    const limite = decaler(auj, -90);
+    const recentes = manque.filter((f) => f.date >= limite);
+    const anciennes = manque.filter((f) => f.date < limite).map((f) => f.date).sort();
+    const donnees = new Map();
+    if (recentes.length) (await chercherDerniersJours()).jours.forEach((v, k) => donnees.set(k, v));
+    if (anciennes.length) (await chercherArchives(anciennes[0], anciennes[anciennes.length - 1])).jours.forEach((v, k) => donnees.set(k, v));
+    const nouveaux = {};
+    for (const f of manque) {
+      const d = donnees.get(f.date);
+      if (d) nouveaux[f.date] = await enregistrerMeteoJour(f.date, d, { remplacer: false, journee: false });
+    }
+    await memoriserExtras(nouveaux);
+    await definirReglage('retroMeteoLe', auj);
+    if (nouveaux[etat.date]) majCartesMeteo(true);
+  } catch (err) {
+    console.warn('Rattrapage météo :', err);
+  }
+}
+
+/* ---------- Lune (pastille de l'en-tête) ---------- */
+
+function majLune() {
+  const f = etat.fiche;
+  let phase = f.lune_phase;
+  let pct = f.lune_pct;
+  if (phase == null || pct == null) {
+    ({ phase, pct } = lune(f.date));
+    // Enregistrée dans la fiche du jour (les fiches passées sont complétées par le rattrapage).
+    if (f.date === etat.aujourdhui && !simulationActive()) appliquerChamps(f.date, { lune_phase: phase, lune_pct: pct });
+  }
+  const { noeuds, libelle } = contenuLune(phase, pct);
+  const zone = $('lune');
+  zone.replaceChildren(...noeuds);
+  zone.setAttribute('aria-label', 'Lune : ' + libelle);
+  zone.title = libelle;
 }
 
 /* ---------- Eau : pile des ajouts du jour (pour « annuler le dernier ajout ») ---------- */
@@ -192,7 +304,7 @@ const heureSoir = () => Number(reglage('heureSoir')) || 18;
 const VOYANTS = {
   matin: { soir: false, champs: ['humeur_matin', 'energie', 'inspiration', 'meteo_ressenti'] },
   journee: { soir: true, champs: ['pas'] },
-  soir: { soir: true, champs: ['humeur_soir', 'bilan', 'evt_appreciation', 'accord_parole', 'accord_personnel', 'accord_supposition', 'accord_mieux'] },
+  soir: { soir: true, champs: ['meteo_soir_ressenti', 'humeur_soir', 'bilan', 'evt_appreciation', 'accord_parole', 'accord_personnel', 'accord_supposition', 'accord_mieux'] },
   whatsup: { soir: true, champs: ['cuisine', 'deplacement'] },
 };
 
@@ -296,6 +408,8 @@ const ctx = {
     },
   },
   get meteo() { return meteoEtat.date === etat.date ? meteoEtat : { etat: 'repos' }; },
+  /** Tendances de pression et durées du jour gardées sur le téléphone, pour une date. */
+  meteoExtra: (date) => extrasMeteo()[date] || {},
   actualiserMeteo: () => actualiserMeteo(etat.date),
   photo: {
     affichable: (champ) => photoAffichable(etat.date, champ, etat.fiche[champ]),
@@ -409,6 +523,7 @@ function rendre() {
   const contenu = $('contenu');
   contenu.setAttribute('aria-labelledby', 'onglet-' + etat.onglet);
   contenu.replaceChildren(...rendreOnglet(etat.onglet, ctx));
+  majLune();
   majVoyants();
 }
 
@@ -430,6 +545,7 @@ function changerOnglet(id) {
   etat.onglet = id;
   rendre();
   window.scrollTo({ top: 0 });
+  meteoAutomatique();
 }
 
 function ongletSelonHeure() {
@@ -575,7 +691,7 @@ async function demarrer() {
   verrou.surChangement(() => { if (etat.onglet === 'perso') rendre(); });
   surPhotoEnvoyee(async (date, champ, lien) => {
     await appliquerChamps(date, { [champ]: lien });
-    if (date === etat.date && (etat.onglet === 'matin' || etat.onglet === 'journee')) rendre();
+    if (date === etat.date && ['matin', 'journee', 'soir'].includes(etat.onglet)) rendre();
   });
   $('version').textContent = VERSION;
   afficherBandeauSimulation();
@@ -607,17 +723,18 @@ async function demarrer() {
   // D'abord relire le Sheet (la météo et la pensée du jour y sont peut-être déjà), puis la météo
   // automatique. La pensée n'attend la synchro que 3 s au plus, pour s'afficher dès l'ouverture.
   const premiereSynchro = synchroComplete();
-  premiereSynchro.finally(meteoAutomatique);
+  premiereSynchro.finally(() => { meteoAutomatique(); completerHistorique(); });
   if (!ouvertParPartage) {
     Promise.race([premiereSynchro, new Promise((r) => setTimeout(r, 3000))]).then(penseeDuJour).then(bilanDuDimanche);
   }
   // Voyants et passage de 18 h (ou de l'heure de bascule) pendant que l'app reste ouverte.
-  setInterval(() => { verifierChangementDeJour(); majVoyants(); }, 60 * 1000);
+  // Le relevé de 8 h (ou 16 h) arrive aussi si l'onglet est déjà ouvert quand l'heure passe.
+  setInterval(() => { verifierChangementDeJour(); majVoyants(); meteoAutomatique(); }, 60 * 1000);
 
   // Les copies locales des photos de plus de 60 jours sont effacées (elles restent sur Drive).
   TMDB.purgerPhotos(decaler(etat.aujourdhui, -60)).catch(() => {});
 
-  window.addEventListener('online', () => { synchroComplete(); meteoAutomatique(); });
+  window.addEventListener('online', () => { meteoTentees.clear(); synchroComplete(); meteoAutomatique(); });
   window.addEventListener('offline', () => synchroniser());
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
@@ -626,7 +743,8 @@ async function demarrer() {
       viderSaisieEnAttente().then(() => synchroniser());
     } else {
       const nouveauJour = verifierChangementDeJour();
-      synchroComplete();
+      meteoTentees.clear();
+      synchroComplete().finally(completerHistorique);
       meteoAutomatique();
       majVoyants();
       if (nouveauJour || reglage('penseeAfficheeLe') !== etat.aujourdhui) penseeDuJour().then(bilanDuDimanche);

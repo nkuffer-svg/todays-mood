@@ -43,9 +43,18 @@ Pixel 8 Pro
 
 ### Météo
 
-- **Open-Meteo** (`https://api.open-meteo.com/v1/forecast`), `timezone=Europe/Zurich`, données journalières : température min/max, précipitations (mm), durée d'ensoleillement (convertie en heures), couverture nuageuse moyenne (%), code météo WMO.
+- **Open-Meteo** (`https://api.open-meteo.com/v1/forecast`, archives `https://archive-api.open-meteo.com/v1/archive`), `timezone=Europe/Zurich`, sans clé.
+- **Résumé de la journée** (données journalières) : température min/max, précipitations (mm), durée d'ensoleillement (convertie en heures), couverture nuageuse moyenne (%), code météo WMO. Plus `sunset` (heure du coucher, stockée « HH:MM ») et `daylight_duration` (durée du jour, stockée en minutes). Récupérés automatiquement à la première ouverture du jour.
+- **Deux relevés horaires** (version 3) : **8 h** (onglet Matin) et **16 h** (onglet Soir). Pour chacun : température, couverture nuageuse (%), précipitations (mm), code météo, vent (vitesse km/h et direction en degrés), pression au niveau de la mer (hPa). Le relevé est enregistré à la **première ouverture de l'onglet après l'heure concernée** (ou quand l'heure passe pendant que l'onglet est ouvert) ; avant, l'onglet affiche « Relevé à 8 h » / « Relevé à 16 h ». Une récupération automatique ne remplit que les champs vides ; le bouton « Actualiser » met tout à jour.
+- **Tendance de la pression sur 3 h** (↗, ↘ ou →, seuil 1 hPa) : pression à l'heure du relevé moins pression 3 h avant. Pas de colonne dans le Sheet : gardée sur le téléphone (réglage local `meteoExtra`, avec les durées du jour et de la veille en secondes pour l'écart « depuis hier »).
+- **Rattrapage rétroactif** (une fois par jour, après la première synchro) : pour les fiches **déjà existantes** (jamais de nouvelle fiche), complète les relevés de 8 h et 16 h, le coucher du soleil, la durée du jour et la lune. Les 92 derniers jours en une requête (`past_days=92`), les fiches plus anciennes via l'API d'archives.
 - Position : GPS du téléphone si autorisé, sinon lieu fixe réglable (par défaut Lavaux, environ 46,49 N / 6,73 E).
-- Récupérée automatiquement à la première ouverture du jour et enregistrée dans la fiche.
+
+### Bise, lune, solstices (calculés, version 3)
+
+- **Bise** : vent du nord-est (direction entre 20° et 100°) à 15 km/h ou plus (seuils réglables : `biseVitesse`, `biseDirMin`, `biseDirMax`). Pas stockée : calculée à partir du vent du relevé. Pastille allumée en laiton « Bise · 22 km/h NE » ; sinon pastille discrète « Vent 12 km/h SO ». À côté : pastille de pression « 1 021 hPa ↗ ». Points cardinaux en français (N, NE, E, SE, S, SO, O, NO).
+- **Phase de lune** : calculée par l'app (formules de Meeus, à 21 h), sans service externe. Pastille dans l'en-tête, à côté du bouton Réglages : petit dessin (disque sombre, part éclairée crème, à droite quand elle croît) et pourcentage d'illumination. Enregistrée dans la fiche du jour (`lune_phase` : fraction du cycle, 0 = nouvelle, 0,5 = pleine ; `lune_pct` : 0–100).
+- **Solstices** : calculés (Meeus) pour la mention « Solstice dans 24 jours, ensuite les jours rallongent » (ou « raccourcissent » avant le solstice de juin).
 
 ## 3. Règles générales de fonctionnement
 
@@ -75,7 +84,7 @@ Ordre des onglets : **Matin · Journée · Soir · What's up · Perso**.
 ### Matin
 | Rubrique | Saisie | Stockage |
 |---|---|---|
-| Météo (auto) | Open-Meteo | champs numériques |
+| Météo du matin (auto) | relevé de 8 h (Open-Meteo) + pastilles bise et pression, puis petit encadré « La journée » (min/max, pluie, soleil, nuages) | champs numériques `meteo8_*` et `meteo_*` |
 | Météo ressentie | 4 icônes : Soleil, Nuageux, Pluie, Neige | code numérique 1–4 |
 | Photo du ciel | appareil photo | lien Drive |
 | Humeur du matin | jauge 9 crans | 1–9 |
@@ -102,6 +111,8 @@ Libellés des jauges (le mot du cran sélectionné s'affiche en grand) :
 - **Photo du jour** : appareil photo, distincte de la photo du ciel.
 
 ### Soir
+- **Météo du soir** (carte en haut, version 3) : relevé de 16 h, pastilles bise et pression, puis « Ressenti du soir » avec les 4 mêmes icônes que le matin (`meteo_soir_ressenti`, 1–4).
+- **Coucher de soleil** (carte, version 3) : heure du coucher, durée du jour, écart avec la veille (« −2 min depuis hier », en secondes près du solstice) et mention vers le prochain solstice. Dans la même carte : **Photo du ciel du soir** (`photo_ciel_soir`, même fonctionnement que la photo du ciel du matin).
 - **Humeur du soir** : même jauge que le matin, avec un rappel de l'humeur du matin.
 - **Événement marquant** (un par jour) : appréciation Cool / Pas cool (pastilles), une catégorie parmi Job · Maison · Famille élargie · Famille · Réflexion · Pensée · Scène de vie + catégories ajoutées depuis l'app (pastille « + Nouvelle »), description courte.
 - **Récit du jour** : texte long reçu via le partage de l'Enregistreur (voir section 6), modifiable. Marques : Favori (étoile) et/ou Piment.
@@ -130,7 +141,7 @@ Titre de l'écran : « What's up Today ? » (Bebas Neue).
 - **Voyants du tableau de bord** : dans la barre d'onglets, un petit voyant (6 px, orange `#E8862E`, légère lueur) en haut à droite de chaque onglet où il reste quelque chose à remplir **aujourd'hui** ; éteint (`#3A3026`) sinon.
   - Matin : humeur du matin, énergie, inspiration, météo ressentie.
   - Journée (à partir de l'heure du soir, 18 h par défaut, réglable) : nombre de pas.
-  - Soir (à partir de 18 h) : humeur du soir, bilan, appréciation de l'événement, 4 accords.
+  - Soir (à partir de 18 h) : ressenti du soir, humeur du soir, bilan, appréciation de l'événement, 4 accords.
   - What's up (à partir de 18 h) : cuisinier, déplacement.
   - Perso : jamais de voyant.
   - Après minuit, tant que la fiche n'a pas basculé, on reste « le soir ».
@@ -154,7 +165,7 @@ Titre de l'écran : « What's up Today ? » (Bebas Neue).
 - **Mémos marqués** : vue de tous les Récits et My Love marqués Favori ou Piment, filtrable.
 - **Export Word** : un fichier .docx des mémos marqués (date, type, marque, texte), à importer dans OneNote. Option « seulement depuis le dernier export ».
 - **Pensées favorites** : liste avec auteur.
-- **Réglages** : heure de bascule (4 h), objectif d'eau (2 L), pastilles de catégorie (ajout, renommage, masquage), durée de la pensée (30 s), position météo (GPS ou lieu fixe), noms proposés pour « Who's the cook ? », dates de début et de fin de l'hiver (1er octobre et 30 avril), reports de saison (feux et barbecues faits avant l'app), heure du soir (18 h, pour les voyants et le bilan du dimanche), vibration (oui / non), outils de test (simulation de date), URL de la Web App Apps Script, jeton secret, réenregistrement de l'empreinte.
+- **Réglages** : heure de bascule (4 h), objectif d'eau (2 L), pastilles de catégorie (ajout, renommage, masquage), durée de la pensée (30 s), position météo (GPS ou lieu fixe), noms proposés pour « Who's the cook ? », seuils de la bise (15 km/h, de 20° à 100°), dates de début et de fin de l'hiver (1er octobre et 30 avril), reports de saison (feux et barbecues faits avant l'app), heure du soir (18 h, pour les voyants et le bilan du dimanche), vibration (oui / non), outils de test (simulation de date), URL de la Web App Apps Script, jeton secret, réenregistrement de l'empreinte.
 
 ## 8. Direction visuelle « Garage vintage »
 
@@ -196,6 +207,10 @@ Ambiance : tableau de bord de moto ancienne, adulte et chaleureux, **pas « joue
 - **Plaque de série** : plaque laiton avec deux petites vis, texte en Bebas Neue capitales.
 - **Compteur kilométrique** : rouleaux sombres `#1C1612` à chiffres crème, décimale sur case crème `#EFE6D2` à chiffre `#2A2118`, ombre intérieure en haut et en bas, déroulement animé.
 - **Clin d'œil** : encadré en pointillés laiton, icône soleil, phrase en italique.
+- **Pastilles météo** : petites pastilles arrondies ; vent discret (bordure `#3A3026`, texte discret) ; bise allumée (bordure laiton, fond `#2E2519`, texte laiton clair) ; pression avec flèche de tendance.
+- **Relevé en attente** : encadré en tirets, « RELEVÉ À 8 H » en Archivo Narrow capitales.
+- **Encadré « La journée »** : zone creuse sous le relevé de 8 h, titre Bebas Neue laiton, détails compacts.
+- **Pastille de lune** (en-tête) : dessin de 22 px (disque `#2A2219`, part éclairée crème, filet laiton foncé) et pourcentage en dessous, sans bordure (non cliquable).
 - **Jauge d'eau** : demi-cadran crème façon jauge de carburant, 0 → 1 L → 2 L, zone verte entre 1,5 et 2 L, aiguille rouge ; à côté, la quantité en grand (« 1,3 L ») et « Encore 0,7 L » ou « Objectif atteint ».
 - **Bilan** : 5 visages SVG au trait dans des tuiles ; sélection = bordure laiton.
 - **Accords** : sélecteur segmenté en pilule Bon / Moyen / Pas bon ; segment actif plein laiton.
@@ -215,9 +230,11 @@ Classeur « Today's Mood – données », 5 onglets. Première ligne = en-têtes
 | `Pastilles` | une catégorie d'événement | nom, ordre, visible |
 | `Reglages` | un réglage | clé, valeur |
 
-Colonnes de `Fiches` : date, modifie_le, pensee_id, meteo_tmin, meteo_tmax, meteo_pluie_mm, meteo_soleil_h, meteo_nuages_pct, meteo_code, meteo_ressenti, photo_ciel, photo_jour, humeur_matin, humeur_soir, energie, inspiration, energie_sexuelle, bilan, evt_appreciation, evt_categorie, evt_texte, accord_parole, accord_personnel, accord_supposition, accord_mieux, pas, natation_m, eau_ml, cafe, deca, biere, vin, biscotte_1, biscotte_2, recit, recit_favori, recit_piment, mylove, mylove_favori, mylove_piment, puis (version 2, **toujours ajoutées à la fin**, sans déplacer les colonnes existantes) : cuisine, repas_type, guitare, feux_poele, barbecues, deplacement.
+Colonnes de `Fiches` : date, modifie_le, pensee_id, meteo_tmin, meteo_tmax, meteo_pluie_mm, meteo_soleil_h, meteo_nuages_pct, meteo_code, meteo_ressenti, photo_ciel, photo_jour, humeur_matin, humeur_soir, energie, inspiration, energie_sexuelle, bilan, evt_appreciation, evt_categorie, evt_texte, accord_parole, accord_personnel, accord_supposition, accord_mieux, pas, natation_m, eau_ml, cafe, deca, biere, vin, biscotte_1, biscotte_2, recit, recit_favori, recit_piment, mylove, mylove_favori, mylove_piment, puis (version 2, **toujours ajoutées à la fin**, sans déplacer les colonnes existantes) : cuisine, repas_type, guitare, feux_poele, barbecues, deplacement, puis (version 3, à la fin) : meteo8_temp, meteo8_nuages, meteo8_pluie, meteo8_code, meteo8_vent, meteo8_vent_dir, meteo8_pression, meteo16_temp, meteo16_nuages, meteo16_pluie, meteo16_code, meteo16_vent, meteo16_vent_dir, meteo16_pression, meteo_soir_ressenti, coucher_soleil, duree_jour_min, lune_phase, lune_pct, photo_ciel_soir.
 
-L'Apps Script ajoute automatiquement à droite toute colonne attendue qui manque. Tous les totaux restent calculés, jamais stockés. L'onglet `Reglages` reçoit les réglages partagés (bascule, objectif d'eau, durée de la pensée, position météo, dernier export, cuisiniers, dates de l'hiver, reports de saison, heure du soir), jamais l'URL ni le jeton (ni la vibration, propre au téléphone).
+Colonnes de texte : `coucher_soleil` (« HH:MM ») et `photo_ciel_soir` (lien Drive, fichier `AAAA-MM-JJ_ciel_soir.jpg`) ; les autres colonnes version 3 sont numériques.
+
+L'Apps Script ajoute automatiquement à droite toute colonne attendue qui manque. Tous les totaux restent calculés, jamais stockés. L'onglet `Reglages` reçoit les réglages partagés (bascule, objectif d'eau, durée de la pensée, position météo, dernier export, cuisiniers, dates de l'hiver, reports de saison, heure du soir, seuils de la bise), jamais l'URL ni le jeton (ni la vibration, propre au téléphone).
 
 Les données numériques restent numériques (pour les futurs graphiques). Une valeur non saisie reste vide (pas de 0).
 
@@ -237,5 +254,8 @@ Les étapes 1 à 7 sont terminées.
 - **Partie A — nouvelles rubriques et jauges** : jauges réglées par appui sur un chiffre (plus de glisser), Biscotte renommé Happy Dicky avec boutons à gestes, nouvel onglet What's up (Who's the cook ?, Tu grattes ou quoi ?, Burn on the fire, Fangio ou Rossi ?), nouvelles colonnes à la fin de `Fiches`.
 - **Corrections après la partie A** : report de saison pour les feux et barbecues faits avant l'app (Réglages, stocké dans `Reglages`), tuiles Fangio / Rossi sans les mots Moto / Voiture, Happy Dicky avec des pistons à la place des gestes.
 - **Partie B — habillage et petits plaisirs** : voyants du tableau de bord, vibration, séries (plaques laiton), compteurs kilométriques à rouleaux, clin d'œil Fangio, bilan du dimanche, « Il y a un an » et barre de décompte sur l'écran d'ouverture, outils de test (simulation de date).
+
+### Version 3
+- **Partie A — météo du matin et du soir** : relevés horaires de 8 h (Matin) et 16 h (Soir) avec vent, pression et tendance, encadré « La journée », pastilles bise et pression, carte Météo du soir avec ressenti du soir, carte Coucher de soleil (durée du jour, écart avec la veille, solstices, photo du ciel du soir), phase de lune dans l'en-tête, voyant du Soir avec le ressenti du soir, rattrapage rétroactif des fiches existantes (`past_days`), nouvelles colonnes à la fin de `Fiches`.
 
 Plus tard (hors périmètre pour l'instant) : graphiques de tendances (humeur × météo, matin × soir, accords dans le temps).
