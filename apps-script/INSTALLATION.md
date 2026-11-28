@@ -188,6 +188,13 @@ Les 7 nouvelles colonnes (`ecran_min` … `sommeil_qualite`) s'ajoutent toutes s
 l'onglet `Fiches` à la première synchronisation. La sauvegarde du dimanche continue toute seule :
 inutile de relancer `installerSauvegarde`.
 
+## Mise à jour de la version 4, partie B (Who's the Boss ? et défi du mois)
+
+Pas de nouvelle autorisation : recopie le nouveau `Code.gs` (Ctrl+A puis Suppr avant de coller),
+enregistre, puis **Déployer → Gérer les déploiements → crayon → Nouvelle version → Déployer**.
+Les deux nouveaux onglets **Tentations** et **Defis** se créent tout seuls à la première synchronisation
+(ou tout de suite en lançant **initialiser**, sans danger). Ne renomme pas leurs colonnes.
+
 ## En cas de problème
 
 | Message dans l'app | Que faire |

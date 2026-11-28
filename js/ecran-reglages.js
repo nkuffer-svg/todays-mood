@@ -3,6 +3,7 @@ import { el, carte, segments, icone } from './ui.js';
 import { LIEU_DEFAUT, seuilsBise } from './meteo.js';
 import { empreinteEnregistree, enregistrerEmpreinte, disponibilite } from './verrou.js';
 import { bornesSaison, libelleSaison } from './whatsup.js';
+import { carteCagnotte, carteDefi } from './reglages-v4.js';
 import { jourCourant, decaler, depuisTexte, maintenant, simulationActive, demarrerSimulation, arreterSimulation } from './jour.js';
 
 const fmtDateCourte = new Intl.DateTimeFormat('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -195,7 +196,7 @@ function carteCategories(categories) {
     liste, message, formulaire);
 }
 
-export function ouvrirReglages({ synchroComplete, reglagesModifies, categories }) {
+export function ouvrirReglages({ synchroComplete, reglagesModifies, categories, aujourdhui }) {
   let desabonner = null;
   let enregistrerMaintenant = null;
   const { corps } = ouvrirEcran({
@@ -478,6 +479,8 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies, categories }
       choixDate('hiverFin', '04-30', 'Fin de l’hiver'),
       el('p', { class: 'discret' }, 'Le reste de l’année est l’été (barbecue). Le choix se fait tout seul selon la date, et reste modifiable à la main.')),
     carteReports(reglagesModifies),
+    carteDefi({ reglagesModifies, aujourdhui: aujourdhui || jourCourant(reglage('bascule')) }),
+    carteCagnotte({ reglagesModifies, aujourdhui: aujourdhui || jourCourant(reglage('bascule')) }),
     carteOutilsTest(),
     carte('Pensée du jour',
       el('label', { class: 'sous-titre-champ', for: 'reglage-duree-pensee' }, 'Durée d’affichage à l’ouverture'),

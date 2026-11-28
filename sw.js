@@ -4,7 +4,7 @@
 'use strict';
 importScripts('./db.js');
 
-const VERSION = 'v4a-1';
+const VERSION = 'v4b-1';
 const CACHE = 'todays-mood-' + VERSION;
 const CACHE_POLICES = 'todays-mood-polices';
 const FICHIERS = [
@@ -16,11 +16,14 @@ const FICHIERS = [
   './data/pensees.json',
   './js/app.js',
   './js/astro.js',
+  './js/boss.js',
+  './js/carte-defi.js',
   './js/carte-photo.js',
   './js/cartes-meteo.js',
   './js/compteurs.js',
   './js/docx.js',
   './js/ecran-bilan.js',
+  './js/defis.js',
   './js/donnees.js',
   './js/ecran-pensee.js',
   './js/ecran.js',
@@ -39,6 +42,7 @@ const FICHIERS = [
   './js/perso.js',
   './js/photos.js',
   './js/reglages.js',
+  './js/reglages-v4.js',
   './js/series.js',
   './js/sommeil.js',
   './js/stats.js',

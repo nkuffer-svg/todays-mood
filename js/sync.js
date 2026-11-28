@@ -127,6 +127,7 @@ export function synchroniser({ tirer = false } = {}) {
 async function executer(tirer) {
   const resultat = {
     datesModifiees: new Set(), pastillesModifiees: false, marchesModifiees: false, penseesModifiees: false, reglagesModifies: false,
+    tentationsModifiees: false, defisModifies: false,
   };
   const attente = await compterAttente();
   if (!reglage('url') || !reglage('jeton')) {
@@ -152,7 +153,8 @@ async function executer(tirer) {
   } catch (err) {
     publier({ code: err.code === 'jeton' ? 'jeton' : 'erreur', message: err.message });
   }
-  if (resultat.datesModifiees.size || resultat.pastillesModifiees || resultat.marchesModifiees || resultat.penseesModifiees || resultat.reglagesModifies) {
+  if (resultat.datesModifiees.size || resultat.pastillesModifiees || resultat.marchesModifiees || resultat.penseesModifiees || resultat.reglagesModifies
+    || resultat.tentationsModifiees || resultat.defisModifies) {
     for (const fn of ecouteursDonnees) await fn(resultat);
   }
   return resultat;
@@ -196,7 +198,7 @@ async function envoyerPhotos() {
 async function envoyer() {
   await envoyerPhotos();
   const file = await TMDB.tout('file');
-  if (file.filter((e) => ['fiche', 'pastilles', 'marche', 'pensee', 'reglages'].includes(e.type)).length === 0) return 0;
+  if (file.filter((e) => ['fiche', 'pastilles', 'marche', 'pensee', 'reglages', 'enreg'].includes(e.type)).length === 0) return 0;
   // Chaque fiche part avec ses seuls champs modifiés : le Sheet garde les autres
   // (saisis par exemple sur un autre appareil).
   const fiches = [];
@@ -231,6 +233,21 @@ async function envoyer() {
     donnees.marchesSupprimees = marchesSupprimees;
   }
 
+  // Tentations et défis (version 4 B) : ajouts / modifications et suppressions.
+  const entreesEnreg = file.filter((e) => e.type === 'enreg');
+  for (const magasin of ['tentations', 'defis']) {
+    const entrees = entreesEnreg.filter((e) => e.magasin === magasin);
+    if (!entrees.length) continue;
+    const ecrits = [];
+    const supprimes = [];
+    for (const e of entrees) {
+      const objet = e.op === 'suppression' ? null : await TMDB.lire(magasin, e.id);
+      if (objet) ecrits.push(objet); else supprimes.push(e.id);
+    }
+    donnees[magasin] = ecrits;
+    donnees[magasin + 'Supprimes'] = supprimes;
+  }
+
   // Pensées : favori et dernière apparition.
   const pensees = [];
   for (const e of file.filter((x) => x.type === 'pensee')) {
@@ -251,6 +268,7 @@ async function envoyer() {
   if (avecPastilles) await TMDB.supprimer('file', 'pastilles');
   for (const e of entreesMarches) await TMDB.retirerMarcheDeLaFile(e.id, e.op);
   for (const p of pensees) await TMDB.retirerPenseeDeLaFile(p);
+  for (const e of entreesEnreg) await TMDB.retirerEnregistrementDeLaFile(e.cle, e.version);
   if (entreeReglages) await TMDB.retirerReglagesDeLaFile(entreeReglages.version);
   return (rep.ignorees || []).length;
 }
@@ -263,6 +281,12 @@ async function recevoir(resultat) {
   }
   if (Array.isArray(rep.marches) && await TMDB.fusionnerMarches(rep.marches)) {
     resultat.marchesModifiees = true;
+  }
+  if (Array.isArray(rep.tentations) && await TMDB.fusionnerEnregistrements('tentations', rep.tentations)) {
+    resultat.tentationsModifiees = true;
+  }
+  if (Array.isArray(rep.defis) && await TMDB.fusionnerEnregistrements('defis', rep.defis)) {
+    resultat.defisModifies = true;
   }
   if (Array.isArray(rep.pensees) && await TMDB.fusionnerPensees(rep.pensees)) {
     resultat.penseesModifiees = true;

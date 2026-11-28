@@ -10,12 +10,14 @@
    - partages  : derniers partages reçus de l'Enregistreur (5 au maximum)
    - photos    : photos compressées (clé : "AAAA-MM-JJ:photo_ciel"), en attente d'envoi ou copie locale
    - marches   : une marche (clé : id), plusieurs par jour possibles
+   - tentations : une tentation de Who's the Boss ? (clé : id), plusieurs par jour possibles
+   - defis     : un défi du mois (clé : mois AAAA-MM)
    - pensees   : état d'une citation (clé : id) : favori, dernière apparition */
 (function (global) {
   'use strict';
 
   const NOM_BASE = 'todays-mood';
-  const VERSION = 4;
+  const VERSION = 5;
   const MAX_PARTAGES = 5;
   let ouverture = null;
 
@@ -36,6 +38,8 @@
         creer('photos', { keyPath: 'cle' });
         creer('marches', { keyPath: 'id' });
         creer('pensees', { keyPath: 'id' });
+        creer('tentations', { keyPath: 'id' }); // version 4 B : Who's the Boss ?
+        creer('defis', { keyPath: 'mois' });     // version 4 B : défi du mois
       };
       req.onsuccess = () => {
         const db = req.result;
@@ -309,6 +313,68 @@
     return change;
   }
 
+  /* ---------- Enregistrements à clé (tentations, défis) : même principe que les marches ---------- */
+
+  const CLES = { tentations: 'id', defis: 'mois' };
+
+  /** Ajoute ou modifie un enregistrement et le place dans la file (une version par modification). */
+  async function ecrireEnregistrement(magasin, objet) {
+    const id = objet[CLES[magasin]];
+    const db = await ouvrir();
+    const tx = db.transaction([magasin, 'file'], 'readwrite');
+    tx.objectStore(magasin).put(objet);
+    tx.objectStore('file').put({ cle: magasin + ':' + id, type: 'enreg', magasin, id, op: 'ajout', version: Date.now() + Math.random() });
+    return fin(tx);
+  }
+
+  async function supprimerEnregistrement(magasin, id) {
+    const db = await ouvrir();
+    const tx = db.transaction([magasin, 'file'], 'readwrite');
+    tx.objectStore(magasin).delete(id);
+    tx.objectStore('file').put({ cle: magasin + ':' + id, type: 'enreg', magasin, id, op: 'suppression', version: Date.now() + Math.random() });
+    return fin(tx);
+  }
+
+  /** Retire une entrée de la file seulement si elle n'a pas été modifiée pendant l'envoi. */
+  async function retirerEnregistrementDeLaFile(cle, version) {
+    const db = await ouvrir();
+    const tx = db.transaction('file', 'readwrite');
+    const file = tx.objectStore('file');
+    file.get(cle).onsuccess = (e) => {
+      if (e.target.result && e.target.result.version === version) file.delete(cle);
+    };
+    return fin(tx);
+  }
+
+  /** Aligne un magasin sur le Sheet, sauf les enregistrements qui attendent d'être envoyés. */
+  async function fusionnerEnregistrements(magasin, distants) {
+    const cleId = CLES[magasin];
+    const db = await ouvrir();
+    const tx = db.transaction([magasin, 'file'], 'readwrite');
+    const store = tx.objectStore(magasin);
+    let change = false;
+    const pareil = (a, b) => JSON.stringify(a, Object.keys(a).sort()) === JSON.stringify(b, Object.keys(b).sort());
+    tx.objectStore('file').getAll().onsuccess = (e) => {
+      const enAttente = new Set(e.target.result.filter((x) => x.type === 'enreg' && x.magasin === magasin).map((x) => x.id));
+      const parId = new Map(distants.map((d) => [d[cleId], d]));
+      store.getAll().onsuccess = (e2) => {
+        for (const locale of e2.target.result) {
+          const id = locale[cleId];
+          if (enAttente.has(id)) { parId.delete(id); continue; }
+          const d = parId.get(id);
+          if (!d) { store.delete(id); change = true; }
+          else if (!pareil(d, locale)) { store.put(d); change = true; }
+          parId.delete(id);
+        }
+        for (const d of parId.values()) {
+          if (!enAttente.has(d[cleId])) { store.put(d); change = true; }
+        }
+      };
+    };
+    await fin(tx);
+    return change;
+  }
+
   /* ---------- Pensées ---------- */
 
   /** Modifie l'état d'une citation (favori, dernière apparition) et la place dans la file. */
@@ -385,6 +451,7 @@
     ecrireReglagePartage, retirerReglagesDeLaFile,
     modifierPensee, retirerPenseeDeLaFile, fusionnerPensees,
     ajouterMarche, supprimerMarche, retirerMarcheDeLaFile, fusionnerMarches,
+    ecrireEnregistrement, supprimerEnregistrement, retirerEnregistrementDeLaFile, fusionnerEnregistrements,
     enregistrerPhotoLocale, marquerPhotoEnvoyee, supprimerPhotoLocale, mettreALaCorbeille, purgerPhotos,
     lire, tout, ecrire, supprimer,
     modifierFiche, retirerFicheDeLaFile, fusionnerFicheDistante, enregistrerPastilles, remplacerPastilles, ajouterPartage,

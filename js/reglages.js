@@ -16,6 +16,7 @@ export const REGLAGES_PARTAGES = [
   'penseesDebutCycle', 'dernierExport',
   'cuisiniers', 'hiverDebut', 'hiverFin', 'reportsSaisons', 'heureSoir',
   'biseVitesse', 'biseDirMin', 'biseDirMax',
+  'cagnotteNom', 'cagnotteMontant', 'cagnotteDebut',
 ];
 
 const cache = { ...DEFAUTS };

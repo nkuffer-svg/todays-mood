@@ -1,5 +1,5 @@
 /**
- * Today's Mood — Web App Apps Script (version 4, partie A).
+ * Today's Mood — Web App Apps Script (version 4, partie B).
  *
  * À coller dans l'éditeur Apps Script du classeur « Today's Mood – données »
  * (Extensions → Apps Script). Voir apps-script/INSTALLATION.md.
@@ -8,7 +8,7 @@
  * et rangé dans les Propriétés du script.
  */
 
-const VERSION = 'v4a-1';
+const VERSION = 'v4b-1';
 
 const COLONNES_FICHES = [
   'date', 'modifie_le', 'pensee_id',
@@ -50,6 +50,18 @@ const ONGLETS = {
   Pensees: ['id', 'favori', 'derniere_apparition'],
   Pastilles: ['nom', 'ordre', 'visible'],
   Reglages: ['cle', 'valeur'],
+  // Version 4, partie B
+  Tentations: ['id', 'date', 'gagnant', 'quoi', 'montant_chf'],
+  Defis: ['mois', 'type', 'compteur', 'cible', 'libelle', 'resultat'],
+};
+
+/**
+ * Onglets « une ligne = un enregistrement à clé » de la version 4 B.
+ * cle : colonne identifiante ; texte : colonnes forcées en texte ; nombres : colonnes numériques.
+ */
+const ENREGISTREMENTS = {
+  tentations: { onglet: 'Tentations', cle: 'id', texte: ['id', 'date', 'gagnant', 'quoi'], nombres: ['montant_chf'] },
+  defis: { onglet: 'Defis', cle: 'mois', texte: ['mois', 'type', 'compteur', 'libelle', 'resultat'], nombres: ['cible'] },
 };
 
 const NOM_DOSSIER_PHOTOS = "Today's Mood – photos";
@@ -63,6 +75,7 @@ const REGLAGES_AUTORISES = [
   'penseesDebutCycle', 'dernierExport',
   'cuisiniers', 'hiverDebut', 'hiverFin', 'reportsSaisons', 'heureSoir',
   'biseVitesse', 'biseDirMin', 'biseDirMax',
+  'cagnotteNom', 'cagnotteMontant', 'cagnotteDebut',
 ];
 
 const PASTILLES_DEFAUT = ['Job', 'Maison', 'Famille élargie', 'Famille', 'Réflexion', 'Pensée', 'Scène de vie'];
@@ -228,10 +241,16 @@ function traiter_(requete) {
       }
       if (Array.isArray(requete.pensees)) enregistrerPensees_(ss, requete.pensees);
       if (requete.reglages && typeof requete.reglages === 'object') enregistrerReglages_(ss, requete.reglages);
+      Object.keys(ENREGISTREMENTS).forEach(function (nom) {
+        if (Array.isArray(requete[nom]) || Array.isArray(requete[nom + 'Supprimes'])) {
+          enregistrerLignes_(ss, nom, requete[nom] || [], requete[nom + 'Supprimes'] || []);
+        }
+      });
       return { ok: true, enregistrees: resultat.enregistrees, ignorees: resultat.ignorees };
     }
     case 'lire':
-      return { ok: true, fiches: lireFiches_(ss), pastilles: lirePastilles_(ss), marches: lireMarches_(ss), pensees: lirePensees_(ss), reglages: lireReglages_(ss), sauvegarde: derniereSauvegarde_() };
+      return { ok: true, fiches: lireFiches_(ss), pastilles: lirePastilles_(ss), marches: lireMarches_(ss), pensees: lirePensees_(ss), reglages: lireReglages_(ss), sauvegarde: derniereSauvegarde_(),
+        tentations: lireLignes_(ss, 'tentations'), defis: lireLignes_(ss, 'defis') };
     case 'envoyerPhoto':
       return envoyerPhoto_(requete);
     case 'lirePhoto':
@@ -414,6 +433,80 @@ function lireMarches_(ss) {
       return { id: String(l[iId]).trim(), date: texteDate_(l[iDate], tz), km: km };
     })
     .filter(function (m) { return m.id && m.date && isFinite(m.km) && m.km > 0; });
+}
+
+/* =====================================================================
+   Tentations et défis (version 4 B) : une ligne par enregistrement, repéré par sa clé
+   ===================================================================== */
+
+function enregistrerLignes_(ss, nom, ecrits, supprimes) {
+  const def = ENREGISTREMENTS[nom];
+  const feuille = onglet_(ss, def.onglet);
+  const entetes = entetes_(feuille);
+  const iCle = entetes.indexOf(def.cle);
+  const tz = ss.getSpreadsheetTimeZone();
+  const derniere = feuille.getLastRow();
+  const valeurs = derniere >= 2 ? feuille.getRange(2, 1, derniere - 1, entetes.length).getValues() : [];
+  const ligneParCle = {};
+  valeurs.forEach(function (l, k) {
+    const c = cleTexte_(l[iCle], tz);
+    if (c) ligneParCle[c] = k + 2;
+  });
+
+  const nouvelles = [];
+  ecrits.forEach(function (o) {
+    const c = o && String(o[def.cle] || '').trim();
+    if (!c) return;
+    const ligne = entetes.map(function (h, i) {
+      if (def.texte.indexOf(h) >= 0) return o[h] === null || o[h] === undefined || o[h] === '' ? '' : "'" + String(o[h]);
+      if (def.nombres.indexOf(h) >= 0) {
+        const n = Number(o[h]);
+        return o[h] === null || o[h] === undefined || o[h] === '' || !isFinite(n) ? '' : n;
+      }
+      return ligneParCle[c] ? valeurs[ligneParCle[c] - 2][i] : ''; // colonne ajoutée à la main : intacte
+    });
+    if (ligneParCle[c]) feuille.getRange(ligneParCle[c], 1, 1, entetes.length).setValues([ligne]);
+    else nouvelles.push(ligne);
+  });
+
+  supprimes
+    .map(function (c) { return ligneParCle[String(c)]; })
+    .filter(function (n) { return n; })
+    .sort(function (a, b) { return b - a; })
+    .forEach(function (n) { feuille.deleteRow(n); });
+
+  if (nouvelles.length) {
+    feuille.getRange(Math.max(feuille.getLastRow(), 1) + 1, 1, nouvelles.length, entetes.length).setValues(nouvelles);
+    feuille.getRange(2, 1, feuille.getLastRow() - 1, feuille.getLastColumn()).sort(iCle + 1);
+  }
+}
+
+function lireLignes_(ss, nom) {
+  const def = ENREGISTREMENTS[nom];
+  const feuille = onglet_(ss, def.onglet);
+  const entetes = entetes_(feuille);
+  const tz = ss.getSpreadsheetTimeZone();
+  const derniere = feuille.getLastRow();
+  if (derniere < 2) return [];
+  return feuille.getRange(2, 1, derniere - 1, entetes.length).getValues()
+    .map(function (l) {
+      const o = {};
+      entetes.forEach(function (h, i) {
+        if (def.texte.indexOf(h) >= 0) o[h] = l[i] === '' ? null : cleTexte_(l[i], tz);
+        else if (def.nombres.indexOf(h) >= 0) {
+          const n = typeof l[i] === 'number' ? l[i] : Number(String(l[i]).replace(',', '.'));
+          o[h] = l[i] === '' || !isFinite(n) ? null : n;
+        }
+      });
+      return o;
+    })
+    .filter(function (o) { return o[def.cle]; });
+}
+
+/** Valeur de cellule → texte (une date reconnue par Sheets redevient AAAA-MM-JJ, un mois AAAA-MM). */
+function cleTexte_(valeur, tz) {
+  if (valeur instanceof Date) return Utilities.formatDate(valeur, tz, 'yyyy-MM-dd');
+  return String(valeur === null || valeur === undefined ? '' : valeur).trim();
 }
 
 /* =====================================================================

@@ -10,6 +10,9 @@ import { calculerSeries, plaque, SERIES } from './series.js';
 import { odometre } from './odometre.js';
 import { nomsCuisine } from './whatsup.js';
 import { formatDuree, moyenneChamp } from './durees.js';
+import { scoreTentations, chf } from './boss.js';
+import { evaluerDefi } from './defis.js';
+import { plaqueDefi, nomMois } from './carte-defi.js';
 
 const fmt = new Intl.NumberFormat('fr-CH', { maximumFractionDigits: 1 });
 const fmtJour = new Intl.DateTimeFormat('fr-CH', { day: 'numeric', month: 'long' });
@@ -178,6 +181,21 @@ function blocWhatsUp(jours, parDate) {
       ligne('volant', 'Fangio (voiture)', `${compte('deplacement', 'voiture')} jour${compte('deplacement', 'voiture') > 1 ? 's' : ''}`)));
 }
 
+/* ---------- Who's the Boss ? et défi du mois ---------- */
+
+function blocBoss(tentations, lundi, dimanche) {
+  const s = scoreTentations(tentations.filter((t) => t.date >= lundi && t.date <= dimanche));
+  return section('Who’s the Boss ?',
+    el('p', { class: 'score-boss bilan' },
+      el('span', { class: 'equipe' }, 'Mister Me'), el('strong', {}, `${s.me} – ${s.plaisir}`), el('span', { class: 'equipe' }, 'Le plaisir')),
+    el('p', { class: 'bilan-revolut' }, `Go to Revolut cette semaine : `, el('strong', {}, chf(s.revolut))));
+}
+
+function blocDefi(defi, donnees, jusqua) {
+  if (!defi) return null;
+  return section(`Défi de ${nomMois(defi.mois).split(' ')[0]}`, plaqueDefi(defi, evaluerDefi(defi, donnees, jusqua)));
+}
+
 /* ---------- Écran ---------- */
 
 /**
@@ -199,7 +217,9 @@ export async function ouvrirBilan({ semaine, aujourdhui, objectifEau }) {
     const jours = Array.from({ length: 7 }, (_, i) => decaler(lundi, i));
     titreSemaine.textContent = `Semaine du ${fmtJour.format(depuisTexte(lundi))} au ${fmtJourAn.format(depuisTexte(dimanche))}`;
     suivante.disabled = decaler(lundi, 7) > aujourdhui;
-    const [fiches, marches] = await Promise.all([TMDB.tout('fiches'), TMDB.tout('marches')]);
+    const [fiches, marches, tentations] = await Promise.all([TMDB.tout('fiches'), TMDB.tout('marches'), TMDB.tout('tentations')]);
+    const jusqua = dimanche < aujourdhui ? dimanche : aujourdhui;
+    const defi = await TMDB.lire('defis', jusqua.slice(0, 7));
     const parDate = new Map(fiches.map((f) => [f.date, f]));
     const finSeries = dimanche < aujourdhui ? dimanche : aujourdhui;
     zone.replaceChildren(
@@ -209,7 +229,9 @@ export async function ouvrirBilan({ semaine, aujourdhui, objectifEau }) {
       blocEvenements(jours, parDate),
       blocCompteurs(fiches, marches, lundi, dimanche),
       blocSeries(fiches, marches, finSeries, objectifEau),
-      blocWhatsUp(jours, parDate));
+      blocWhatsUp(jours, parDate),
+      blocBoss(tentations, lundi, dimanche),
+      blocDefi(defi, { fiches, marches, tentations, objectifEau }, jusqua) || '');
   }
   precedente.addEventListener('click', () => { lundi = decaler(lundi, -7); dessiner(); });
   suivante.addEventListener('click', () => { lundi = decaler(lundi, 7); dessiner(); });

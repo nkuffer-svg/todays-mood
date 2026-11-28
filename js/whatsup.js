@@ -5,6 +5,8 @@ import { el, svg, icone, carte, segments, clac } from './ui.js';
 import { depuisTexte, decaler } from './jour.js';
 import { plaque } from './series.js';
 import { molette } from './molette.js';
+import { carteBoss } from './boss.js';
+import { plaqueDefi } from './carte-defi.js';
 import { compteurHoraire } from './odometre.js';
 import { formatDuree, formatEcart, statsSemaine } from './durees.js';
 
@@ -403,13 +405,23 @@ function carteEcran(ctx) {
     zoneStats);
 }
 
+/** Plaque du défi du mois en tête de l'onglet (rien si aucun défi n'est choisi pour ce mois). */
+function zoneDefi(ctx) {
+  const zone = el('div', { class: 'zone-defi' });
+  const date = ctx.fiche.date;
+  ctx.defi(date.slice(0, 7), date).then((r) => { if (r) zone.replaceChildren(plaqueDefi(r.defi, r.etat)); }).catch(() => {});
+  return zone;
+}
+
 export function cartesWhatsUp(ctx) {
   return [
     el('h2', { class: 'titre-onglet' }, 'What’s up Today ?'),
+    zoneDefi(ctx),
     carteCuisine(ctx),
     carteGuitare(ctx),
     carteFeu(ctx),
     carteDeplacement(ctx),
+    carteBoss(ctx),
     carteChien(ctx),
     carteEcran(ctx),
   ];

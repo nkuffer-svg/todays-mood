@@ -8,6 +8,8 @@ import { rendreOnglet } from './onglets.js';
 import { carteMeteoMatin, carteMeteoSoir, carteCoucher, contenuLune } from './cartes-meteo.js';
 import { chercherMeteo, chercherDerniersJours, chercherArchives, heurePassee, HEURES_RELEVES } from './meteo.js';
 import { lune } from './astro.js';
+import { evaluerDefi } from './defis.js';
+import { annoncerResultat } from './carte-defi.js';
 import { enregistrerPhoto, supprimerPhoto, photoAffichable } from './photos.js';
 import { calculerTotaux } from './stats.js';
 import { calculerSeries } from './series.js';
@@ -20,7 +22,7 @@ import { attendreAucunEcran } from './ecran.js';
 import { afficherPensee, ouvrirFavoris } from './ecran-pensee.js';
 import { ouvrirHistorique } from './ecran-historique.js';
 
-export const VERSION = 'v4a-1';
+export const VERSION = 'v4b-1';
 
 const etat = {
   aujourdhui: null, // jour courant selon l'heure de bascule
@@ -296,6 +298,43 @@ async function bilanDuDimanche() {
   });
 }
 
+/* ---------- Défi du mois : résultat à la fin du mois ---------- */
+
+/** Données dont un défi a besoin pour être calculé. */
+async function donneesDefi() {
+  await viderSaisieEnAttente();
+  const [fiches, marches, tentations] = await Promise.all([TMDB.tout('fiches'), TMDB.tout('marches'), TMDB.tout('tentations')]);
+  return { fiches, marches, tentations, objectifEau: ctx.objectifEau };
+}
+
+/**
+ * Les défis des mois terminés reçoivent leur résultat (réussi / raté), enregistré dans le Sheet.
+ * Celui du mois précédent est annoncé une fois, à la première ouverture du mois.
+ */
+async function resultatsDefis() {
+  try {
+    await penseeEnCours;
+    await attendreAucunEcran();
+    const mois = etat.aujourdhui.slice(0, 7);
+    const termines = (await TMDB.tout('defis')).filter((d) => d.mois < mois).sort((a, b) => (a.mois < b.mois ? -1 : 1));
+    if (!termines.length) return;
+    const donnees = await donneesDefi();
+    for (const d of termines) {
+      if (d.resultat) continue;
+      const e = evaluerDefi(d, donnees, etat.aujourdhui);
+      d.resultat = e.reussi ? 'reussi' : 'rate';
+      if (!simulationActive()) { await TMDB.ecrireEnregistrement('defis', d); planifier(); }
+    }
+    const dernier = termines[termines.length - 1];
+    const precedent = decaler(mois + '-01', -1).slice(0, 7);
+    if (dernier.mois !== precedent || reglage('defiAnnonce') === dernier.mois) return;
+    if (!simulationActive()) await definirReglage('defiAnnonce', dernier.mois);
+    await annoncerResultat(dernier, evaluerDefi(dernier, donnees, etat.aujourdhui));
+  } catch (err) {
+    console.warn('Défi du mois :', err);
+  }
+}
+
 /* ---------- Voyants du tableau de bord ---------- */
 
 const heureSoir = () => Number(reglage('heureSoir')) || 18;
@@ -377,6 +416,32 @@ const ctx = {
     return d;
   },
   get objectifEau() { return Number(reglage('objectifEau')) || 2000; },
+  /** Objectif de cagnotte (Réglages) : { nom, montant, debut } ou null. */
+  get cagnotte() {
+    const montant = Number(reglage('cagnotteMontant'));
+    if (!Number.isFinite(montant) || montant <= 0) return null;
+    return { nom: reglage('cagnotteNom') || '', montant, debut: reglage('cagnotteDebut') || '2000-01-01' };
+  },
+  ouvrirReglages: () => ouvrirLesReglages(),
+  /** Défi du mois `mois` (AAAA-MM) et son état au jour `jusqua`, ou null. */
+  async defi(mois, jusqua) {
+    const d = await TMDB.lire('defis', mois);
+    return d ? { defi: d, etat: evaluerDefi(d, await donneesDefi(), jusqua) } : null;
+  },
+  tentations: {
+    liste: async () => { await viderSaisieEnAttente(); return TMDB.tout('tentations'); },
+    async ajouter({ gagnant, quoi, montant_chf }) {
+      if (simulationActive()) { afficherMessage('Simulation : rien n’est enregistré'); return; }
+      const id = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+      await TMDB.ecrireEnregistrement('tentations', { id, date: etat.date, gagnant, quoi: quoi ?? null, montant_chf: montant_chf ?? null });
+      planifier();
+    },
+    async supprimer(id) {
+      if (simulationActive()) return;
+      await TMDB.supprimerEnregistrement('tentations', id);
+      planifier();
+    },
+  },
   async totaux() {
     await viderSaisieEnAttente();
     return calculerTotaux(etat.date, ctx.objectifEau);
@@ -564,6 +629,14 @@ function ongletSelonHeure() {
 
 /* ---------- En-tête ---------- */
 
+function ouvrirLesReglages() {
+  return ouvrirReglages({
+    synchroComplete, categories,
+    reglagesModifies: () => reglagesModifies(),
+    aujourdhui: etat.aujourdhui,
+  });
+}
+
 const TEXTES_SYNCHRO = {
   inconnu: '…',
   ok: 'Synchro OK',
@@ -606,10 +679,7 @@ function construireEntete() {
     if (j != null) { changerOnglet(ONGLETS[j].id); $('onglet-' + ONGLETS[j].id).focus(); }
   });
 
-  const reglagesComplets = () => ouvrirReglages({
-    synchroComplete, categories,
-    reglagesModifies: () => reglagesModifies(),
-  });
+  const reglagesComplets = () => ouvrirLesReglages();
   $('btn-reglages').addEventListener('click', reglagesComplets);
   $('btn-sync').addEventListener('click', reglagesComplets);
   $('btn-historique').append(icone('historique'));
@@ -699,6 +769,7 @@ async function apresSynchro(resultat) {
     redessiner = true;
   }
   if (resultat.marchesModifiees && etat.onglet === 'journee') redessiner = true;
+  if ((resultat.tentationsModifiees || resultat.defisModifies) && etat.onglet === 'whatsup') redessiner = true;
   if (resultat.penseesModifiees && etat.onglet === 'matin') redessiner = true;
   if (resultat.reglagesModifies) redessiner = true;
   if (redessiner) rendre();
@@ -786,7 +857,7 @@ async function demarrer() {
   premiereSynchro.finally(() => { meteoAutomatique(); completerHistorique(); });
   // Ouverture par un partage ou un raccourci : pas de pensée en plein écran (elle viendra à la prochaine ouverture).
   if (!ouvertParPartage && !raccourci) {
-    Promise.race([premiereSynchro, new Promise((r) => setTimeout(r, 3000))]).then(penseeDuJour).then(bilanDuDimanche);
+    Promise.race([premiereSynchro, new Promise((r) => setTimeout(r, 3000))]).then(penseeDuJour).then(bilanDuDimanche).then(resultatsDefis);
   }
   // Voyants et passage de 18 h (ou de l'heure de bascule) pendant que l'app reste ouverte.
   // Le relevé de 8 h (ou 16 h) arrive aussi si l'onglet est déjà ouvert quand l'heure passe.
@@ -808,8 +879,8 @@ async function demarrer() {
       synchroComplete().finally(completerHistorique);
       meteoAutomatique();
       majVoyants();
-      if (nouveauJour || reglage('penseeAfficheeLe') !== etat.aujourdhui) penseeDuJour().then(bilanDuDimanche);
-      else bilanDuDimanche();
+      if (nouveauJour || reglage('penseeAfficheeLe') !== etat.aujourdhui) penseeDuJour().then(bilanDuDimanche).then(resultatsDefis);
+      else bilanDuDimanche().then(resultatsDefis);
     }
   });
   window.addEventListener('pagehide', () => { viderSaisieEnAttente(); });
