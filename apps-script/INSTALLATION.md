@@ -252,6 +252,13 @@ Message « Netatmo refuse la connexion (invalid_grant) » : le refresh token n'e
 régénéré un token sur dev.netatmo.com). Refais l'étape 1.5 (Generate Token) et remplace `NETATMO_REFRESH_TOKEN`
 dans les Propriétés du script. Pas besoin de nouveau déploiement.
 
+## Mise à jour de la version 5, partie B (médailles et livre de bord)
+
+Pas de nouvelle autorisation : recopie le nouveau `Code.gs` (Ctrl+A puis Suppr avant de coller), enregistre, puis
+**Déployer → Gérer les déploiements → crayon → Nouvelle version → Déployer**.
+L'onglet **Medailles** (id, date) se crée tout seul à la première synchronisation. Le livre de bord est fabriqué
+sur le téléphone : rien à faire côté Apps Script.
+
 ## En cas de problème
 
 | Message dans l'app | Que faire |

@@ -97,9 +97,26 @@ function echapper(texte) {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-function paragraphe(texte, style) {
-  const pPr = style ? `<w:pPr><w:pStyle w:val="${style}"/></w:pPr>` : '';
+function paragraphe(texte, style, centre = false) {
+  const pPr = style || centre ? `<w:pPr>${style ? `<w:pStyle w:val="${style}"/>` : ''}${centre ? '<w:jc w:val="center"/>' : ''}</w:pPr>` : '';
   return `<w:p>${pPr}<w:r><w:t xml:space="preserve">${echapper(texte)}</w:t></w:r></w:p>`;
+}
+
+const SAUT_DE_PAGE = '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';
+
+/** Tableau « garage » : en-tête sombre à texte crème, filets laiton. */
+function tableau(entete, lignes) {
+  const n = Math.max(entete?.length || 0, ...lignes.map((l) => l.length));
+  const largeur = Math.floor(9638 / n);
+  const cellule = (texte, tete) => `<w:tc><w:tcPr><w:tcW w:w="${largeur}" w:type="dxa"/>${tete ? '<w:shd w:val="clear" w:color="auto" w:fill="221C16"/>' : ''}</w:tcPr>`
+    + `<w:p><w:pPr><w:spacing w:after="40"/></w:pPr><w:r>${tete ? '<w:rPr><w:b/><w:color w:val="EFE6D2"/></w:rPr>' : ''}<w:t xml:space="preserve">${echapper(texte ?? '')}</w:t></w:r></w:p></w:tc>`;
+  const ligne = (cells, tete) => `<w:tr>${Array.from({ length: n }, (_, i) => cellule(cells[i], tete)).join('')}</w:tr>`;
+  const bord = (nom) => `<w:${nom} w:val="single" w:sz="4" w:space="0" w:color="C9A15B"/>`;
+  return `<w:tbl><w:tblPr><w:tblW w:w="5000" w:type="pct"/><w:tblBorders>${['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(bord).join('')}</w:tblBorders>`
+    + `<w:tblCellMar><w:left w:w="100" w:type="dxa"/><w:right w:w="100" w:type="dxa"/></w:tblCellMar></w:tblPr>`
+    + `<w:tblGrid>${Array.from({ length: n }, () => `<w:gridCol w:w="${largeur}"/>`).join('')}</w:tblGrid>`
+    + (entete ? ligne(entete, true) : '') + lignes.map((l) => ligne(l, false)).join('') + '</w:tbl>'
+    + '<w:p><w:pPr><w:spacing w:after="60"/></w:pPr></w:p>';
 }
 
 const STYLES = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -109,12 +126,15 @@ const STYLES = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style>
 <w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:after="240"/></w:pPr><w:rPr><w:b/><w:color w:val="8C6B34"/><w:sz w:val="40"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:pPr><w:keepNext/><w:spacing w:before="360" w:after="60"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:color w:val="8C6B34"/><w:sz w:val="28"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:pPr><w:keepNext/><w:spacing w:before="200" w:after="40"/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:b/><w:color w:val="2A2118"/><w:sz w:val="24"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Couverture"><w:name w:val="Couverture"/><w:basedOn w:val="Normal"/><w:pPr><w:jc w:val="center"/><w:spacing w:before="2400" w:after="120"/></w:pPr><w:rPr><w:rFonts w:ascii="Bebas Neue" w:hAnsi="Bebas Neue"/><w:b/><w:caps/><w:spacing w:val="40"/><w:color w:val="8C6B34"/><w:sz w:val="72"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Annee"><w:name w:val="Annee"/><w:basedOn w:val="Normal"/><w:pPr><w:jc w:val="center"/><w:spacing w:after="480"/></w:pPr><w:rPr><w:rFonts w:ascii="Bebas Neue" w:hAnsi="Bebas Neue"/><w:b/><w:color w:val="B23A2A"/><w:sz w:val="120"/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Meta"><w:name w:val="Meta"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:after="160"/></w:pPr><w:rPr><w:i/><w:color w:val="6B5A44"/><w:sz w:val="20"/></w:rPr></w:style>
 </w:styles>`;
 
 /**
  * Crée un .docx.
- * @param {{ type: 'titre'|'titre1'|'meta'|'texte', texte: string }[]} blocs
+ * @param {{ type: 'titre'|'titre1'|'titre2'|'meta'|'texte'|'couverture'|'annee'|'saut'|'tableau', texte?: string, centre?: boolean, entete?: string[], lignes?: string[][] }[]} blocs
  *   « texte » peut contenir des retours à la ligne : chaque ligne devient un paragraphe.
  * @returns {Blob}
  */
@@ -123,7 +143,13 @@ export function creerDocx(blocs) {
   for (const b of blocs) {
     if (b.type === 'titre') corps.push(paragraphe(b.texte, 'Title'));
     else if (b.type === 'titre1') corps.push(paragraphe(b.texte, 'Heading1'));
-    else if (b.type === 'meta') corps.push(paragraphe(b.texte, 'Meta'));
+    else if (b.type === 'titre2') corps.push(paragraphe(b.texte, 'Heading2'));
+    else if (b.type === 'couverture') corps.push(paragraphe(b.texte, 'Couverture'));
+    else if (b.type === 'annee') corps.push(paragraphe(b.texte, 'Annee'));
+    else if (b.type === 'saut') corps.push(SAUT_DE_PAGE);
+    else if (b.type === 'tableau') corps.push(tableau(b.entete, b.lignes || []));
+    else if (b.type === 'meta') corps.push(paragraphe(b.texte, 'Meta', b.centre));
+    else if (b.centre) corps.push(paragraphe(b.texte, null, true));
     else for (const ligne of String(b.texte).split(/\r?\n/)) corps.push(paragraphe(ligne));
   }
   const document = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>

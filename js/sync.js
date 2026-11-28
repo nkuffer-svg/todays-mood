@@ -237,7 +237,7 @@ async function envoyer() {
 
   // Tentations et défis (version 4 B) : ajouts / modifications et suppressions.
   const entreesEnreg = file.filter((e) => e.type === 'enreg');
-  for (const magasin of ['tentations', 'defis', 'bois']) {
+  for (const magasin of ['tentations', 'defis', 'bois', 'medailles']) {
     const entrees = entreesEnreg.filter((e) => e.magasin === magasin);
     if (!entrees.length) continue;
     const ecrits = [];
@@ -293,6 +293,7 @@ async function recevoir(resultat) {
   if (Array.isArray(rep.bois) && await TMDB.fusionnerEnregistrements('bois', rep.bois)) {
     resultat.boisModifie = true;
   }
+  if (Array.isArray(rep.medailles)) await TMDB.fusionnerEnregistrements('medailles', rep.medailles);
   if (Array.isArray(rep.pensees) && await TMDB.fusionnerPensees(rep.pensees)) {
     resultat.penseesModifiees = true;
   }

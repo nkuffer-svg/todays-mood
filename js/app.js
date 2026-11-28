@@ -12,6 +12,9 @@ import { evaluerDefi } from './defis.js';
 import { annoncerResultat } from './carte-defi.js';
 import { carteMaison } from './maison.js';
 import { signalerStockVide } from './poele.js';
+import { calculerMedailles } from './medailles.js';
+import { celebrerMedaille, ouvrirVitrine } from './ecran-medailles.js';
+import { ouvrirLivre, proposerLivre } from './livre.js';
 import { enregistrerPhoto, supprimerPhoto, photoAffichable } from './photos.js';
 import { calculerTotaux } from './stats.js';
 import { calculerSeries } from './series.js';
@@ -24,7 +27,7 @@ import { attendreAucunEcran } from './ecran.js';
 import { afficherPensee, ouvrirFavoris } from './ecran-pensee.js';
 import { ouvrirHistorique } from './ecran-historique.js';
 
-export const VERSION = 'v5a-1';
+export const VERSION = 'v5b-1';
 
 const etat = {
   aujourdhui: null, // jour courant selon l'heure de bascule
@@ -70,6 +73,7 @@ function sauver(date, modifs) {
   });
   planifier();
   chaine.then(() => majVoyants());
+  planifierMedailles();
   return chaine;
 }
 
@@ -409,6 +413,7 @@ async function bilanDuDimanche() {
     objectifEau: ctx.objectifEau,
     hiver: ctx.hiver,
     reports: ctx.reportsSaisons,
+    ouvrirVitrine: afficherVitrine,
   });
 }
 
@@ -447,6 +452,94 @@ async function resultatsDefis() {
   } catch (err) {
     console.warn('Défi du mois :', err);
   }
+}
+
+/* ---------- Médailles du garage ---------- */
+
+/** Toutes les données utiles aux médailles et au livre de bord (jamais de contenu Perso n'en sort). */
+async function donneesCompletes() {
+  await viderSaisieEnAttente();
+  const [fiches, marches, tentations, defis, medailles] = await Promise.all(
+    ['fiches', 'marches', 'tentations', 'defis', 'medailles'].map((m) => TMDB.tout(m)));
+  return {
+    fiches, marches, tentations, defis, medaillesObtenues: medailles,
+    cagnotte: ctx.cagnotte, reports: ctx.reportsSaisons, objectifEau: ctx.objectifEau, hiver: ctx.hiver,
+  };
+}
+
+/* Outils de test : médailles « forcées », seulement pour la session (jamais enregistrées). */
+const CLE_FORCEES = 'todaysMoodMedaillesForcees';
+function medaillesForcees() {
+  try { return JSON.parse(sessionStorage.getItem(CLE_FORCEES) || '[]'); } catch { return []; }
+}
+
+async function medaillesObtenues() {
+  const m = new Map((await TMDB.tout('medailles')).map((x) => [x.id, { date: x.date }]));
+  for (const id of medaillesForcees()) if (!m.has(id)) m.set(id, { date: etat.aujourdhui, test: true });
+  return m;
+}
+
+export async function afficherVitrine() {
+  const d = await donneesCompletes();
+  ouvrirVitrine(calculerMedailles(d), await medaillesObtenues());
+}
+
+/** Outils de test : fait tomber une médaille (animation et vitrine), le temps de la session seulement. */
+export async function forcerMedaille(id) {
+  const m = calculerMedailles(await donneesCompletes()).find((x) => x.id === id);
+  if (!m) return;
+  try { sessionStorage.setItem(CLE_FORCEES, JSON.stringify([...new Set([...medaillesForcees(), id])])); } catch { /* sans importance */ }
+  await attendreAucunEcran();
+  await celebrerMedaille(m, etat.aujourdhui, { test: true });
+}
+
+let verificationMedailles = null;
+let minuteurMedailles = null;
+function planifierMedailles() {
+  clearTimeout(minuteurMedailles);
+  minuteurMedailles = setTimeout(() => verifierMedailles(), 2500);
+}
+
+/**
+ * Cherche les médailles nouvellement gagnées : elles sont enregistrées (avec leur date) puis fêtées une par une.
+ * La toute première fois sur ce téléphone, celles déjà gagnées avant (rétroactivement) sont enregistrées sans fête.
+ */
+function verifierMedailles() {
+  if (simulationActive()) return Promise.resolve();
+  if (verificationMedailles) return verificationMedailles;
+  verificationMedailles = (async () => {
+    const d = await donneesCompletes();
+    const deja = new Set(d.medaillesObtenues.map((m) => m.id));
+    const nouvelles = calculerMedailles(d).filter((m) => m.date && !deja.has(m.id));
+    const premiereFois = !reglage('medaillesInit');
+    if (premiereFois) await definirReglage('medaillesInit', true);
+    if (!nouvelles.length) return;
+    for (const m of nouvelles) await TMDB.ecrireEnregistrement('medailles', { id: m.id, date: m.date });
+    planifier();
+    if (premiereFois) {
+      afficherMessage(`${nouvelles.length} médaille${nouvelles.length > 1 ? 's' : ''} déjà gagnée${nouvelles.length > 1 ? 's' : ''} : va voir la vitrine (Réglages)`);
+      return;
+    }
+    for (const m of nouvelles) {
+      await attendreAucunEcran();
+      await celebrerMedaille(m, m.date);
+    }
+  })().catch((err) => console.warn('Médailles :', err)).finally(() => { verificationMedailles = null; });
+  return verificationMedailles;
+}
+
+/* ---------- Livre de bord annuel ---------- */
+
+/** Le 31 décembre, à la première ouverture : « Ton livre de bord de l'année est prêt ». */
+let livrePropose = false;
+async function livreDuJour() {
+  if (!etat.aujourdhui.endsWith('-12-31')) return;
+  const annee = etat.aujourdhui.slice(0, 4);
+  if (livrePropose || (!simulationActive() && reglage('livreProposeLe') === annee)) return;
+  livrePropose = true;
+  if (!simulationActive()) await definirReglage('livreProposeLe', annee);
+  await attendreAucunEcran();
+  proposerLivre({ annee, donnees: donneesCompletes });
 }
 
 /* ---------- Voyants du tableau de bord ---------- */
@@ -549,6 +642,7 @@ const ctx = {
       const id = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
       await TMDB.ecrireEnregistrement('tentations', { id, date: etat.date, gagnant, quoi: quoi ?? null, montant_chf: montant_chf ?? null });
       planifier();
+      planifierMedailles();
     },
     async supprimer(id) {
       if (simulationActive()) return;
@@ -583,6 +677,7 @@ const ctx = {
       const id = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
       await TMDB.ajouterMarche({ id, date: etat.date, km });
       planifier();
+      planifierMedailles();
     },
     async supprimer(id) {
       await TMDB.supprimerMarche(id);
@@ -772,6 +867,8 @@ function ouvrirLesReglages() {
     synchroComplete, categories,
     reglagesModifies: () => reglagesModifies(),
     aujourdhui: etat.aujourdhui,
+    ouvrirVitrine: afficherVitrine,
+    forcerMedaille,
   });
 }
 
@@ -830,7 +927,9 @@ function construireEntete() {
       ouvrirFavoris: () => ctx.pensee.ouvrirFavoris(),
       ouvrirBilan: () => ouvrirBilan({
         semaine: etat.aujourdhui, aujourdhui: etat.aujourdhui, objectifEau: ctx.objectifEau, hiver: ctx.hiver, reports: ctx.reportsSaisons,
+        ouvrirVitrine: afficherVitrine,
       }),
+      ouvrirLivre: () => ouvrirLivre({ annee: etat.aujourdhui.slice(0, 4), donnees: donneesCompletes }),
     });
   });
 
@@ -930,6 +1029,7 @@ function verifierChangementDeJour() {
 }
 
 export function reglagesModifies() {
+  planifierMedailles();
   if (!verifierChangementDeJour()) rendre();
 }
 
@@ -995,7 +1095,7 @@ async function demarrer() {
   premiereSynchro.finally(() => { meteoAutomatique(); netatmoAutomatique(); completerHistorique().then(completerNetatmo); });
   // Ouverture par un partage ou un raccourci : pas de pensée en plein écran (elle viendra à la prochaine ouverture).
   if (!ouvertParPartage && !raccourci) {
-    Promise.race([premiereSynchro, new Promise((r) => setTimeout(r, 3000))]).then(penseeDuJour).then(bilanDuDimanche).then(resultatsDefis);
+    Promise.race([premiereSynchro, new Promise((r) => setTimeout(r, 3000))]).then(penseeDuJour).then(bilanDuDimanche).then(resultatsDefis).then(verifierMedailles).then(livreDuJour);
   }
   // Voyants et passage de 18 h (ou de l'heure de bascule) pendant que l'app reste ouverte.
   // Le relevé de 8 h (ou 16 h) arrive aussi si l'onglet est déjà ouvert quand l'heure passe.
@@ -1017,8 +1117,8 @@ async function demarrer() {
       synchroComplete().finally(() => { netatmoAutomatique(); completerHistorique().then(completerNetatmo); });
       meteoAutomatique();
       majVoyants();
-      if (nouveauJour || reglage('penseeAfficheeLe') !== etat.aujourdhui) penseeDuJour().then(bilanDuDimanche).then(resultatsDefis);
-      else bilanDuDimanche().then(resultatsDefis);
+      if (nouveauJour || reglage('penseeAfficheeLe') !== etat.aujourdhui) penseeDuJour().then(bilanDuDimanche).then(resultatsDefis).then(verifierMedailles).then(livreDuJour);
+      else bilanDuDimanche().then(resultatsDefis).then(verifierMedailles).then(livreDuJour);
     }
   });
   window.addEventListener('pagehide', () => { viderSaisieEnAttente(); });

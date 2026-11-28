@@ -196,6 +196,17 @@ function blocDefi(defi, donnees, jusqua) {
   return section(`Défi de ${nomMois(defi.mois).split(' ')[0]}`, plaqueDefi(defi, evaluerDefi(defi, donnees, jusqua)));
 }
 
+/* ---------- Médailles ---------- */
+
+function blocMedailles(medailles, lundi, dimanche, ouvrirVitrine) {
+  if (!ouvrirVitrine) return null;
+  const semaine = medailles.filter((m) => m.date >= lundi && m.date <= dimanche).length;
+  return section('Médailles du garage',
+    el('p', { class: 'bilan-revolut' }, el('strong', {}, String(medailles.length)), ` médaille${medailles.length > 1 ? 's' : ''} dans la vitrine`,
+      semaine ? ` · ${semaine} gagnée${semaine > 1 ? 's' : ''} cette semaine` : ''),
+    el('div', { class: 'rangee-boutons centre' }, el('button', { type: 'button', class: 'bouton petit', onClick: () => ouvrirVitrine() }, 'Voir la vitrine')));
+}
+
 /* ---------- Écran ---------- */
 
 /**
@@ -204,7 +215,7 @@ function blocDefi(defi, donnees, jusqua) {
  * @param {string} o.aujourdhui
  * @param {number} o.objectifEau
  */
-export async function ouvrirBilan({ semaine, aujourdhui, objectifEau }) {
+export async function ouvrirBilan({ semaine, aujourdhui, objectifEau, ouvrirVitrine }) {
   const { corps } = ouvrirEcran({ titre: 'Bilan du dimanche', classe: 'ecran-bilan' });
   const titreSemaine = el('p', { class: 'bilan-semaine' });
   const precedente = el('button', { type: 'button', class: 'bouton-rond', 'aria-label': 'Semaine précédente' }, icone('gauche'));
@@ -217,7 +228,7 @@ export async function ouvrirBilan({ semaine, aujourdhui, objectifEau }) {
     const jours = Array.from({ length: 7 }, (_, i) => decaler(lundi, i));
     titreSemaine.textContent = `Semaine du ${fmtJour.format(depuisTexte(lundi))} au ${fmtJourAn.format(depuisTexte(dimanche))}`;
     suivante.disabled = decaler(lundi, 7) > aujourdhui;
-    const [fiches, marches, tentations] = await Promise.all([TMDB.tout('fiches'), TMDB.tout('marches'), TMDB.tout('tentations')]);
+    const [fiches, marches, tentations, medailles] = await Promise.all([TMDB.tout('fiches'), TMDB.tout('marches'), TMDB.tout('tentations'), TMDB.tout('medailles')]);
     const jusqua = dimanche < aujourdhui ? dimanche : aujourdhui;
     const defi = await TMDB.lire('defis', jusqua.slice(0, 7));
     const parDate = new Map(fiches.map((f) => [f.date, f]));
@@ -231,7 +242,8 @@ export async function ouvrirBilan({ semaine, aujourdhui, objectifEau }) {
       blocSeries(fiches, marches, finSeries, objectifEau),
       blocWhatsUp(jours, parDate),
       blocBoss(tentations, lundi, dimanche),
-      blocDefi(defi, { fiches, marches, tentations, objectifEau }, jusqua) || '');
+      blocDefi(defi, { fiches, marches, tentations, objectifEau }, jusqua) || '',
+      blocMedailles(medailles, lundi, dimanche, ouvrirVitrine) || '');
   }
   precedente.addEventListener('click', () => { lundi = decaler(lundi, -7); dessiner(); });
   suivante.addEventListener('click', () => { lundi = decaler(lundi, 7); dessiner(); });

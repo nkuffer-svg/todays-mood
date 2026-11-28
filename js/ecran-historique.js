@@ -510,7 +510,7 @@ function vueMemos({ fiches, ouvrir, etatVue, redessiner }) {
  * @param {(date:string, onglet?:string)=>void} o.allerA
  * @param {()=>void} o.ouvrirFavoris
  */
-export async function ouvrirHistorique({ aujourdhui, categories, allerA, ouvrirFavoris, ouvrirBilan }) {
+export async function ouvrirHistorique({ aujourdhui, categories, allerA, ouvrirFavoris, ouvrirBilan, ouvrirLivre }) {
   let desabonner = null;
   const { corps, fermer } = ouvrirEcran({ titre: 'Historique', surFermeture: () => desabonner?.() });
   const etatVue = {
@@ -562,6 +562,7 @@ export async function ouvrirHistorique({ aujourdhui, categories, allerA, ouvrirF
     zone,
     el('div', { class: 'rangee-boutons' },
       el('button', { type: 'button', class: 'bouton petit discret', onClick: () => ouvrirBilan() }, icone('calendrier', 'petite'), ' Bilan du dimanche'),
+      ouvrirLivre ? el('button', { type: 'button', class: 'bouton petit discret', onClick: () => ouvrirLivre() }, icone('livre', 'petite'), ' Livre de bord') : null,
       el('button', { type: 'button', class: 'bouton petit discret', onClick: () => ouvrirFavoris() }, icone('etoile', 'petite'), ' Mes pensées favorites')));
   await redessiner();
 }

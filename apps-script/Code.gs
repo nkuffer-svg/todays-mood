@@ -1,5 +1,5 @@
 /**
- * Today's Mood — Web App Apps Script (version 5, partie A).
+ * Today's Mood — Web App Apps Script (version 5, partie B).
  *
  * À coller dans l'éditeur Apps Script du classeur « Today's Mood – données »
  * (Extensions → Apps Script). Voir apps-script/INSTALLATION.md.
@@ -8,7 +8,7 @@
  * et rangé dans les Propriétés du script.
  */
 
-const VERSION = 'v5a-3';
+const VERSION = 'v5b-1';
 
 const COLONNES_FICHES = [
   'date', 'modifie_le', 'pensee_id',
@@ -59,6 +59,8 @@ const ONGLETS = {
   Defis: ['mois', 'type', 'compteur', 'cible', 'libelle', 'resultat'],
   // Version 5, partie A
   Bois: ['date', 'steres'],
+  // Version 5, partie B
+  Medailles: ['id', 'date'],
 };
 
 /**
@@ -69,6 +71,7 @@ const ENREGISTREMENTS = {
   tentations: { onglet: 'Tentations', cle: 'id', texte: ['id', 'date', 'gagnant', 'quoi'], nombres: ['montant_chf'] },
   defis: { onglet: 'Defis', cle: 'mois', texte: ['mois', 'type', 'compteur', 'libelle', 'resultat'], nombres: ['cible'] },
   bois: { onglet: 'Bois', cle: 'date', texte: ['date'], nombres: ['steres'] },
+  medailles: { onglet: 'Medailles', cle: 'id', texte: ['id', 'date'], nombres: [] },
 };
 
 const NOM_DOSSIER_PHOTOS = "Today's Mood – photos";
@@ -258,7 +261,7 @@ function traiter_(requete) {
     }
     case 'lire':
       return { ok: true, fiches: lireFiches_(ss), pastilles: lirePastilles_(ss), marches: lireMarches_(ss), pensees: lirePensees_(ss), reglages: lireReglages_(ss), sauvegarde: derniereSauvegarde_(),
-        tentations: lireLignes_(ss, 'tentations'), defis: lireLignes_(ss, 'defis'), bois: lireLignes_(ss, 'bois') };
+        tentations: lireLignes_(ss, 'tentations'), defis: lireLignes_(ss, 'defis'), bois: lireLignes_(ss, 'bois'), medailles: lireLignes_(ss, 'medailles') };
     case 'envoyerPhoto':
       return envoyerPhoto_(requete);
     case 'netatmo':

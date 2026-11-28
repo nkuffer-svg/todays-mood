@@ -13,12 +13,13 @@
    - tentations : une tentation de Who's the Boss ? (clé : id), plusieurs par jour possibles
    - defis     : un défi du mois (clé : mois AAAA-MM)
    - bois      : une livraison de bois (clé : date), en stères
+   - medailles : une médaille obtenue (clé : id), avec sa date d'obtention
    - pensees   : état d'une citation (clé : id) : favori, dernière apparition */
 (function (global) {
   'use strict';
 
   const NOM_BASE = 'todays-mood';
-  const VERSION = 6;
+  const VERSION = 7;
   const MAX_PARTAGES = 5;
   let ouverture = null;
 
@@ -42,6 +43,7 @@
         creer('tentations', { keyPath: 'id' }); // version 4 B : Who's the Boss ?
         creer('defis', { keyPath: 'mois' });     // version 4 B : défi du mois
         creer('bois', { keyPath: 'date' });      // version 5 A : livraisons de bois
+        creer('medailles', { keyPath: 'id' });   // version 5 B : médailles obtenues
       };
       req.onsuccess = () => {
         const db = req.result;
@@ -317,7 +319,7 @@
 
   /* ---------- Enregistrements à clé (tentations, défis) : même principe que les marches ---------- */
 
-  const CLES = { tentations: 'id', defis: 'mois', bois: 'date' };
+  const CLES = { tentations: 'id', defis: 'mois', bois: 'date', medailles: 'id' };
 
   /** Ajoute ou modifie un enregistrement et le place dans la file (une version par modification). */
   async function ecrireEnregistrement(magasin, objet) {

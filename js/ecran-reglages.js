@@ -4,12 +4,13 @@ import { LIEU_DEFAUT, seuilsBise } from './meteo.js';
 import { empreinteEnregistree, enregistrerEmpreinte, disponibilite } from './verrou.js';
 import { bornesSaison, libelleSaison } from './whatsup.js';
 import { carteCagnotte, carteDefi, carteNetatmo } from './reglages-v4.js';
+import { calculerMedailles } from './medailles.js';
 import { jourCourant, decaler, depuisTexte, maintenant, simulationActive, demarrerSimulation, arreterSimulation } from './jour.js';
 
 const fmtDateCourte = new Intl.DateTimeFormat('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' });
 
 /** Outils de test : simuler une date et une heure (bilan du dimanche, « il y a un an », séries, voyants). */
-function carteOutilsTest() {
+function carteOutilsTest({ forcerMedaille } = {}) {
   const p2 = (n) => String(n).padStart(2, '0');
   const d = maintenant();
   const champ = el('input', {
@@ -31,7 +32,20 @@ function carteOutilsTest() {
     champ,
     el('div', { class: 'rangee-boutons' }, demarrer,
       actif ? el('button', { type: 'button', class: 'bouton discret', onClick: () => { arreterSimulation(); location.reload(); } }, 'Arrêter la simulation') : null),
-    message);
+    message,
+    forcerMedaille ? blocForcerMedaille(forcerMedaille) : null);
+}
+
+/** Outils de test : faire tomber une médaille (animation + vitrine, le temps de la session, jamais enregistrée). */
+function blocForcerMedaille(forcerMedaille) {
+  const VIDE = { fiches: [], marches: [], tentations: [], defis: [], reports: [], cagnotte: null, objectifEau: 2000, hiver: { debut: '10-01', fin: '04-30' } };
+  const choix = el('select', { id: 'test-medaille', class: 'champ' },
+    ...calculerMedailles(VIDE).filter((m) => !m.secrete).map((m) => el('option', { value: m.id }, m.nom)));
+  return el('div', {},
+    el('label', { class: 'sous-titre-champ', for: 'test-medaille' }, 'Forcer une médaille'),
+    choix,
+    el('p', { class: 'discret' }, 'Pour voir l’animation et la vitrine. La médaille forcée n’est jamais enregistrée : elle disparaît en fermant l’app. (Les médailles secrètes ne peuvent pas être forcées : surprise !)'),
+    el('div', { class: 'rangee-boutons' }, el('button', { type: 'button', class: 'bouton discret', onClick: () => forcerMedaille(choix.value) }, 'Faire tomber cette médaille')));
 }
 
 /** Carte « Feux et barbecues d'avant l'app » : un report par saison, stocké dans l'onglet Reglages. */
@@ -196,7 +210,7 @@ function carteCategories(categories) {
     liste, message, formulaire);
 }
 
-export function ouvrirReglages({ synchroComplete, reglagesModifies, categories, aujourdhui }) {
+export function ouvrirReglages({ synchroComplete, reglagesModifies, categories, aujourdhui, ouvrirVitrine, forcerMedaille }) {
   let desabonner = null;
   let enregistrerMaintenant = null;
   const { corps } = ouvrirEcran({
@@ -481,7 +495,10 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies, categories, 
     carteReports(reglagesModifies),
     carteDefi({ reglagesModifies, aujourdhui: aujourdhui || jourCourant(reglage('bascule')) }),
     carteCagnotte({ reglagesModifies, aujourdhui: aujourdhui || jourCourant(reglage('bascule')) }),
-    carteOutilsTest(),
+    carte('Médailles du garage',
+      el('p', { class: 'discret' }, 'Médailles débloquées et progression des autres, calculées depuis tes données.'),
+      el('div', { class: 'rangee-boutons' }, el('button', { type: 'button', class: 'bouton', onClick: () => ouvrirVitrine?.() }, 'Ouvrir la vitrine'))),
+    carteOutilsTest({ forcerMedaille }),
     carte('Pensée du jour',
       el('label', { class: 'sous-titre-champ', for: 'reglage-duree-pensee' }, 'Durée d’affichage à l’ouverture'),
       choixDuree,
