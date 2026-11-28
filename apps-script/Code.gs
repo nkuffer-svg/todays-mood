@@ -8,7 +8,7 @@
  * et rangé dans les Propriétés du script.
  */
 
-const VERSION = 'v5a-2';
+const VERSION = 'v5a-3';
 
 const COLONNES_FICHES = [
   'date', 'modifie_le', 'pensee_id',
@@ -824,15 +824,27 @@ function jetonNetatmo_(forcer) {
 
 function appelNetatmo_(chemin, params, dejaRenouvele) {
   const q = Object.keys(params).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
-  const rep = UrlFetchApp.fetch(NETATMO_API + '/api/' + chemin + '?' + q, {
-    headers: { Authorization: 'Bearer ' + jetonNetatmo_(dejaRenouvele) }, muteHttpExceptions: true,
-  });
+  let rep;
   let json = {};
-  try { json = JSON.parse(rep.getContentText() || '{}'); } catch (e) { /* réponse illisible */ }
-  if ((rep.getResponseCode() === 403 || rep.getResponseCode() === 401) && !dejaRenouvele) return appelNetatmo_(chemin, params, true);
+  // Netatmo a parfois des pannes passagères (« Service temporarily unavailable », erreurs 5xx) :
+  // jusqu'à 4 essais, en attendant 2 s, 5 s puis 10 s entre deux.
+  const attentes = [2000, 5000, 10000];
+  for (let essai = 0; ; essai++) {
+    rep = UrlFetchApp.fetch(NETATMO_API + '/api/' + chemin + '?' + q, {
+      headers: { Authorization: 'Bearer ' + jetonNetatmo_(dejaRenouvele) }, muteHttpExceptions: true,
+    });
+    json = {};
+    try { json = JSON.parse(rep.getContentText() || '{}'); } catch (e) { /* réponse illisible */ }
+    const message = json.error && json.error.message ? String(json.error.message) : '';
+    const passager = rep.getResponseCode() >= 500 || /temporar|unavailable|timeout/i.test(message);
+    if (!passager || essai >= attentes.length) break;
+    Utilities.sleep(attentes[essai]);
+  }
+  if ((rep.getResponseCode() === 403 || rep.getResponseCode() === 401) && !dejaRenouvele
+    && !/temporar|unavailable/i.test(String(json.error && json.error.message))) return appelNetatmo_(chemin, params, true);
   if (rep.getResponseCode() !== 200 || json.error) {
     const msg = json.error && json.error.message ? json.error.message : 'erreur ' + rep.getResponseCode();
-    throw erreur_('Netatmo ne répond pas (' + msg + ').', 'netatmo');
+    throw erreur_('Netatmo ne répond pas (' + msg + ', code ' + rep.getResponseCode() + '). Réessaie dans quelques minutes.', 'netatmo');
   }
   return json.body;
 }
