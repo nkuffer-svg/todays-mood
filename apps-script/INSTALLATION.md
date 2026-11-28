@@ -242,6 +242,12 @@ Netatmo), rien à faire ici : ils sont détectés automatiquement.
 
 ### Si Netatmo refuse la connexion
 
+Message « Netatmo refuse la connexion (invalid_client) » : c'est le **client ID** ou le **client secret** qui n'est pas
+reconnu (pas le refresh token). Vérifie dans les Propriétés du script que `NETATMO_CLIENT_ID` contient bien le
+*client ID* et `NETATMO_CLIENT_SECRET` le *client secret* (sans les inverser, sans guillemets, en entier), recopiés
+depuis ta page d'app sur dev.netatmo.com. Si tu as cliqué sur « Regenerate » pour le secret, il faut le nouveau.
+
+
 Message « Netatmo refuse la connexion (invalid_grant) » : le refresh token n'est plus valable (par exemple si tu as
 régénéré un token sur dev.netatmo.com). Refais l'étape 1.5 (Generate Token) et remplace `NETATMO_REFRESH_TOKEN`
 dans les Propriétés du script. Pas besoin de nouveau déploiement.

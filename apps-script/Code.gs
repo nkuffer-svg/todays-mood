@@ -8,7 +8,7 @@
  * et rangé dans les Propriétés du script.
  */
 
-const VERSION = 'v5a-1';
+const VERSION = 'v5a-2';
 
 const COLONNES_FICHES = [
   'date', 'modifie_le', 'pensee_id',
@@ -785,9 +785,11 @@ function testerNetatmo() {
 
 function jetonNetatmo_(forcer) {
   const props = PropertiesService.getScriptProperties();
-  const id = props.getProperty('NETATMO_CLIENT_ID');
-  const secret = props.getProperty('NETATMO_CLIENT_SECRET');
-  const refresh = props.getProperty('NETATMO_REFRESH_TOKEN');
+  // Les espaces ou retours à la ligne collés par erreur autour des valeurs sont retirés.
+  const propre = function (nom) { return String(props.getProperty(nom) || '').replace(/\s+/g, ''); };
+  const id = propre('NETATMO_CLIENT_ID');
+  const secret = propre('NETATMO_CLIENT_SECRET');
+  const refresh = propre('NETATMO_REFRESH_TOKEN');
   if (!id || !secret || !refresh) {
     throw erreur_('Netatmo n’est pas encore configuré : ajoute NETATMO_CLIENT_ID, NETATMO_CLIENT_SECRET et NETATMO_REFRESH_TOKEN dans les Propriétés du script.', 'netatmo_config');
   }
@@ -801,7 +803,16 @@ function jetonNetatmo_(forcer) {
   let json = {};
   try { json = JSON.parse(rep.getContentText() || '{}'); } catch (e) { /* réponse illisible */ }
   if (rep.getResponseCode() !== 200 || !json.access_token) {
-    throw erreur_('Netatmo refuse la connexion (' + (json.error || rep.getResponseCode()) + '). Génère un nouveau refresh token sur dev.netatmo.com et recopie-le dans les Propriétés du script.', 'netatmo');
+    const code = json.error || String(rep.getResponseCode());
+    let conseil = 'Réessaie dans quelques minutes.';
+    if (code === 'invalid_client') {
+      conseil = 'Le client ID ou le client secret n’est pas reconnu : recopie-les depuis ta page d’app sur dev.netatmo.com '
+        + '(NETATMO_CLIENT_ID = client ID, NETATMO_CLIENT_SECRET = client secret, sans les inverser) dans les Propriétés du script.';
+    } else if (code === 'invalid_grant') {
+      conseil = 'Le refresh token n’est plus valable : génère-en un nouveau avec le Token generator (scope read_station) '
+        + 'et remplace NETATMO_REFRESH_TOKEN dans les Propriétés du script.';
+    }
+    throw erreur_('Netatmo refuse la connexion (' + code + '). ' + conseil, 'netatmo');
   }
   props.setProperties({
     NETATMO_ACCESS_TOKEN: json.access_token,
