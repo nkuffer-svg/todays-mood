@@ -55,3 +55,35 @@ export function odometre(valeur, { decimales = 0, unite = '', cle, minEntiers = 
   }
   return noeud;
 }
+
+/**
+ * Compteur horaire à rouleaux : « 03 H 12 » (heures sur cases sombres, minutes sur cases crème).
+ * @param {number|null} minutes  durée en minutes (null : « -- H -- » éteint)
+ * @param {object} [o]
+ * @param {string} [o.cle]       identifiant pour animer depuis la valeur précédente
+ */
+export function compteurHoraire(minutes, { cle } = {}) {
+  const vide = minutes == null;
+  const v = vide ? 0 : Math.max(0, Math.round(Number(minutes) || 0));
+  const avant = cle && precedents.has(cle) ? precedents.get(cle) : v;
+  if (cle) precedents.set(cle, v);
+  const deux = (n) => String(n).padStart(2, '0').slice(-2).split('');
+  const cible = [...deux(Math.floor(v / 60)), ...deux(v % 60)];
+  const depart = [...deux(Math.floor(avant / 60)), ...deux(avant % 60)];
+  const rouleaux = cible.map((c, i) => [rouleau(depart[i], i >= 2), c]);
+  const cases = rouleaux.map(([r]) => r.noeud);
+  const libelle = vide ? 'Non saisi' : `${Math.floor(v / 60)} heure${v >= 120 ? 's' : ''} ${v % 60} minute${v % 60 > 1 ? 's' : ''}`;
+  const noeud = el('span', { class: 'odometre compteur-horaire' + (vide ? ' vide' : ''), role: 'img', 'aria-label': libelle },
+    el('span', { class: 'odometre-cases' }, cases[0], cases[1]),
+    el('span', { class: 'odometre-unite' }, 'H'),
+    el('span', { class: 'odometre-cases' }, cases[2], cases[3]));
+  if (avant !== v) {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      for (const [r, c] of rouleaux) {
+        r.bande.classList.add('anime');
+        r.bande.style.transform = `translateY(-${Number(c) * 10}%)`;
+      }
+    }));
+  }
+  return noeud;
+}

@@ -4,6 +4,9 @@
 import { el, svg, icone, carte, segments, clac } from './ui.js';
 import { depuisTexte, decaler } from './jour.js';
 import { plaque } from './series.js';
+import { molette } from './molette.js';
+import { compteurHoraire } from './odometre.js';
+import { formatDuree, formatEcart, statsSemaine } from './durees.js';
 
 const fmt = new Intl.NumberFormat('fr-CH', { maximumFractionDigits: 0 });
 const fmtDate = new Intl.DateTimeFormat('fr-CH', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
@@ -305,6 +308,101 @@ function carteDeplacement(ctx) {
   return carte('Fangio ou Rossi ?', el('div', { class: 'grandes-tuiles' }, ...tuiles), zoneClin);
 }
 
+/* ---------- Le chien ---------- */
+
+/** Ligne de compteur +1 / −1 (comme les boissons), avec aujourd'hui / mois / total. */
+function ligneCompteur(ctx, { champ, nom, nomIcone, mot }) {
+  const valeur = el('span', { class: 'compteur-valeur', 'aria-live': 'polite' });
+  const moins = el('button', { type: 'button', class: 'bouton-rond', 'aria-label': `${nom} : moins un` }, icone('moins'));
+  const plus = el('button', { type: 'button', class: 'bouton-rond', 'aria-label': `${nom} : plus un` }, icone('plus'));
+  const zoneTotaux = el('div');
+  async function maj() {
+    const n = nombre(ctx.fiche[champ]);
+    valeur.textContent = fmt.format(n);
+    moins.disabled = n === 0;
+    const mois = ctx.fiche.date.slice(0, 7);
+    let m = 0;
+    let t = 0;
+    for (const f of await ctx.fiches()) {
+      const x = f.date === ctx.fiche.date ? n : nombre(f[champ]);
+      t += x;
+      if (f.date.startsWith(mois)) m += x;
+    }
+    zoneTotaux.replaceChildren(el('dl', { class: 'totaux' },
+      ...[['Aujourd’hui', n], ['Mois', m], ['Total', t]].map(([l, x]) => el('div', {}, el('dt', {}, l), el('dd', {}, pluriel(x, mot))))));
+  }
+  async function changer(delta) {
+    clac();
+    const n = Math.max(0, nombre(ctx.fiche[champ]) + delta);
+    await ctx.modifier(champ, n === 0 ? null : n);
+    maj();
+  }
+  moins.addEventListener('click', () => changer(-1));
+  plus.addEventListener('click', () => changer(1));
+  maj();
+  return el('div', { class: 'compteur' },
+    el('div', { class: 'compteur-tete' },
+      el('h3', { class: 'compteur-nom' }, nomIcone ? icone(nomIcone, 'icone-nom') : null, nom),
+      el('div', { class: 'compteur-commandes' }, moins, valeur, plus)),
+    zoneTotaux);
+}
+
+function carteChien(ctx) {
+  return carte('Le chien',
+    ligneCompteur(ctx, { champ: 'chien_balades', nom: 'Balade', nomIcone: 'patte', mot: 'balade' }),
+    ligneCompteur(ctx, { champ: 'chien_education', nom: 'Séance d’éducation', mot: 'séance' }));
+}
+
+/* ---------- Temps d'écran ---------- */
+
+const HEURES_ECRAN = [null, ...Array.from({ length: 17 }, (_, i) => i)]; // 0 à 16 h
+const MINUTES_ECRAN = Array.from({ length: 60 }, (_, i) => i);
+
+function carteEcran(ctx) {
+  const total = ctx.fiche.ecran_min ?? null;
+  const zoneCompteur = el('div', { class: 'ecran-compteur' });
+  const zoneStats = el('div');
+
+  async function maj() {
+    const v = ctx.fiche.ecran_min ?? null;
+    zoneCompteur.replaceChildren(compteurHoraire(v, { cle: 'ecran-' + ctx.fiche.date }));
+    const s = statsSemaine(await ctx.fiches(), ctx.fiche.date, 'ecran_min');
+    zoneStats.replaceChildren(el('dl', { class: 'totaux totaux-deux' },
+      el('div', {}, el('dt', {}, 'Par rapport à hier'), el('dd', {}, s.ecart == null ? '—' : formatEcart(s.ecart))),
+      el('div', {}, el('dt', {}, 'Moyenne de la semaine'), el('dd', {}, formatDuree(s.moyenne)))));
+  }
+
+  let heures = null;
+  let minutes = null;
+  const enregistrer = async () => {
+    const h = heures.valeur();
+    const v = h == null ? null : h * 60 + minutes.valeur();
+    await ctx.modifier('ecran_min', v);
+    maj();
+  };
+  heures = molette({
+    valeurs: HEURES_ECRAN, valeur: total == null ? null : Math.min(16, Math.floor(total / 60)), etiquette: 'Heures d’écran',
+    format: (v) => (v == null ? '–' : String(v)), onChange: enregistrer,
+  });
+  minutes = molette({
+    valeurs: MINUTES_ECRAN, valeur: total == null ? 0 : total % 60, etiquette: 'Minutes d’écran',
+    format: (v) => String(v).padStart(2, '0'),
+    onChange: () => {
+      // Des minutes sans heures : on compte 0 h.
+      if (heures.valeur() == null) heures.regler(0);
+      enregistrer();
+    },
+  });
+  maj();
+  return carte('Temps d’écran',
+    zoneCompteur,
+    el('div', { class: 'molettes' },
+      heures.noeud, el('span', { class: 'molette-unite' }, 'h'),
+      minutes.noeud, el('span', { class: 'molette-unite' }, 'min')),
+    el('p', { class: 'discret aide-ecran' }, icone('ecran', 'petite'), ' À reporter depuis Bien-être numérique'),
+    zoneStats);
+}
+
 export function cartesWhatsUp(ctx) {
   return [
     el('h2', { class: 'titre-onglet' }, 'What’s up Today ?'),
@@ -312,6 +410,8 @@ export function cartesWhatsUp(ctx) {
     carteGuitare(ctx),
     carteFeu(ctx),
     carteDeplacement(ctx),
+    carteChien(ctx),
+    carteEcran(ctx),
   ];
 }
 

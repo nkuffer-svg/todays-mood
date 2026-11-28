@@ -89,24 +89,27 @@ Ordre des onglets : **Matin · Journée · Soir · What's up · Perso**.
 |---|---|---|
 | Météo du matin (auto) | relevé de 8 h (Open-Meteo) + pastilles bise et pression, puis petit encadré « La journée » (min/max, pluie, soleil, nuages) | champs numériques `meteo8_*` et `meteo_*` |
 | Météo ressentie | 4 icônes : Soleil, Nuageux, Pluie, Neige | code numérique 1–4 |
+| Le sommeil (version 4) | « Couché » et « Levé » (heures), durée calculée, jauge 9 crans « Qualité » | `sommeil_coucher`, `sommeil_lever` (« HH:MM »), `sommeil_duree_min`, `sommeil_qualite` 1–9 |
 | Photo du ciel | appareil photo | lien Drive |
 | Humeur du matin | jauge 9 crans | 1–9 |
 | Énergie | jauge 9 crans | 1–9 |
 | Inspiration | jauge 9 crans | 1–9 |
 
+**Le sommeil** (carte après la météo ressentie, version 4, partie A) : deux champs heure « Couché » et « Levé ». L'heure de coucher appartient à la nuit précédente : durée = (levé − couché + 24 h) modulo 24 h (couché 23:10, levé 06:45 → 7 h 35 ; couché 00:40 → 6 h 05), avec la précision « La veille au soir » (coucher à partir de 12 h) ou « Après minuit ». Affichage « 7 h 35 de nuit », écart avec la veille et moyenne de la semaine (du lundi jusqu'au jour affiché, nuits saisies seulement). La durée est enregistrée dans `sommeil_duree_min` à chaque changement. Jauge « Qualité » : cadran crème, mention SOMMEIL, même fonctionnement que les autres jauges.
+
 Libellés des jauges (le mot du cran sélectionné s'affiche en grand) :
 
-| Cran | Humeur | Énergie | Inspiration |
-|---|---|---|---|
-| 1 | Désespéré | Panne sèche | Vide |
-| 2 | Triste | Sur la réserve | Éteint |
-| 3 | Morose | Au ralenti | Brumeux |
-| 4 | Mélancolique | Petite allure | Hésitant |
-| 5 | Neutre | Vitesse de croisière | Ordinaire |
-| 6 | Serein | Bien lancé | Curieux |
-| 7 | Content | Pleine route | Inspiré |
-| 8 | Enjoué | Plein gaz | Fourmillant |
-| 9 | Joyeux | À fond | Illuminé |
+| Cran | Humeur | Énergie | Inspiration | Sommeil (qualité) |
+|---|---|---|---|---|
+| 1 | Désespéré | Panne sèche | Vide | Nuit blanche |
+| 2 | Triste | Sur la réserve | Éteint | Très agitée |
+| 3 | Morose | Au ralenti | Brumeux | Agitée |
+| 4 | Mélancolique | Petite allure | Hésitant | Moyenne |
+| 5 | Neutre | Vitesse de croisière | Ordinaire | Correcte |
+| 6 | Serein | Bien lancé | Curieux | Bonne |
+| 7 | Content | Pleine route | Inspiré | Réparatrice |
+| 8 | Enjoué | Plein gaz | Fourmillant | Profonde |
+| 9 | Joyeux | À fond | Illuminé | Abyssale |
 
 ### Journée
 - **Quoi dans le goulot ?** Eau : boutons +500 ml et +300 ml, bouton « annuler le dernier ajout », jauge de carburant vers l'objectif (2 L par défaut, réglable). Café, Déca, Bière, Verre de vin : compteurs +1 / −1. Chaque ligne affiche Aujourd'hui / Mois / Total.
@@ -141,19 +144,35 @@ Titre de l'écran : « What's up Today ? » (Bebas Neue).
   - **Report de saison** (Réglages, carte « Feux et barbecues d'avant l'app ») : pour une saison donnée (ex. hiver 2026-2027, été 2026), un nombre de feux — ou de barbecues — faits avant l'app, et en option la date du premier feu (ou barbecue). Le report s'ajoute aux totaux « cette saison » et « total » ; une date de premier feu saisie remplace celle calculée depuis les fiches. Les reports sont stockés dans l'onglet `Reglages` (clé `reportsSaisons`, liste JSON `[{type: "hiver"|"ete", saison: "2026-2027"|"2026", nombre, premier?}]`). **Pas de fausses fiches.** Nom d'une saison : « AAAA-AAAA » si elle chevauche deux années (hiver), sinon « AAAA ».
 - **Fangio ou Rossi ?** : deux grandes tuiles. Sur chaque tuile, seulement l'icône (casque, volant) et, en dessous, le nom « Rossi » ou « Fangio » en Bebas Neue 20 px, lettres espacées (pas de texte « Moto » / « Voiture » affiché ; les boutons gardent `aria-label="Moto (Rossi)"` et `aria-label="Voiture (Fangio)"`). Un seul choix par jour (`deplacement` = `moto` / `voiture`). Compteurs mois / total pour chacun.
 
+- **Le chien** (version 4, partie A, carte après Fangio ou Rossi — et après Who's the Boss une fois la partie B faite) : deux compteurs +1 / −1 en ligne (comme les boissons) : « Balade » (icône patte, `chien_balades`) et « Séance d'éducation » (`chien_education`). Affichage aujourd'hui / mois / total.
+- **Temps d'écran** (version 4, partie A, carte après Le chien) : l'app ne peut pas lire Bien-être numérique, saisie manuelle par **deux molettes** (heures 0–16, avec une position « – » = non saisi ; minutes 0–59), mention « À reporter depuis Bien-être numérique ». Choisir des minutes sans heures compte 0 h. Affichage en **compteur horaire à rouleaux** « 03 H 12 » (heures sur cases sombres, minutes sur cases crème, même style que les compteurs kilométriques). Écart avec la veille et moyenne de la semaine (du lundi au jour affiché). Stockage `ecran_min` (minutes).
+- **Who's the Boss ?** (version 4, **partie B, à venir** ; carte après Fangio ou Rossi) : sous-titre « Une envie d'acheter ? Qui a gagné ? ». Deux grandes pastilles « Mister Me » et « Le plaisir » (Bebas Neue). Plusieurs tentations par jour : chaque appui crée une nouvelle entrée.
+  - Mister Me : un petit formulaire apparaît avec « Quoi ? » (texte facultatif), « Go to Revolut » (montant en CHF, clavier décimal) et un bouton « Ajouter ».
+  - Le plaisir : l'entrée est ajoutée directement, sans montant ni autre champ (la dépense est suivie dans une autre app).
+  - Liste des entrées du jour, chacune supprimable.
+  - Dessous : score du mois façon panneau de course (« Mister Me 7 – Le plaisir 3 »), Go to Revolut du mois et total général, « Plus belle victoire » (plus gros montant de tous les temps, avec son « quoi »), et une **cagnotte** : nom et montant de l'objectif dans les Réglages, avec une **date de début** fixée à sa création ; réservoir gradué laiton qui se remplit avec le total Go to Revolut depuis cette date. Objectif atteint : petit message de félicitations et proposition d'en fixer un nouveau (qui repart de zéro à sa date de début).
+  - Données : nouvel onglet du Sheet `Tentations` (id, date, gagnant = `me` ou `plaisir`, quoi, montant_chf). Objectif de cagnotte dans l'onglet `Reglages`.
+- **Le défi du mois** (version 4, **partie B, à venir**) : choisi dans les Réglages pour le mois en cours parmi trois types, plus un libellé libre :
+  - « Faire X fois » : un compteur de l'app atteint X sur le mois (ex. guitare 20 fois) ;
+  - « Chaque jour » : une condition remplie tous les jours (ex. objectif d'eau atteint) ;
+  - « Jamais en semaine » : un compteur reste à 0 du lundi au vendredi (ex. bière + vin).
+  - Plaque laiton en tête de l'onglet What's up : libellé, barre de progression, « 14 / 20 », jours restants. Sans défi choisi pour le mois : ni plaque ni résultat.
+  - À la fin du mois : réussi ou raté, affiché à la première ouverture du mois suivant et dans le bilan du dimanche.
+  - Données : nouvel onglet du Sheet `Defis` (mois, type, compteur ou condition, cible, libellé, résultat).
+
 ### Habillage et petits plaisirs (version 2, partie B)
 - **Voyants du tableau de bord** : dans la barre d'onglets, un petit voyant (6 px, orange `#E8862E`, légère lueur) en haut à droite de chaque onglet où il reste quelque chose à remplir **aujourd'hui** ; éteint (`#3A3026`) sinon.
-  - Matin : humeur du matin, énergie, inspiration, météo ressentie.
+  - Matin : humeur du matin, énergie, inspiration, météo ressentie, sommeil (couché, levé, qualité).
   - Journée (à partir de l'heure du soir, 18 h par défaut, réglable) : nombre de pas.
   - Soir (à partir de 18 h) : ressenti du soir, humeur du soir, bilan, mot du jour, appréciation de l'événement, 4 accords.
-  - What's up (à partir de 18 h) : cuisinier, déplacement.
+  - What's up (à partir de 18 h) : cuisinier, déplacement ; à partir de 21 h, aussi le temps d'écran.
   - Perso : jamais de voyant.
   - Après minuit, tant que la fiche n'a pas basculé, on reste « le soir ».
 - **Vibration** : petit « clac » (`navigator.vibrate`, environ 10 ms) sur chaque compteur (+1, −1, eau, marche) et chaque changement de cran d'une jauge. Désactivable dans les Réglages (réglage propre au téléphone).
 - **Séries** : plaque laiton « N jours d'affilée » (petites vis aux extrémités, Bebas Neue), affichée dès 2 jours consécutifs pour : guitare, objectif d'eau atteint, au moins une marche, journal rempli (humeur du matin ET du soir saisies). Calculées depuis les données ; si le jour même n'est pas encore réussi, la série compte jusqu'à la veille (« en cours »). Chaque plaque apparaît dans sa rubrique (eau, marche, guitare, humeur du soir pour le journal), et toutes ensemble dans le bilan du dimanche.
 - **Compteurs kilométriques** : les grands totaux de marche (km, une décimale), d'eau (litres, une décimale) et de pas s'affichent avec des chiffres à rouleaux : cases sombres à chiffres crème (Bebas Neue), décimale sur case crème à chiffre foncé, ombre intérieure en haut et en bas, petite animation de déroulement quand la valeur change. Utilisés pour les totaux de l'onglet Journée et dans le bilan du dimanche.
 - **Clin d'œil Fangio** : si Déplacement = Voiture alors que la météo du jour donne au moins 15 °C (max) et au moins 4 h de soleil, un encadré en pointillés laiton avec une icône soleil et une phrase taquine en italique s'affiche sous les tuiles. 5 phrases qui tournent selon la date, avec la vraie température (ex. « 18° et grand soleil… et t'as pris la voiture ? »).
-- **Bilan du dimanche** : le dimanche, à la première ouverture après l'heure du soir (une fois), un écran « Bilan du dimanche » s'affiche (refermable). Aussi accessible depuis l'Historique, pour n'importe quelle semaine passée (flèches semaine précédente / suivante). Contenu : humeur de la semaine (barres matin crème et soir laiton, lundi → dimanche, moyennes et libellé de la moyenne), mots de la semaine (le mot du jour de chaque jour, lundi → dimanche), événements Cool / Pas cool, compteurs kilométriques avec le gain de la semaine, séries en cours, résumé What's up (cuisine, repas, guitare, feux ou barbecues, moto / voiture).
+- **Bilan du dimanche** : le dimanche, à la première ouverture après l'heure du soir (une fois), un écran « Bilan du dimanche » s'affiche (refermable). Aussi accessible depuis l'Historique, pour n'importe quelle semaine passée (flèches semaine précédente / suivante). Contenu : humeur de la semaine (barres matin crème et soir laiton, lundi → dimanche, moyennes et libellé de la moyenne), mots de la semaine (le mot du jour de chaque jour, lundi → dimanche), sommeil et écran (durée moyenne de sommeil, qualité moyenne en chiffre et en mot, temps d'écran moyen par jour), événements Cool / Pas cool, compteurs kilométriques avec le gain de la semaine, séries en cours, résumé What's up (cuisine, repas, guitare, feux ou barbecues, balades du chien et séances d'éducation, moto / voiture). Partie B à venir : score Who's the Boss et Go to Revolut de la semaine, état du défi du mois.
 - **Outils de test** (Réglages) : simulation d'une date et d'une heure pour tester ce qui dépend de la date (voyants, bilan du dimanche, « il y a un an », séries). Pendant la simulation, un bandeau orange l'indique et **rien n'est enregistré ni envoyé au Sheet** ; elle s'arrête avec « Arrêter » ou en fermant l'app (stockée dans `sessionStorage`).
 
 ## 6. Partage depuis l'Enregistreur
@@ -179,7 +198,7 @@ Titre de l'écran : « What's up Today ? » (Bebas Neue).
 - **Mémos marqués** : vue de tous les Récits et My Love marqués Favori ou Piment, filtrable.
 - **Export Word** : un fichier .docx des mémos marqués (date, type, marque, texte), à importer dans OneNote. Option « seulement depuis le dernier export ».
 - **Pensées favorites** : liste avec auteur.
-- **Réglages** : heure de bascule (4 h), objectif d'eau (2 L), pastilles de catégorie (ajout, renommage, masquage), durée de la pensée (30 s), position météo (GPS ou lieu fixe), noms proposés pour « Who's the cook ? », seuils de la bise (15 km/h, de 20° à 100°), dates de début et de fin de l'hiver (1er octobre et 30 avril), reports de saison (feux et barbecues faits avant l'app), date de la dernière sauvegarde du classeur (affichage), heure du soir (18 h, pour les voyants et le bilan du dimanche), vibration (oui / non), outils de test (simulation de date), URL de la Web App Apps Script, jeton secret, réenregistrement de l'empreinte.
+- **Réglages** : heure de bascule (4 h), objectif d'eau (2 L), pastilles de catégorie (ajout, renommage, masquage), durée de la pensée (30 s), position météo (GPS ou lieu fixe), noms proposés pour « Who's the cook ? », seuils de la bise (15 km/h, de 20° à 100°), dates de début et de fin de l'hiver (1er octobre et 30 avril), reports de saison (feux et barbecues faits avant l'app), date de la dernière sauvegarde du classeur (affichage), objectif de cagnotte (nom, montant, date de début — partie B), défi du mois (partie B), heure du soir (18 h, pour les voyants et le bilan du dimanche), vibration (oui / non), outils de test (simulation de date), URL de la Web App Apps Script, jeton secret, réenregistrement de l'empreinte.
 
 ## 8. Direction visuelle « Garage vintage »
 
@@ -227,6 +246,9 @@ Ambiance : tableau de bord de moto ancienne, adulte et chaleureux, **pas « joue
 - **Mot du jour** : champ en Bebas Neue, suggestions en pastilles ; dans le bilan et les résultats, le mot en Bebas Neue laiton clair.
 - **Message de confirmation** (raccourcis) : pilule en bas de l'écran, fond `#2E2519`, bordure laiton, texte laiton clair, disparaît après 3 s.
 - **Résumé de recherche** : encadré creux, nombre de jours en grand (Bebas Neue laiton), humeurs moyennes, écart en vert (mieux) ou rouge (moins bien).
+- **Molette** (temps d'écran) : colonne creuse arrondie de 3 lignes de 44 px qui se cale sur une valeur (défilement aimanté), valeur centrale en Bebas Neue laiton clair entre deux filets laiton, valeurs voisines discrètes ; un appui sur une valeur la centre.
+- **Compteur horaire** : comme le compteur kilométrique, « 03 H 12 » (heures sur rouleaux sombres, minutes sur rouleaux crème), éteint (estompé) si rien n'est saisi.
+- **Champs heure** (sommeil) : sélecteur d'heure natif, chiffres en Bebas Neue centrés.
 - **Pastille de lune** (en-tête) : dessin de 22 px (disque `#2A2219`, part éclairée crème, filet laiton foncé) et pourcentage en dessous, sans bordure (non cliquable).
 - **Jauge d'eau** : demi-cadran crème façon jauge de carburant, 0 → 1 L → 2 L, zone verte entre 1,5 et 2 L, aiguille rouge ; à côté, la quantité en grand (« 1,3 L ») et « Encore 0,7 L » ou « Objectif atteint ».
 - **Bilan** : 5 visages SVG au trait dans des tuiles ; sélection = bordure laiton.
@@ -246,10 +268,14 @@ Classeur « Today's Mood – données », 5 onglets. Première ligne = en-têtes
 | `Pensees` | une citation favorite ou vue | id, favori (oui/non), dernière apparition |
 | `Pastilles` | une catégorie d'événement | nom, ordre, visible |
 | `Reglages` | un réglage | clé, valeur |
+| `Tentations` (v4 B) | une tentation | id, date, gagnant, quoi, montant_chf |
+| `Defis` (v4 B) | un défi du mois | mois, type, compteur, cible, libellé, résultat |
 
-Colonnes de `Fiches` : date, modifie_le, pensee_id, meteo_tmin, meteo_tmax, meteo_pluie_mm, meteo_soleil_h, meteo_nuages_pct, meteo_code, meteo_ressenti, photo_ciel, photo_jour, humeur_matin, humeur_soir, energie, inspiration, energie_sexuelle, bilan, evt_appreciation, evt_categorie, evt_texte, accord_parole, accord_personnel, accord_supposition, accord_mieux, pas, natation_m, eau_ml, cafe, deca, biere, vin, biscotte_1, biscotte_2, recit, recit_favori, recit_piment, mylove, mylove_favori, mylove_piment, puis (version 2, **toujours ajoutées à la fin**, sans déplacer les colonnes existantes) : cuisine, repas_type, guitare, feux_poele, barbecues, deplacement, puis (version 3, à la fin) : meteo8_temp, meteo8_nuages, meteo8_pluie, meteo8_code, meteo8_vent, meteo8_vent_dir, meteo8_pression, meteo16_temp, meteo16_nuages, meteo16_pluie, meteo16_code, meteo16_vent, meteo16_vent_dir, meteo16_pression, meteo_soir_ressenti, coucher_soleil, duree_jour_min, lune_phase, lune_pct, photo_ciel_soir, puis (version 3, partie B, à la fin) : mot_du_jour.
+Colonnes de `Fiches` : date, modifie_le, pensee_id, meteo_tmin, meteo_tmax, meteo_pluie_mm, meteo_soleil_h, meteo_nuages_pct, meteo_code, meteo_ressenti, photo_ciel, photo_jour, humeur_matin, humeur_soir, energie, inspiration, energie_sexuelle, bilan, evt_appreciation, evt_categorie, evt_texte, accord_parole, accord_personnel, accord_supposition, accord_mieux, pas, natation_m, eau_ml, cafe, deca, biere, vin, biscotte_1, biscotte_2, recit, recit_favori, recit_piment, mylove, mylove_favori, mylove_piment, puis (version 2, **toujours ajoutées à la fin**, sans déplacer les colonnes existantes) : cuisine, repas_type, guitare, feux_poele, barbecues, deplacement, puis (version 3, à la fin) : meteo8_temp, meteo8_nuages, meteo8_pluie, meteo8_code, meteo8_vent, meteo8_vent_dir, meteo8_pression, meteo16_temp, meteo16_nuages, meteo16_pluie, meteo16_code, meteo16_vent, meteo16_vent_dir, meteo16_pression, meteo_soir_ressenti, coucher_soleil, duree_jour_min, lune_phase, lune_pct, photo_ciel_soir, puis (version 3, partie B, à la fin) : mot_du_jour, puis (version 4, partie A, à la fin) : ecran_min, chien_balades, chien_education, sommeil_coucher, sommeil_lever, sommeil_duree_min, sommeil_qualite.
 
-Colonnes de texte : `coucher_soleil` (« HH:MM »), `photo_ciel_soir` (lien Drive, fichier `AAAA-MM-JJ_ciel_soir.jpg`) et `mot_du_jour` ; les autres colonnes version 3 sont numériques.
+Colonnes de texte : `coucher_soleil` (« HH:MM »), `photo_ciel_soir` (lien Drive, fichier `AAAA-MM-JJ_ciel_soir.jpg`), `mot_du_jour`, `sommeil_coucher` et `sommeil_lever` (« HH:MM ») ; les autres colonnes versions 3 et 4 sont numériques.
+
+Version 4, partie B (à venir) : deux nouveaux onglets, `Tentations` (une tentation : id, date, gagnant `me`/`plaisir`, quoi, montant_chf) et `Defis` (un défi par mois : mois, type, compteur ou condition, cible, libellé, résultat).
 
 L'Apps Script ajoute automatiquement à droite toute colonne attendue qui manque. Tous les totaux restent calculés, jamais stockés. L'onglet `Reglages` reçoit les réglages partagés (bascule, objectif d'eau, durée de la pensée, position météo, dernier export, cuisiniers, dates de l'hiver, reports de saison, heure du soir, seuils de la bise), jamais l'URL ni le jeton (ni la vibration, propre au téléphone).
 
@@ -275,5 +301,9 @@ Les étapes 1 à 7 sont terminées.
 ### Version 3
 - **Partie A — météo du matin et du soir** : relevés horaires de 8 h (Matin) et 16 h (Soir) avec vent, pression et tendance, encadré « La journée », pastilles bise et pression, carte Météo du soir avec ressenti du soir, carte Coucher de soleil (durée du jour, écart avec la veille, solstices, photo du ciel du soir), phase de lune dans l'en-tête, voyant du Soir avec le ressenti du soir, rattrapage rétroactif des fiches existantes (`past_days`), nouvelles colonnes à la fin de `Fiches`.
 - **Partie B — mot du jour, raccourcis, recherche météo, sauvegarde** : mot du jour (onglet Soir, suggestions, voyant, bilan du dimanche, « Il y a un an », colonne `mot_du_jour`), raccourcis Android sur l'icône (+ 500 ml d'eau, + 1 café, Tu grattes ? + 1) et nouvelle icône cadran, recherches Météo et Mot dans l'Historique avec humeur moyenne comparée, sauvegarde hebdomadaire automatique du classeur (12 copies) et sa date dans les Réglages.
+
+### Version 4
+- **Partie A — sommeil, temps d'écran, chien** : carte Le sommeil (Matin : couché / levé avec passage de minuit, durée, écart, moyenne de la semaine, jauge Qualité), Temps d'écran (What's up : molettes, compteur horaire à rouleaux, écart, moyenne), Le chien (balades et séances d'éducation), voyants (Matin : sommeil ; What's up : écran dès 21 h), bilan du dimanche (sommeil, écran, balades), 7 nouvelles colonnes à la fin de `Fiches`.
+- **Partie B — Who's the Boss ? et défi du mois** (à venir) : tentations (onglet `Tentations`, score du mois, Go to Revolut, plus belle victoire, cagnotte), défi du mois (Réglages, plaque en tête de What's up, résultat le mois suivant, onglet `Defis`), bilan du dimanche (score et Go to Revolut de la semaine, état du défi).
 
 Plus tard (hors périmètre pour l'instant) : graphiques de tendances (humeur × météo, matin × soir, accords dans le temps).

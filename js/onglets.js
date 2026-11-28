@@ -6,6 +6,7 @@ import { creerJauge } from './jauge.js';
 import { LIBELLES, APPRECIATIONS, BILAN, ACCORDS, NIVEAUX_ACCORD } from './donnees.js';
 import { carteMeteoMatin, carteRessentiMatin, carteMeteoSoir, carteCoucher } from './cartes-meteo.js';
 import { cartePhoto } from './carte-photo.js';
+import { carteSommeil } from './sommeil.js';
 import { cartesCompteurs } from './compteurs.js';
 import { cartesPerso } from './perso.js';
 import { cartesWhatsUp } from './whatsup.js';
@@ -59,6 +60,7 @@ function matin(ctx) {
     cartePensee(ctx),
     carteMeteoMatin(ctx),
     carteRessentiMatin(ctx),
+    carteSommeil(ctx),
     cartePhoto(ctx, 'photo_ciel', 'Photo du ciel'),
     carteJauge(ctx, 'Humeur du matin', 'Humeur', 'humeur_matin', LIBELLES.humeur),
     carteJauge(ctx, 'Énergie', 'Énergie', 'energie', LIBELLES.energie),

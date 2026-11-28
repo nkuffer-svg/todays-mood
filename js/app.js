@@ -20,7 +20,7 @@ import { attendreAucunEcran } from './ecran.js';
 import { afficherPensee, ouvrirFavoris } from './ecran-pensee.js';
 import { ouvrirHistorique } from './ecran-historique.js';
 
-export const VERSION = 'v3b-1';
+export const VERSION = 'v4a-1';
 
 const etat = {
   aujourdhui: null, // jour courant selon l'heure de bascule
@@ -302,10 +302,10 @@ const heureSoir = () => Number(reglage('heureSoir')) || 18;
 
 /** Champs à remplir chaque jour, par onglet (`soir` : seulement à partir de l'heure du soir). */
 const VOYANTS = {
-  matin: { soir: false, champs: ['humeur_matin', 'energie', 'inspiration', 'meteo_ressenti'] },
+  matin: { soir: false, champs: ['humeur_matin', 'energie', 'inspiration', 'meteo_ressenti', 'sommeil_coucher', 'sommeil_lever', 'sommeil_qualite'] },
   journee: { soir: true, champs: ['pas'] },
   soir: { soir: true, champs: ['meteo_soir_ressenti', 'humeur_soir', 'bilan', 'mot_du_jour', 'evt_appreciation', 'accord_parole', 'accord_personnel', 'accord_supposition', 'accord_mieux'] },
-  whatsup: { soir: true, champs: ['cuisine', 'deplacement'] },
+  whatsup: { soir: true, champs: ['cuisine', 'deplacement'], tard: { heure: 21, champs: ['ecran_min'] } },
 };
 
 let voyantsEnCours = null;
@@ -318,7 +318,10 @@ async function majVoyants() {
     const leSoir = estLeSoir(jour, heureSoir(), maintenant());
     for (const b of document.querySelectorAll('.onglet')) {
       const regle = VOYANTS[b.dataset.onglet];
-      const allume = !!regle && (!regle.soir || leSoir) && regle.champs.some((c) => f[c] == null || f[c] === '');
+      const vide = (c) => f[c] == null || f[c] === '';
+      // `tard` : champs attendus seulement à partir d'une heure plus tardive (temps d'écran dès 21 h).
+      const tard = regle?.tard && estLeSoir(jour, regle.tard.heure, maintenant()) && regle.tard.champs.some(vide);
+      const allume = !!regle && (((!regle.soir || leSoir) && regle.champs.some(vide)) || !!tard);
       const voyant = b.querySelector('.voyant');
       if (!voyant) continue;
       voyant.classList.toggle('allume', allume);
@@ -427,6 +430,10 @@ const ctx = {
   get pastilles() { return etat.pastilles.filter((p) => p.visible !== false).sort((a, b) => a.ordre - b.ordre).map((p) => p.nom); },
   modifier(champ, valeur) {
     return appliquerChamps(etat.fiche.date, { [champ]: valeur });
+  },
+  /** Plusieurs champs d'un coup (ex. coucher, lever et durée du sommeil). */
+  modifierChamps(champs) {
+    return appliquerChamps(etat.fiche.date, champs);
   },
   modifierTexte(champ, valeur) {
     const date = etat.fiche.date;

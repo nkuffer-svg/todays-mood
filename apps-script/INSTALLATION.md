@@ -180,6 +180,14 @@ Si tu relances **installerSauvegarde**, l'ancien déclencheur est remplacé (jam
 Pour restaurer : ouvre la copie voulue dans le dossier des sauvegardes et recopie les onglets dans le
 classeur principal (ou demande-moi de l'aide).
 
+## Mise à jour de la version 4, partie A (sommeil, temps d'écran, chien)
+
+Pas de nouvelle autorisation : recopie le nouveau `Code.gs` (Ctrl+A puis Suppr avant de coller),
+enregistre, puis **Déployer → Gérer les déploiements → crayon → Nouvelle version → Déployer**.
+Les 7 nouvelles colonnes (`ecran_min` … `sommeil_qualite`) s'ajoutent toutes seules **à la fin** de
+l'onglet `Fiches` à la première synchronisation. La sauvegarde du dimanche continue toute seule :
+inutile de relancer `installerSauvegarde`.
+
 ## En cas de problème
 
 | Message dans l'app | Que faire |

@@ -18,11 +18,15 @@ export const COLONNES = [
   'meteo_soir_ressenti', 'coucher_soleil', 'duree_jour_min', 'lune_phase', 'lune_pct', 'photo_ciel_soir',
   // Version 3, partie B
   'mot_du_jour',
+  // Version 4, partie A : temps d'écran, chien, sommeil
+  'ecran_min', 'chien_balades', 'chien_education',
+  'sommeil_coucher', 'sommeil_lever', 'sommeil_duree_min', 'sommeil_qualite',
 ];
 
 export const LIBELLES = {
   humeur: ['Désespéré', 'Triste', 'Morose', 'Mélancolique', 'Neutre', 'Serein', 'Content', 'Enjoué', 'Joyeux'],
   energie: ['Panne sèche', 'Sur la réserve', 'Au ralenti', 'Petite allure', 'Vitesse de croisière', 'Bien lancé', 'Pleine route', 'Plein gaz', 'À fond'],
+  sommeil: ['Nuit blanche', 'Très agitée', 'Agitée', 'Moyenne', 'Correcte', 'Bonne', 'Réparatrice', 'Profonde', 'Abyssale'],
   inspiration: ['Vide', 'Éteint', 'Brumeux', 'Hésitant', 'Ordinaire', 'Curieux', 'Inspiré', 'Fourmillant', 'Illuminé'],
 };
 

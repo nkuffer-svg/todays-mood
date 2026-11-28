@@ -1,5 +1,5 @@
 /**
- * Today's Mood — Web App Apps Script (version 3, partie B).
+ * Today's Mood — Web App Apps Script (version 4, partie A).
  *
  * À coller dans l'éditeur Apps Script du classeur « Today's Mood – données »
  * (Extensions → Apps Script). Voir apps-script/INSTALLATION.md.
@@ -8,7 +8,7 @@
  * et rangé dans les Propriétés du script.
  */
 
-const VERSION = 'v3b-1';
+const VERSION = 'v4a-1';
 
 const COLONNES_FICHES = [
   'date', 'modifie_le', 'pensee_id',
@@ -27,6 +27,9 @@ const COLONNES_FICHES = [
   'meteo_soir_ressenti', 'coucher_soleil', 'duree_jour_min', 'lune_phase', 'lune_pct', 'photo_ciel_soir',
   // Version 3, partie B
   'mot_du_jour',
+  // Version 4, partie A : temps d'écran, chien, sommeil
+  'ecran_min', 'chien_balades', 'chien_education',
+  'sommeil_coucher', 'sommeil_lever', 'sommeil_duree_min', 'sommeil_qualite',
 ];
 
 /** Colonnes de texte (les autres sont numériques). */
@@ -35,6 +38,7 @@ const COLONNES_TEXTE = [
   'evt_appreciation', 'evt_categorie', 'evt_texte', 'recit', 'mylove',
   'cuisine', 'repas_type', 'deplacement',
   'coucher_soleil', 'photo_ciel_soir', 'mot_du_jour',
+  'sommeil_coucher', 'sommeil_lever',
 ];
 
 /** Colonnes oui / vide (marques Favori et Piment). */

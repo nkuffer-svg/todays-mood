@@ -9,6 +9,7 @@ import { LIBELLES } from './donnees.js';
 import { calculerSeries, plaque, SERIES } from './series.js';
 import { odometre } from './odometre.js';
 import { nomsCuisine } from './whatsup.js';
+import { formatDuree, moyenneChamp } from './durees.js';
 
 const fmt = new Intl.NumberFormat('fr-CH', { maximumFractionDigits: 1 });
 const fmtJour = new Intl.DateTimeFormat('fr-CH', { day: 'numeric', month: 'long' });
@@ -88,6 +89,23 @@ function blocMots(jours, parDate) {
     nb ? null : el('p', { class: 'etat-vide' }, 'Aucun mot du jour cette semaine.'));
 }
 
+/* ---------- Sommeil et écran ---------- */
+
+function blocSommeilEcran(jours, parDate) {
+  const fs = jours.map((d) => parDate.get(d)).filter(Boolean);
+  const duree = moyenneChamp(fs, 'sommeil_duree_min');
+  const qualite = moyenneChamp(fs, 'sommeil_qualite');
+  const ecran = moyenneChamp(fs, 'ecran_min');
+  const nb = (champ) => fs.filter((f) => f[champ] != null && f[champ] !== '').length;
+  const ligne = (libelle, valeur, detail) => el('li', {}, el('span', {}, libelle), el('strong', {}, valeur), detail ? el('small', {}, detail) : null);
+  const sur = (n) => (n ? `sur ${n} nuit${n > 1 ? 's' : ''}` : null);
+  return section('Sommeil et écran',
+    el('ul', { class: 'bilan-moyennes' },
+      ligne('Sommeil moyen', duree == null ? '—' : formatDuree(duree), sur(nb('sommeil_duree_min'))),
+      ligne('Qualité moyenne', qualite == null ? '—' : `${fmt.format(Math.round(qualite * 10) / 10)} · ${LIBELLES.sommeil[Math.round(qualite) - 1]}`),
+      ligne('Écran par jour', ecran == null ? '—' : formatDuree(ecran), nb('ecran_min') ? `sur ${nb('ecran_min')} jour${nb('ecran_min') > 1 ? 's' : ''}` : null)));
+}
+
 /* ---------- Événements ---------- */
 
 function blocEvenements(jours, parDate) {
@@ -155,6 +173,7 @@ function blocWhatsUp(jours, parDate) {
       ligne('mediator', 'Guitare', pluriel(somme('guitare'), 'session')),
       feux || !barbecues ? ligne('flamme', 'Feux de poêle', fmt.format(feux)) : null,
       barbecues ? ligne('gril', 'Barbecues', fmt.format(barbecues)) : null,
+      ligne('patte', 'Balades du chien', `${fmt.format(somme('chien_balades'))}${somme('chien_education') ? ` · éducation ${fmt.format(somme('chien_education'))}` : ''}`),
       ligne('casque', 'Rossi (moto)', `${compte('deplacement', 'moto')} jour${compte('deplacement', 'moto') > 1 ? 's' : ''}`),
       ligne('volant', 'Fangio (voiture)', `${compte('deplacement', 'voiture')} jour${compte('deplacement', 'voiture') > 1 ? 's' : ''}`)));
 }
@@ -186,6 +205,7 @@ export async function ouvrirBilan({ semaine, aujourdhui, objectifEau }) {
     zone.replaceChildren(
       blocHumeur(jours, parDate),
       blocMots(jours, parDate),
+      blocSommeilEcran(jours, parDate),
       blocEvenements(jours, parDate),
       blocCompteurs(fiches, marches, lundi, dimanche),
       blocSeries(fiches, marches, finSeries, objectifEau),
