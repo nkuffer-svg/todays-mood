@@ -7,6 +7,7 @@ import { LIBELLES, APPRECIATIONS, BILAN, ACCORDS, NIVEAUX_ACCORD } from './donne
 import { carteMeteoMatin, carteRessentiMatin, carteMeteoSoir, carteCoucher } from './cartes-meteo.js';
 import { cartePhoto } from './carte-photo.js';
 import { carteSommeil } from './sommeil.js';
+import { carteMaison } from './maison.js';
 import { cartesCompteurs } from './compteurs.js';
 import { cartesPerso } from './perso.js';
 import { cartesWhatsUp } from './whatsup.js';
@@ -59,6 +60,7 @@ function matin(ctx) {
   return [
     cartePensee(ctx),
     carteMeteoMatin(ctx),
+    carteMaison(ctx, 7),
     carteRessentiMatin(ctx),
     carteSommeil(ctx),
     cartePhoto(ctx, 'photo_ciel', 'Photo du ciel'),
@@ -267,6 +269,7 @@ function soir(ctx) {
   }), zoneJournal);
   return [
     carteMeteoSoir(ctx),
+    carteMaison(ctx, 20),
     carteCoucher(ctx),
     carteSoir,
     carteEvenement(ctx),

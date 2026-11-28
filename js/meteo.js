@@ -197,6 +197,17 @@ export function estBise(vitesse, direction, seuils = seuilsBise()) {
   return Number(vitesse) >= seuils.vitesseMin && Number(direction) >= seuils.dirMin && Number(direction) <= seuils.dirMax;
 }
 
+/**
+ * Vent d'un relevé (8 ou 16 h) : l'anémomètre Netatmo en priorité, Open-Meteo en secours.
+ * Renvoie { vent, dir, source: 'netatmo' | 'open-meteo' } (vent null si rien).
+ */
+export function ventDe(f, heure) {
+  const nv = f[`nt${heure}_vent`];
+  if (nv != null && nv !== '') return { vent: Number(nv), dir: f[`nt${heure}_vent_dir`] == null || f[`nt${heure}_vent_dir`] === '' ? null : Number(f[`nt${heure}_vent_dir`]), source: 'netatmo' };
+  const ov = f[`meteo${heure}_vent`];
+  return { vent: ov == null || ov === '' ? null : Number(ov), dir: f[`meteo${heure}_vent_dir`] == null ? null : Number(f[`meteo${heure}_vent_dir`]), source: 'open-meteo' };
+}
+
 export const FLECHES_TENDANCE = { 1: '↗', 0: '→', '-1': '↘' };
 
 /** « 1 021 » : espace fine insécable pour les milliers. */

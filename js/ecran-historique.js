@@ -6,7 +6,7 @@ import { reglage, definirReglage } from './reglages.js';
 import { creerDocx } from './docx.js';
 import * as verrou from './verrou.js';
 import { LIBELLES } from './donnees.js';
-import { decrireCode, estBise, seuilsBise } from './meteo.js';
+import { decrireCode, estBise, seuilsBise, ventDe } from './meteo.js';
 import { lune, nomPhase } from './astro.js';
 import { cleMot, motsUtilises } from './mots.js';
 
@@ -201,20 +201,26 @@ function meteoDe(f, moment) {
     if (f.meteo_code == null && f.meteo_tmax == null && f.meteo_tmin == null) return null;
     const pressions = [num(f.meteo8_pression), num(f.meteo16_pression)].filter((p) => p != null);
     const seuils = seuilsBise();
+    const v8 = ventDe(f, 8);
+    const v16 = ventDe(f, 16);
+    // Le pluviomètre Netatmo, s'il existe, a la priorité sur Open-Meteo.
     return {
       code: num(f.meteo_code), tmin: num(f.meteo_tmin), tmax: num(f.meteo_tmax),
-      pluie: num(f.meteo_pluie_mm), nuages: num(f.meteo_nuages_pct),
+      pluie: num(f.nt_pluie_jour) ?? num(f.meteo_pluie_mm), nuages: num(f.meteo_nuages_pct),
       soleil: num(f.meteo_soleil_h), dureeJour: num(f.duree_jour_min),
-      bise: estBise(f.meteo8_vent, f.meteo8_vent_dir, seuils) || estBise(f.meteo16_vent, f.meteo16_vent_dir, seuils),
+      bise: estBise(v8.vent, v8.dir, seuils) || estBise(v16.vent, v16.dir, seuils),
       pression: pressions.length ? Math.min(...pressions) : null,
     };
   }
   const v = (c) => num(f[`meteo${moment}_${c}`]);
   if (v('temp') == null) return null;
+  // Ta station (module extérieur, anémomètre) en priorité sur Open-Meteo.
+  const temp = num(f[`nt${moment}_temp_ext`]) ?? v('temp');
+  const vent = ventDe(f, Number(moment));
   return {
-    code: v('code'), tmin: v('temp'), tmax: v('temp'), temp: v('temp'),
+    code: v('code'), tmin: temp, tmax: temp, temp,
     pluie: v('pluie'), nuages: v('nuages'),
-    bise: estBise(v('vent'), v('vent_dir')),
+    bise: estBise(vent.vent, vent.dir),
     pression: v('pression'),
   };
 }

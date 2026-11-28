@@ -2,7 +2,7 @@
    Coucher de soleil (+ photo du ciel du soir), pastilles vent / bise / pression, dessin de la lune. */
 import { el, svg, icone, carte } from './ui.js';
 import { RESSENTIS } from './donnees.js';
-import { decrireCode, heurePassee, pointCardinal, estBise, formatPression, FLECHES_TENDANCE } from './meteo.js';
+import { decrireCode, heurePassee, pointCardinal, estBise, formatPression, FLECHES_TENDANCE, ventDe } from './meteo.js';
 import { maintenant, decaler } from './jour.js';
 import { prochainSolstice, nomPhase, croissante } from './astro.js';
 import { blocPhoto } from './carte-photo.js';
@@ -47,6 +47,8 @@ function blocReleve(ctx, heure) {
     return el('p', { class: 'releve-attente' }, avant ? `Relevé à ${heure} h` : `Relevé de ${heure} h pas encore récupéré.`);
   }
   const a = decrireCode(v('code'));
+  const vent = ventDe(f, heure);
+  const ext = f[`nt${heure}_temp_ext`];
   return el('div', { class: 'releve' },
     el('div', { class: 'meteo-principal' },
       el('div', { class: 'meteo-icone' }, icone(a ? a.icone : 'nuage')),
@@ -57,7 +59,9 @@ function blocReleve(ctx, heure) {
     el('dl', { class: 'meteo-details deux' },
       detail('Nuages', fmt(v('nuages')), '%'),
       detail('Pluie', fmt(v('pluie')), 'mm')),
-    pastillesVent(v('vent'), v('vent_dir'), v('pression'), ctx.meteoExtra(f.date)['t' + heure]));
+    pastillesVent(vent.vent, vent.dir, v('pression'), ctx.meteoExtra(f.date)['t' + heure]),
+    ext != null && ext !== '' ? el('p', { class: 'mention-station' }, 'Ta station dehors : ', el('strong', {}, `${fmt(Number(ext))}°`)) : null,
+    vent.source === 'netatmo' ? el('p', { class: 'mention-source' }, 'Vent mesuré par ton anémomètre') : null);
 }
 
 /** Statut de la récupération et bouton Actualiser (partagés par les deux cartes météo). */
@@ -90,7 +94,8 @@ export function carteMeteoMatin(ctx) {
       el('dl', { class: 'meteo-details compact' },
         detail('Pluie', fmt(f.meteo_pluie_mm), 'mm'),
         detail('Soleil', fmt(f.meteo_soleil_h), 'h'),
-        detail('Nuages', fmt(f.meteo_nuages_pct), '%')))
+        detail('Nuages', fmt(f.meteo_nuages_pct), '%')),
+      f.nt_pluie_jour != null && f.nt_pluie_jour !== '' ? el('p', { class: 'mention-station' }, 'Ton pluviomètre : ', el('strong', {}, `${fmt(Number(f.nt_pluie_jour))} mm`)) : null)
     : el('p', { class: 'etat-vide encadre-vide' }, 'Pas encore de météo pour la journée.');
   const vide = !aDesDonnees && f.meteo8_temp == null;
   return el('section', { class: 'carte', id: 'carte-meteo' },

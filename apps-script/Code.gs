@@ -1,5 +1,5 @@
 /**
- * Today's Mood — Web App Apps Script (version 4, partie B).
+ * Today's Mood — Web App Apps Script (version 5, partie A).
  *
  * À coller dans l'éditeur Apps Script du classeur « Today's Mood – données »
  * (Extensions → Apps Script). Voir apps-script/INSTALLATION.md.
@@ -8,7 +8,7 @@
  * et rangé dans les Propriétés du script.
  */
 
-const VERSION = 'v4b-1';
+const VERSION = 'v5a-1';
 
 const COLONNES_FICHES = [
   'date', 'modifie_le', 'pensee_id',
@@ -30,6 +30,10 @@ const COLONNES_FICHES = [
   // Version 4, partie A : temps d'écran, chien, sommeil
   'ecran_min', 'chien_balades', 'chien_education',
   'sommeil_coucher', 'sommeil_lever', 'sommeil_duree_min', 'sommeil_qualite',
+  // Version 5, partie A : la maison (Netatmo intérieur), vent Netatmo, futurs module extérieur et pluviomètre
+  'maison7_temp', 'maison7_hum', 'maison7_co2', 'maison20_temp', 'maison20_hum', 'maison20_co2', 'maison_source',
+  'nt8_vent', 'nt8_vent_dir', 'nt16_vent', 'nt16_vent_dir',
+  'nt8_temp_ext', 'nt16_temp_ext', 'nt_pluie_jour',
 ];
 
 /** Colonnes de texte (les autres sont numériques). */
@@ -38,7 +42,7 @@ const COLONNES_TEXTE = [
   'evt_appreciation', 'evt_categorie', 'evt_texte', 'recit', 'mylove',
   'cuisine', 'repas_type', 'deplacement',
   'coucher_soleil', 'photo_ciel_soir', 'mot_du_jour',
-  'sommeil_coucher', 'sommeil_lever',
+  'sommeil_coucher', 'sommeil_lever', 'maison_source',
 ];
 
 /** Colonnes oui / vide (marques Favori et Piment). */
@@ -53,6 +57,8 @@ const ONGLETS = {
   // Version 4, partie B
   Tentations: ['id', 'date', 'gagnant', 'quoi', 'montant_chf'],
   Defis: ['mois', 'type', 'compteur', 'cible', 'libelle', 'resultat'],
+  // Version 5, partie A
+  Bois: ['date', 'steres'],
 };
 
 /**
@@ -62,6 +68,7 @@ const ONGLETS = {
 const ENREGISTREMENTS = {
   tentations: { onglet: 'Tentations', cle: 'id', texte: ['id', 'date', 'gagnant', 'quoi'], nombres: ['montant_chf'] },
   defis: { onglet: 'Defis', cle: 'mois', texte: ['mois', 'type', 'compteur', 'libelle', 'resultat'], nombres: ['cible'] },
+  bois: { onglet: 'Bois', cle: 'date', texte: ['date'], nombres: ['steres'] },
 };
 
 const NOM_DOSSIER_PHOTOS = "Today's Mood – photos";
@@ -76,6 +83,7 @@ const REGLAGES_AUTORISES = [
   'cuisiniers', 'hiverDebut', 'hiverFin', 'reportsSaisons', 'heureSoir',
   'biseVitesse', 'biseDirMin', 'biseDirMax',
   'cagnotteNom', 'cagnotteMontant', 'cagnotteDebut',
+  'co2Max', 'humMin', 'feuxParStere', 'boisVides',
 ];
 
 const PASTILLES_DEFAUT = ['Job', 'Maison', 'Famille élargie', 'Famille', 'Réflexion', 'Pensée', 'Scène de vie'];
@@ -250,9 +258,11 @@ function traiter_(requete) {
     }
     case 'lire':
       return { ok: true, fiches: lireFiches_(ss), pastilles: lirePastilles_(ss), marches: lireMarches_(ss), pensees: lirePensees_(ss), reglages: lireReglages_(ss), sauvegarde: derniereSauvegarde_(),
-        tentations: lireLignes_(ss, 'tentations'), defis: lireLignes_(ss, 'defis') };
+        tentations: lireLignes_(ss, 'tentations'), defis: lireLignes_(ss, 'defis'), bois: lireLignes_(ss, 'bois') };
     case 'envoyerPhoto':
       return envoyerPhoto_(requete);
+    case 'netatmo':
+      return releverNetatmo_(requete);
     case 'lirePhoto':
       return lirePhoto_(requete);
     case 'supprimerPhoto':
@@ -748,6 +758,192 @@ function texteHorodatage_(valeur) {
 
 function genererJeton_() {
   return (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '');
+}
+
+/* =====================================================================
+   Netatmo (version 5, partie A) : station météo de la maison
+   Les clés sont dans les Propriétés du script (jamais dans le code) :
+   NETATMO_CLIENT_ID, NETATMO_CLIENT_SECRET, NETATMO_REFRESH_TOKEN.
+   Le jeton d'accès (≈ 3 h) est renouvelé tout seul ; le nouveau refresh token renvoyé
+   par Netatmo remplace l'ancien à chaque fois.
+   ===================================================================== */
+
+const NETATMO_API = 'https://api.netatmo.com';
+const FUSEAU = 'Europe/Zurich';
+const ECART_MAX_S = 40 * 60; // valeur la plus proche de l'heure voulue, à 40 min près au plus
+
+/** À lancer depuis l'éditeur pour vérifier la connexion : le journal liste les modules trouvés. */
+function testerNetatmo() {
+  const m = modulesNetatmo_();
+  Logger.log('Station : ' + m.nom);
+  Object.keys(m.modules).forEach(function (cle) {
+    Logger.log('- ' + cle + ' : ' + m.modules[cle].nom + ' (installé le ' + m.modules[cle].installe + ')');
+  });
+  const r = releverNetatmo_({ dates: [Utilities.formatDate(new Date(), FUSEAU, 'yyyy-MM-dd')] });
+  Logger.log('Relevés d’aujourd’hui : ' + JSON.stringify(r.releves));
+}
+
+function jetonNetatmo_(forcer) {
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty('NETATMO_CLIENT_ID');
+  const secret = props.getProperty('NETATMO_CLIENT_SECRET');
+  const refresh = props.getProperty('NETATMO_REFRESH_TOKEN');
+  if (!id || !secret || !refresh) {
+    throw erreur_('Netatmo n’est pas encore configuré : ajoute NETATMO_CLIENT_ID, NETATMO_CLIENT_SECRET et NETATMO_REFRESH_TOKEN dans les Propriétés du script.', 'netatmo_config');
+  }
+  const acces = props.getProperty('NETATMO_ACCESS_TOKEN');
+  const expire = Number(props.getProperty('NETATMO_EXPIRE') || 0);
+  if (!forcer && acces && Date.now() < expire - 5 * 60 * 1000) return acces;
+  const rep = UrlFetchApp.fetch(NETATMO_API + '/oauth2/token', {
+    method: 'post', muteHttpExceptions: true,
+    payload: { grant_type: 'refresh_token', refresh_token: refresh, client_id: id, client_secret: secret },
+  });
+  let json = {};
+  try { json = JSON.parse(rep.getContentText() || '{}'); } catch (e) { /* réponse illisible */ }
+  if (rep.getResponseCode() !== 200 || !json.access_token) {
+    throw erreur_('Netatmo refuse la connexion (' + (json.error || rep.getResponseCode()) + '). Génère un nouveau refresh token sur dev.netatmo.com et recopie-le dans les Propriétés du script.', 'netatmo');
+  }
+  props.setProperties({
+    NETATMO_ACCESS_TOKEN: json.access_token,
+    NETATMO_EXPIRE: String(Date.now() + (Number(json.expires_in) || 10800) * 1000),
+    NETATMO_REFRESH_TOKEN: json.refresh_token || refresh, // Netatmo renvoie un nouveau refresh token : on le garde
+  });
+  return json.access_token;
+}
+
+function appelNetatmo_(chemin, params, dejaRenouvele) {
+  const q = Object.keys(params).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+  const rep = UrlFetchApp.fetch(NETATMO_API + '/api/' + chemin + '?' + q, {
+    headers: { Authorization: 'Bearer ' + jetonNetatmo_(dejaRenouvele) }, muteHttpExceptions: true,
+  });
+  let json = {};
+  try { json = JSON.parse(rep.getContentText() || '{}'); } catch (e) { /* réponse illisible */ }
+  if ((rep.getResponseCode() === 403 || rep.getResponseCode() === 401) && !dejaRenouvele) return appelNetatmo_(chemin, params, true);
+  if (rep.getResponseCode() !== 200 || json.error) {
+    const msg = json.error && json.error.message ? json.error.message : 'erreur ' + rep.getResponseCode();
+    throw erreur_('Netatmo ne répond pas (' + msg + ').', 'netatmo');
+  }
+  return json.body;
+}
+
+/** Station et modules (détectés à chaque fois : un nouveau module est pris en compte tout seul). */
+function modulesNetatmo_() {
+  const body = appelNetatmo_('getstationsdata', { get_favorites: 'false' });
+  const st = body && body.devices && body.devices[0];
+  if (!st) throw erreur_('Aucune station Netatmo trouvée sur ce compte.', 'netatmo');
+  const jour = function (sec) { return sec ? Utilities.formatDate(new Date(sec * 1000), FUSEAU, 'yyyy-MM-dd') : '2000-01-01'; };
+  const modules = {
+    interieur: { device: st._id, module: null, nom: st.module_name || 'Intérieur', installe: jour(st.date_setup) },
+  };
+  const TYPES = { NAModule1: 'exterieur', NAModule2: 'vent', NAModule3: 'pluie' };
+  (st.modules || []).forEach(function (m) {
+    const cle = TYPES[m.type];
+    if (cle && !modules[cle]) modules[cle] = { device: st._id, module: m._id, nom: m.module_name || cle, installe: jour(m.date_setup) };
+  });
+  return { nom: st.station_name || st.home_name || 'Station', modules: modules };
+}
+
+/** Mesures d'un module entre deux instants (secondes) : { horodatage: [valeurs] }. Par tranches de 20 jours. */
+function mesures_(mod, types, echelle, debut, fin) {
+  const tranche = echelle === '1day' ? 900 * 86400 : 20 * 86400;
+  const resultat = {};
+  for (let t = debut; t <= fin; t += tranche) {
+    const params = {
+      device_id: mod.device, scale: echelle, type: types.join(','), optimize: 'false', real_time: 'true',
+      date_begin: String(t), date_end: String(Math.min(fin, t + tranche - 1)),
+    };
+    if (mod.module) params.module_id = mod.module;
+    const body = appelNetatmo_('getmeasure', params) || {};
+    Object.keys(body).forEach(function (ts) { resultat[ts] = body[ts]; });
+  }
+  return resultat;
+}
+
+/** Valeurs mesurées le plus près de `cible` (secondes), à 40 min près, ou null. */
+function plusProche_(serie, cles, cible) {
+  let meilleur = null;
+  let ecart = ECART_MAX_S + 1;
+  cles.forEach(function (ts) {
+    const e = Math.abs(Number(ts) - cible);
+    if (e < ecart) { ecart = e; meilleur = ts; }
+  });
+  return meilleur === null ? null : serie[meilleur];
+}
+
+const instant_ = function (date, heure) {
+  return Math.floor(Utilities.parseDate(date + ' ' + (heure < 10 ? '0' : '') + heure + ':00', FUSEAU, 'yyyy-MM-dd HH:mm').getTime() / 1000);
+};
+const arrondi_ = function (v, d) {
+  if (v === null || v === undefined || !isFinite(Number(v))) return null;
+  const k = Math.pow(10, d || 0);
+  return Math.round(Number(v) * k) / k;
+};
+
+/**
+ * Relevés Netatmo pour une liste de dates (au plus 31 à la fois) :
+ *   intérieur à 7 h et 20 h (maison7_*, maison20_*), vent à 8 h et 16 h (nt8_vent…, nt16_vent…),
+ *   extérieur à 8 h et 16 h (nt8_temp_ext, nt16_temp_ext), pluie du jour (nt_pluie_jour).
+ * Ne renvoie que ce que les modules installés mesurent, et seulement pour des heures déjà passées.
+ */
+function releverNetatmo_(requete) {
+  const station = modulesNetatmo_();
+  const m = station.modules;
+  const maintenant = Math.floor(Date.now() / 1000);
+  const dates = (Array.isArray(requete.dates) ? requete.dates : [])
+    .filter(function (d) { return /^\d{4}-\d{2}-\d{2}$/.test(String(d)); })
+    .sort().slice(-31);
+  const releves = {};
+  const ajouter = function (date, champ, valeur) {
+    if (valeur === null || valeur === undefined) return;
+    (releves[date] = releves[date] || {})[champ] = valeur;
+  };
+
+  function parModule(cle, heures, types, ecrire) {
+    const mod = m[cle];
+    if (!mod) return;
+    const utiles = dates.filter(function (d) { return d >= mod.installe; });
+    if (!utiles.length) return;
+    const debut = instant_(utiles[0], Math.min.apply(null, heures)) - 3600;
+    const fin = Math.min(maintenant, instant_(utiles[utiles.length - 1], Math.max.apply(null, heures)) + 3600);
+    if (fin <= debut) return;
+    const serie = mesures_(mod, types, '30min', debut, fin);
+    const cles = Object.keys(serie);
+    utiles.forEach(function (d) {
+      heures.forEach(function (h) {
+        const cible = instant_(d, h);
+        if (cible > maintenant) return;
+        const v = plusProche_(serie, cles, cible);
+        if (v) ecrire(d, h, v);
+      });
+    });
+  }
+
+  parModule('interieur', [7, 20], ['Temperature', 'Humidity', 'CO2'], function (d, h, v) {
+    ajouter(d, 'maison' + h + '_temp', arrondi_(v[0], 1));
+    ajouter(d, 'maison' + h + '_hum', arrondi_(v[1], 0));
+    ajouter(d, 'maison' + h + '_co2', arrondi_(v[2], 0));
+  });
+  parModule('vent', [8, 16], ['WindStrength', 'WindAngle'], function (d, h, v) {
+    ajouter(d, 'nt' + h + '_vent', arrondi_(v[0], 0));
+    ajouter(d, 'nt' + h + '_vent_dir', arrondi_(v[1], 0));
+  });
+  parModule('exterieur', [8, 16], ['Temperature'], function (d, h, v) {
+    ajouter(d, 'nt' + h + '_temp_ext', arrondi_(v[0], 1));
+  });
+  if (m.pluie) {
+    const utiles = dates.filter(function (d) { return d >= m.pluie.installe; });
+    if (utiles.length) {
+      const serie = mesures_(m.pluie, ['sum_rain'], '1day', instant_(utiles[0], 0) - 43200, Math.min(maintenant, instant_(utiles[utiles.length - 1], 23)));
+      Object.keys(serie).forEach(function (ts) {
+        const d = Utilities.formatDate(new Date((Number(ts) + 7200) * 1000), FUSEAU, 'yyyy-MM-dd');
+        if (utiles.indexOf(d) >= 0) ajouter(d, 'nt_pluie_jour', arrondi_(serie[ts][0], 1));
+      });
+    }
+  }
+
+  const modules = {};
+  Object.keys(m).forEach(function (cle) { modules[cle] = { nom: m[cle].nom, installe: m[cle].installe }; });
+  return { ok: true, station: station.nom, modules: modules, releves: releves };
 }
 
 function erreur_(message, code) {

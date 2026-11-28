@@ -195,6 +195,57 @@ enregistre, puis **Déployer → Gérer les déploiements → crayon → Nouvell
 Les deux nouveaux onglets **Tentations** et **Defis** se créent tout seuls à la première synchronisation
 (ou tout de suite en lançant **initialiser**, sans danger). Ne renomme pas leurs colonnes.
 
+## Mise à jour de la version 5, partie A (Netatmo, la maison, le poêle)
+
+### 1. Créer l'app Netatmo et le refresh token (une seule fois)
+
+1. Va sur **https://dev.netatmo.com** et connecte-toi avec ton compte Netatmo habituel.
+2. En haut à droite, ouvre le menu de ton compte → **My apps** → **Create** (ou « Create an app »).
+3. Remplis le formulaire :
+   - **app name** : `Todays Mood` ; **description** : `Journal personnel` ;
+   - **data protection officer name** et **email** : ton nom et ton adresse ;
+   - coche l'acceptation des conditions, puis **Save**.
+4. La page de l'app affiche maintenant un **client ID** et un **client secret**. Laisse-la ouverte.
+5. Plus bas sur la même page, trouve la section **Token generator** :
+   - dans **Choose scopes**, coche seulement **read_station** ;
+   - clique sur **Generate Token**, puis accepte (« Yes, I accept ») sur la page Netatmo qui s'ouvre ;
+   - deux valeurs apparaissent : *Access Token* et **Refresh Token**. Seul le **Refresh Token** nous sert.
+
+Ces trois valeurs sont secrètes : ne les colle **nulle part ailleurs** que dans l'étape suivante (ni dans GitHub, ni dans l'app, ni dans un message).
+
+### 2. Ranger les clés dans Apps Script
+
+1. Ouvre le Sheet → **Extensions → Apps Script**.
+2. À gauche, la **roue dentée** (« Paramètres du projet ») → tout en bas, **Propriétés du script** → **Modifier les propriétés du script**.
+3. Ajoute trois propriétés (bouton « Ajouter une propriété du script ») — le nom exactement comme ci-dessous, la valeur copiée depuis dev.netatmo.com :
+   - `NETATMO_CLIENT_ID` → le client ID ;
+   - `NETATMO_CLIENT_SECRET` → le client secret ;
+   - `NETATMO_REFRESH_TOKEN` → le refresh token.
+4. **Enregistrer les propriétés du script**. (Le jeton `JETON` déjà présent ne bouge pas.)
+
+Ensuite, le script renouvelle tout seul le jeton d'accès (valable environ 3 h) et remplace lui-même le refresh token
+dans ces propriétés à chaque renouvellement : il est normal que sa valeur change.
+
+### 3. Mettre à jour le code et autoriser l'accès à Netatmo
+
+1. Recopie le nouveau `Code.gs` (Ctrl+A puis Suppr avant de coller), enregistre.
+2. En haut, choisis la fonction **testerNetatmo** dans le menu déroulant, puis **Exécuter**.
+   Google demande une nouvelle autorisation (« se connecter à un service externe ») :
+   **Examiner les autorisations** → ton compte → **Paramètres avancés** → **Accéder à … (non sécurisé)** → **Autoriser**.
+3. Le journal d'exécution affiche le nom de ta station et les modules trouvés (module intérieur, anémomètre),
+   puis les relevés d'aujourd'hui.
+4. **Déployer → Gérer les déploiements → crayon → Nouvelle version → Déployer**.
+
+Les nouvelles colonnes de `Fiches` (`maison7_temp` … `nt_pluie_jour`) et l'onglet **Bois** se créent tout seuls
+à la première synchronisation. Quand tu ajouteras le module extérieur ou le pluviomètre à ta station (dans l'app
+Netatmo), rien à faire ici : ils sont détectés automatiquement.
+
+### Si Netatmo refuse la connexion
+
+Message « Netatmo refuse la connexion (invalid_grant) » : le refresh token n'est plus valable (par exemple si tu as
+régénéré un token sur dev.netatmo.com). Refais l'étape 1.5 (Generate Token) et remplace `NETATMO_REFRESH_TOKEN`
+dans les Propriétés du script. Pas besoin de nouveau déploiement.
+
 ## En cas de problème
 
 | Message dans l'app | Que faire |

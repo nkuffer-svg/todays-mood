@@ -21,6 +21,10 @@ export const COLONNES = [
   // Version 4, partie A : temps d'écran, chien, sommeil
   'ecran_min', 'chien_balades', 'chien_education',
   'sommeil_coucher', 'sommeil_lever', 'sommeil_duree_min', 'sommeil_qualite',
+  // Version 5, partie A : la maison (Netatmo), vent Netatmo, futurs module extérieur et pluviomètre
+  'maison7_temp', 'maison7_hum', 'maison7_co2', 'maison20_temp', 'maison20_hum', 'maison20_co2', 'maison_source',
+  'nt8_vent', 'nt8_vent_dir', 'nt16_vent', 'nt16_vent_dir',
+  'nt8_temp_ext', 'nt16_temp_ext', 'nt_pluie_jour',
 ];
 
 export const LIBELLES = {

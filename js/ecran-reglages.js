@@ -3,7 +3,7 @@ import { el, carte, segments, icone } from './ui.js';
 import { LIEU_DEFAUT, seuilsBise } from './meteo.js';
 import { empreinteEnregistree, enregistrerEmpreinte, disponibilite } from './verrou.js';
 import { bornesSaison, libelleSaison } from './whatsup.js';
-import { carteCagnotte, carteDefi } from './reglages-v4.js';
+import { carteCagnotte, carteDefi, carteNetatmo } from './reglages-v4.js';
 import { jourCourant, decaler, depuisTexte, maintenant, simulationActive, demarrerSimulation, arreterSimulation } from './jour.js';
 
 const fmtDateCourte = new Intl.DateTimeFormat('fr-CH', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -501,6 +501,7 @@ export function ouvrirReglages({ synchroComplete, reglagesModifies, categories, 
         el('div', {}, el('label', { class: 'sous-titre-champ', for: 'reglage-lieu-lon' }, 'Longitude'), champLon)),
       alerteLieu,
       el('div', { class: 'rangee-boutons' }, boutonLavaux)),
+    carteNetatmo({ reglagesModifies, aujourdhui: aujourdhui || jourCourant(reglage('bascule')), appeler }),
     carte('Bise',
       el('p', { class: 'discret' }, 'La pastille du vent s’allume en laiton (« Bise ») quand le vent vient du nord-est, entre les deux directions ci-dessous, à la vitesse indiquée ou plus.'),
       el('label', { class: 'sous-titre-champ', for: 'reglage-bise-vitesse' }, 'Vitesse minimale (km/h)'),

@@ -61,7 +61,7 @@ export async function appeler(action, donnees = {}, config = {}) {
     throw e;
   }
   const controle = new AbortController();
-  const delai = setTimeout(() => controle.abort(), 30000);
+  const delai = setTimeout(() => controle.abort(), config.delai || 30000);
   let reponse;
   try {
     reponse = await fetch(url, {
@@ -93,6 +93,8 @@ export async function appeler(action, donnees = {}, config = {}) {
     let message = json.erreur || 'Erreur inconnue côté Apps Script.';
     if (/DriveApp|auth\/drive/.test(message)) {
       message = 'Le script n’a pas encore l’autorisation Google Drive : dans l’éditeur Apps Script, lance « initialiser » et accepte l’accès à Drive.';
+    } else if (/UrlFetchApp|script\.external_request/.test(message)) {
+      message = 'Le script n’a pas encore le droit d’appeler Netatmo : dans l’éditeur Apps Script, lance « testerNetatmo » et accepte l’autorisation.';
     } else if (/^Action inconnue/.test(message)) {
       message = 'Le script Apps Script n’est pas à jour : recolle Code.gs puis publie une nouvelle version du déploiement.';
     }
@@ -127,7 +129,7 @@ export function synchroniser({ tirer = false } = {}) {
 async function executer(tirer) {
   const resultat = {
     datesModifiees: new Set(), pastillesModifiees: false, marchesModifiees: false, penseesModifiees: false, reglagesModifies: false,
-    tentationsModifiees: false, defisModifies: false,
+    tentationsModifiees: false, defisModifies: false, boisModifie: false,
   };
   const attente = await compterAttente();
   if (!reglage('url') || !reglage('jeton')) {
@@ -154,7 +156,7 @@ async function executer(tirer) {
     publier({ code: err.code === 'jeton' ? 'jeton' : 'erreur', message: err.message });
   }
   if (resultat.datesModifiees.size || resultat.pastillesModifiees || resultat.marchesModifiees || resultat.penseesModifiees || resultat.reglagesModifies
-    || resultat.tentationsModifiees || resultat.defisModifies) {
+    || resultat.tentationsModifiees || resultat.defisModifies || resultat.boisModifie) {
     for (const fn of ecouteursDonnees) await fn(resultat);
   }
   return resultat;
@@ -235,7 +237,7 @@ async function envoyer() {
 
   // Tentations et défis (version 4 B) : ajouts / modifications et suppressions.
   const entreesEnreg = file.filter((e) => e.type === 'enreg');
-  for (const magasin of ['tentations', 'defis']) {
+  for (const magasin of ['tentations', 'defis', 'bois']) {
     const entrees = entreesEnreg.filter((e) => e.magasin === magasin);
     if (!entrees.length) continue;
     const ecrits = [];
@@ -287,6 +289,9 @@ async function recevoir(resultat) {
   }
   if (Array.isArray(rep.defis) && await TMDB.fusionnerEnregistrements('defis', rep.defis)) {
     resultat.defisModifies = true;
+  }
+  if (Array.isArray(rep.bois) && await TMDB.fusionnerEnregistrements('bois', rep.bois)) {
+    resultat.boisModifie = true;
   }
   if (Array.isArray(rep.pensees) && await TMDB.fusionnerPensees(rep.pensees)) {
     resultat.penseesModifiees = true;

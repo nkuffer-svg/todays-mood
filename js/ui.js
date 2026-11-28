@@ -77,6 +77,8 @@ const TRACES = {
   gril: '<path d="M4 10.5h16a8 8 0 0 1-16 0z"/><path d="M8.5 17.5l-2 3.5M15.5 17.5l2 3.5M12 18.5v2.5"/><path d="M8 7.5c0-1.2 1-1.3 1-2.5M12 7.5c0-1.2 1-1.3 1-2.5M16 7.5c0-1.2 1-1.3 1-2.5"/>',
   casque: '<path d="M3.5 15.5A8.5 8.5 0 0 1 20.5 14v3a2 2 0 0 1-2 2H9l-5.5-2.2z"/><path d="M12.5 10.5h7.6v3.7h-7.6a1.85 1.85 0 0 1 0-3.7z"/>',
   volant: '<circle cx="12" cy="12" r="8.8"/><circle cx="12" cy="12" r="2.4"/><path d="M3.4 11h6.3M14.3 11h6.3M12 14.4v6.4"/>',
+  maison: '<path d="M3.5 11.2L12 4l8.5 7.2"/><path d="M5.8 9.6V20h12.4V9.6"/><path d="M10 20v-5.2h4V20"/><path d="M15.6 6.8V4.6h1.8v3.7"/>',
+  buche: '<ellipse cx="6.5" cy="12" rx="3" ry="4.5"/><ellipse cx="6.5" cy="12" rx="1.2" ry="1.9"/><path d="M6.5 7.5h11a3 4.5 0 0 1 0 9h-11"/><path d="M11 10.2h4.5M12.5 13.8h4"/>',
   patte: '<ellipse cx="12" cy="16.2" rx="4.4" ry="3.6"/><ellipse cx="6" cy="10.8" rx="1.7" ry="2.2" transform="rotate(-20 6 10.8)"/><ellipse cx="9.8" cy="6.6" rx="1.8" ry="2.4"/><ellipse cx="14.2" cy="6.6" rx="1.8" ry="2.4"/><ellipse cx="18" cy="10.8" rx="1.7" ry="2.2" transform="rotate(20 18 10.8)"/>',
   ecran: '<rect x="7" y="2.8" width="10" height="18.4" rx="2"/><path d="M10.5 5.6h3M11.2 18.2h1.6"/>',
   empreinte: '<path d="M7.5 9.5a4.5 4.5 0 0 1 9 0c0 3-.5 5.5-1.5 7.5"/><path d="M12 9.5c0 3.5-.6 6.6-2.2 9"/><path d="M5 13c.3-1 .5-2.2.5-3.5a6.5 6.5 0 0 1 13 0c0 1.5-.1 3-.4 4.5"/><path d="M9.5 9.8c0 2.6-.5 5-1.6 7"/>',

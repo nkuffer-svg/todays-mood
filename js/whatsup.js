@@ -6,6 +6,7 @@ import { depuisTexte, decaler } from './jour.js';
 import { plaque } from './series.js';
 import { molette } from './molette.js';
 import { carteBoss } from './boss.js';
+import { carteEffetPoele, carteBois } from './poele.js';
 import { plaqueDefi } from './carte-defi.js';
 import { compteurHoraire } from './odometre.js';
 import { formatDuree, formatEcart, statsSemaine } from './durees.js';
@@ -198,7 +199,7 @@ function carteGuitare(ctx) {
 
 const modesForces = new Map(); // date → 'hiver' | 'ete' choisi à la main (le temps de la session)
 
-function carteFeu(ctx) {
+function carteFeu(ctx, surMode = () => {}) {
   const date = ctx.fiche.date;
   const auto = saisonDe(date, ctx.hiver);
   let mode = modesForces.get(date) || auto;
@@ -206,6 +207,7 @@ function carteFeu(ctx) {
 
   function dessiner() {
     const hiver = mode === 'hiver';
+    surMode(mode);
     const champ = hiver ? 'feux_poele' : 'barbecues';
     zone.replaceChildren(compteur(ctx, {
       champ,
@@ -414,12 +416,19 @@ function zoneDefi(ctx) {
 }
 
 export function cartesWhatsUp(ctx) {
+  const zoneHiver = el('div', { class: 'zone-hiver' });
   return [
     el('h2', { class: 'titre-onglet' }, 'What’s up Today ?'),
     zoneDefi(ctx),
     carteCuisine(ctx),
     carteGuitare(ctx),
-    carteFeu(ctx),
+    carteFeu(ctx, (mode) => {
+      // En hiver : l'effet poêle et la réserve de bois, sous Burn on the fire.
+      if (zoneHiver.dataset.mode === mode) return;
+      zoneHiver.dataset.mode = mode;
+      zoneHiver.replaceChildren(...(mode === 'hiver' ? [carteEffetPoele(ctx), carteBois(ctx)] : []));
+    }),
+    zoneHiver,
     carteDeplacement(ctx),
     carteBoss(ctx),
     carteChien(ctx),

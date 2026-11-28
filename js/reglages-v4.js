@@ -155,3 +155,60 @@ export function carteDefi({ reglagesModifies, aujourdhui }) {
   dessiner();
   return carte('Défi du mois', el('p', { class: 'sous-titre-champ' }, 'Mois'), choixMois, zone, message);
 }
+
+/* ---------- La maison et Netatmo (version 5 A) ---------- */
+
+export function carteNetatmo({ reglagesModifies, aujourdhui, appeler }) {
+  const champ = (id, cle, defaut, min, max, pas = '1') => {
+    const c = el('input', { id, class: 'champ', type: 'number', inputmode: 'decimal', min: String(min), max: String(max), step: pas, value: String(reglage(cle) ?? defaut) });
+    c.addEventListener('change', async () => {
+      const v = Number(String(c.value).replace(',', '.'));
+      if (!Number.isFinite(v) || v < min || v > max) { c.value = String(reglage(cle) ?? defaut); return; }
+      await definirReglage(cle, v);
+      reglagesModifies();
+    });
+    return c;
+  };
+  const co2 = champ('reglage-co2', 'co2Max', 1200, 400, 5000, '50');
+  const hum = champ('reglage-hum', 'humMin', 35, 10, 80);
+  const fps = champ('reglage-fps', 'feuxParStere', 20, 1, 200, '0.1');
+  const resultat = el('p', { class: 'resultat-test', role: 'status' });
+  const NOMS = { interieur: 'module intérieur', vent: 'anémomètre', exterieur: 'module extérieur', pluie: 'pluviomètre' };
+  const modules = reglage('netatmoModules');
+  const etat = el('p', { class: 'discret' }, modules
+    ? `Modules détectés : ${Object.keys(modules).map((k) => NOMS[k] || k).join(', ')}.`
+    : 'Pas encore de contact avec ta station Netatmo.');
+  const tester = el('button', {
+    type: 'button', class: 'bouton', onClick: async () => {
+      tester.disabled = true;
+      resultat.className = 'resultat-test';
+      resultat.textContent = 'Lecture de la station…';
+      try {
+        const rep = await appeler('netatmo', { dates: [aujourdhui] }, { delai: 60000 });
+        if (rep.modules) await definirReglage('netatmoModules', rep.modules);
+        const liste = Object.entries(rep.modules || {}).map(([k, m]) => `${NOMS[k] || k} (depuis le ${m.installe})`).join(', ');
+        const r = rep.releves?.[aujourdhui] || {};
+        const t = r.maison20_temp ?? r.maison7_temp;
+        resultat.className = 'resultat-test succes';
+        resultat.textContent = `Connexion réussie à « ${rep.station} » : ${liste}.` + (t != null ? ` Intérieur : ${String(t).replace('.', ',')}°.` : '');
+        etat.textContent = `Modules détectés : ${Object.keys(rep.modules || {}).map((k) => NOMS[k] || k).join(', ')}.`;
+      } catch (err) {
+        resultat.className = 'resultat-test erreur';
+        resultat.textContent = err.message;
+      } finally {
+        tester.disabled = false;
+      }
+    },
+  }, 'Tester Netatmo');
+  return carte('La maison et Netatmo',
+    etat,
+    el('div', { class: 'rangee-boutons' }, tester),
+    resultat,
+    el('p', { class: 'discret' }, 'Les clés Netatmo restent dans les Propriétés du script Apps Script (voir le guide d’installation), jamais dans l’app.'),
+    el('div', { class: 'deux-colonnes' },
+      el('div', {}, el('label', { class: 'sous-titre-champ', for: 'reglage-co2' }, 'CO2 élevé dès (ppm)'), co2),
+      el('div', {}, el('label', { class: 'sous-titre-champ', for: 'reglage-hum' }, 'Air sec sous (%)'), hum)),
+    el('label', { class: 'sous-titre-champ', for: 'reglage-fps' }, 'Feux par stère de bois'),
+    fps,
+    el('p', { class: 'discret' }, 'S’affine tout seul quand tu signales « Stock vide » dans La réserve de bois.'));
+}

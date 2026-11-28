@@ -1614,3 +1614,56 @@ h1 { white-space: nowrap; }
 .annonce-defi-resultat.rate { color: var(--texte-2); }
 .annonce-defi-phrase { text-align: center; font-style: italic; color: var(--texte-2); margin: 0 0 18px; }
 .ecran-defi .rangee-boutons { justify-content: center; margin-top: 18px; }
+
+/* ---------- Version 5, partie A : la maison, Netatmo, l'effet poêle, la réserve de bois ---------- */
+
+.temp-maison {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px dashed var(--bordure-forte);
+  background: transparent;
+  font-family: var(--titre);
+  font-size: 44px;
+  letter-spacing: 0.04em;
+  line-height: 1.05;
+  color: var(--texte);
+  cursor: pointer;
+}
+.maison-ecart { margin: 4px 0 0; font-family: var(--etroit); font-size: 14px; color: var(--laiton-clair); }
+.maison-ecart:empty { display: none; }
+.mention-source { margin: 10px 0 0; font-family: var(--etroit); font-size: 12px; letter-spacing: 0.06em; color: var(--texte-discret); }
+.mention-station { margin: 10px 0 0; font-size: 14px; color: var(--texte-2); }
+.mention-station strong { color: var(--texte); }
+.form-temp-maison { margin-top: 6px; }
+.champ-temp-maison { font-family: var(--titre); font-size: 28px; letter-spacing: 0.04em; max-width: 140px; }
+
+.pastille.statique.pastille-alerte {
+  min-height: 32px;
+  padding: 4px 12px 4px 10px;
+  gap: 8px;
+  text-transform: none;
+  letter-spacing: 0.04em;
+  font-size: 14px;
+  color: #F2B47A;
+  border-color: #E8862E;
+  background: var(--selection);
+}
+.voyant-alerte { width: 8px; height: 8px; border-radius: 50%; background: #E8862E; box-shadow: 0 0 6px 1px rgba(232, 134, 46, 0.7); }
+
+.effet-attente { margin: 0 0 6px; font-family: var(--titre); font-size: 22px; letter-spacing: 0.06em; color: var(--texte-2); }
+.effet-titre { margin: 0 0 12px; color: var(--texte-2); font-size: 17px; }
+.effet-titre strong { font-family: var(--titre); font-weight: 400; font-size: 42px; letter-spacing: 0.04em; color: var(--laiton-clair); margin-right: 4px; }
+.barre-poele { display: grid; grid-template-columns: 74px 1fr 52px; align-items: center; gap: 10px; margin: 8px 0; }
+.barre-poele-nom { font-family: var(--etroit); text-transform: uppercase; letter-spacing: 0.08em; font-size: 12px; color: var(--texte-2); }
+.barre-poele-piste { height: 16px; border-radius: 4px; background: var(--creux); border: 1px solid var(--bordure); overflow: hidden; }
+.barre-poele-piste span { display: block; height: 100%; }
+.barre-poele.avec .barre-poele-piste span { background: var(--laiton); }
+.barre-poele.sans .barre-poele-piste span { background: var(--bordure-forte); }
+.barre-poele-valeur { font-family: var(--titre); font-size: 20px; letter-spacing: 0.04em; color: var(--texte); text-align: right; }
+
+.liste-bois { margin-top: 14px; }
+.liste-bois .icone { color: var(--laiton); width: 18px; height: 18px; }
+.bouton-stock-vide { opacity: 0.85; }
+.zone-hiver .bouton { display: inline-flex; align-items: center; gap: 6px; }
+.zone-hiver .bouton .icone { width: 18px; height: 18px; }

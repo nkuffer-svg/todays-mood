@@ -37,7 +37,7 @@ function drapeau() {
 }
 
 /** Réservoir gradué laiton : se remplit de 0 à 100 % de l'objectif. */
-function reservoir(fraction) {
+export function reservoir(fraction) {
   const f = Math.max(0, Math.min(1, fraction));
   const H = 120;
   const s = svg('svg', { viewBox: '0 0 64 150', class: 'reservoir', 'aria-hidden': 'true' });

@@ -3,13 +3,15 @@ import { el, icone, clac } from './ui.js';
 import { COLONNES, ONGLETS, PASTILLES_DEFAUT } from './donnees.js';
 import { jourCourant, decaler, formatLong, relatif, maintenant, simulationActive, arreterSimulation, estLeSoir } from './jour.js';
 import { chargerReglages, reglage, definirReglage } from './reglages.js';
-import { synchroniser, planifier, surEtat, surDonnees, surPhotoEnvoyee } from './sync.js';
+import { synchroniser, planifier, surEtat, surDonnees, surPhotoEnvoyee, appeler } from './sync.js';
 import { rendreOnglet } from './onglets.js';
 import { carteMeteoMatin, carteMeteoSoir, carteCoucher, contenuLune } from './cartes-meteo.js';
 import { chercherMeteo, chercherDerniersJours, chercherArchives, heurePassee, HEURES_RELEVES } from './meteo.js';
 import { lune } from './astro.js';
 import { evaluerDefi } from './defis.js';
 import { annoncerResultat } from './carte-defi.js';
+import { carteMaison } from './maison.js';
+import { signalerStockVide } from './poele.js';
 import { enregistrerPhoto, supprimerPhoto, photoAffichable } from './photos.js';
 import { calculerTotaux } from './stats.js';
 import { calculerSeries } from './series.js';
@@ -22,7 +24,7 @@ import { attendreAucunEcran } from './ecran.js';
 import { afficherPensee, ouvrirFavoris } from './ecran-pensee.js';
 import { ouvrirHistorique } from './ecran-historique.js';
 
-export const VERSION = 'v4b-1';
+export const VERSION = 'v5a-1';
 
 const etat = {
   aujourdhui: null, // jour courant selon l'heure de bascule
@@ -223,6 +225,118 @@ async function completerHistorique() {
     if (nouveaux[etat.date]) majCartesMeteo(true);
   } catch (err) {
     console.warn('Rattrapage météo :', err);
+  }
+}
+
+/* ---------- Netatmo : la maison, le vent, le module extérieur et le pluviomètre ---------- */
+
+const netatmoEtat = { etat: 'repos', message: '', code: null };
+const netatmoEssais = new Map(); // date → heure du dernier essai automatique (réessai après 10 min)
+const DELAI_REESSAI = 10 * 60 * 1000;
+
+/** Heure à laquelle un champ Netatmo est mesuré (la pluie du jour : seulement une fois la journée finie). */
+function heureNetatmo(champ) {
+  const m = /^(?:maison|nt)(\d+)_/.exec(champ);
+  return m ? Number(m[1]) : 24;
+}
+
+const modulesNetatmo = () => reglage('netatmoModules') || null;
+
+function majCartesMaison() {
+  for (const h of [7, 20]) {
+    const a = document.getElementById(`carte-maison-${h}`);
+    if (a) a.replaceWith(carteMaison(ctx, h));
+  }
+}
+
+/** Inscrit les relevés Netatmo d'un jour : seulement les champs vides et les heures déjà passées. */
+async function enregistrerNetatmo(date, valeurs) {
+  const f = etat.fiche && etat.fiche.date === date ? etat.fiche : await chargerFiche(date);
+  const quand = maintenant();
+  const champs = {};
+  for (const [k, v] of Object.entries(valeurs || {})) {
+    if (v == null || (f[k] != null && f[k] !== '')) continue;
+    const h = heureNetatmo(k);
+    if (h === 24 ? date >= etat.aujourdhui : !heurePassee(date, h, quand)) continue;
+    champs[k] = v;
+  }
+  if (Object.keys(champs).some((k) => k.startsWith('maison')) && !f.maison_source) champs.maison_source = 'netatmo';
+  if (Object.keys(champs).length) await appliquerChamps(date, champs);
+  return Object.keys(champs).length;
+}
+
+async function appelNetatmo(dates, delai) {
+  const rep = await appeler('netatmo', { dates }, { delai });
+  if (rep.modules && JSON.stringify(rep.modules) !== JSON.stringify(modulesNetatmo())) await definirReglage('netatmoModules', rep.modules);
+  return rep;
+}
+
+/** Ce qu'il manque aujourd'hui (heures passées seulement), selon les modules connus. */
+function manqueNetatmo(f, date, quand) {
+  const mods = modulesNetatmo();
+  const passe = (h) => heurePassee(date, h, quand);
+  const manque = (c) => f[c] == null || f[c] === '';
+  return (passe(7) && manque('maison7_temp')) || (passe(20) && manque('maison20_temp'))
+    || ((!mods || mods.vent) && ((passe(8) && manque('nt8_vent')) || (passe(16) && manque('nt16_vent'))))
+    || (!!mods?.exterieur && ((passe(8) && manque('nt8_temp_ext')) || (passe(16) && manque('nt16_temp_ext'))));
+}
+
+/**
+ * Relevés Netatmo de la fiche du jour, quand l'onglet Matin ou Soir est ouvert et qu'une heure de relevé est passée.
+ * En cas d'échec, l'app réessaie au plus tôt 10 minutes après (ou tout de suite avec « Réessayer »).
+ */
+async function netatmoAutomatique(force = false) {
+  if (simulationActive() || !navigator.onLine || !reglage('url') || !reglage('jeton')) return;
+  const date = etat.aujourdhui;
+  if (!force && (etat.date !== date || !['matin', 'soir'].includes(etat.onglet))) return;
+  const f = etat.fiche && etat.fiche.date === date ? etat.fiche : await chargerFiche(date);
+  if (!force && !manqueNetatmo(f, date, maintenant())) return;
+  const dernier = netatmoEssais.get(date);
+  if (!force && dernier && Date.now() - dernier < DELAI_REESSAI) return;
+  if (netatmoEtat.etat === 'encours') return;
+  netatmoEssais.set(date, Date.now());
+  Object.assign(netatmoEtat, { etat: 'encours', message: '', code: null });
+  majCartesMaison();
+  try {
+    const rep = await appelNetatmo([date]);
+    await enregistrerNetatmo(date, rep.releves?.[date]);
+    Object.assign(netatmoEtat, { etat: 'ok' });
+  } catch (err) {
+    Object.assign(netatmoEtat, { etat: 'erreur', message: err.message, code: err.code || null });
+    // Netatmo pas encore configuré : inutile de réessayer toutes les 10 minutes.
+    if (err.code === 'netatmo_config') netatmoEssais.set(date, Date.now() + 6 * 3600 * 1000);
+  }
+  majCartesMaison();
+  majCartesMeteo();
+}
+
+/** Rattrapage (une fois par jour) : complète les fiches existantes avec l'historique Netatmo, 31 jours à la fois. */
+async function completerNetatmo() {
+  const auj = etat.aujourdhui;
+  if (simulationActive() || !navigator.onLine || !reglage('url') || reglage('retroNetatmoLe') === auj) return;
+  try {
+    await viderSaisieEnAttente();
+    let mods = modulesNetatmo();
+    if (!mods) mods = (await appelNetatmo([auj])).modules || {};
+    const debut = (cle) => mods[cle]?.installe || '9999-12-31';
+    const manque = (f, c) => f[c] == null || f[c] === '';
+    const fiches = (await TMDB.tout('fiches')).filter((f) => f.date < auj && (
+      (f.date >= debut('interieur') && (manque(f, 'maison7_temp') || manque(f, 'maison20_temp')))
+      || (f.date >= debut('vent') && (manque(f, 'nt8_vent') || manque(f, 'nt16_vent')))
+      || (f.date >= debut('exterieur') && (manque(f, 'nt8_temp_ext') || manque(f, 'nt16_temp_ext')))
+      || (f.date >= debut('pluie') && manque(f, 'nt_pluie_jour'))));
+    const dates = fiches.map((f) => f.date).sort().reverse();
+    let change = false;
+    for (let i = 0; i < dates.length; i += 31) {
+      const lot = dates.slice(i, i + 31);
+      const rep = await appelNetatmo(lot, 120000);
+      for (const d of lot) if (await enregistrerNetatmo(d, rep.releves?.[d])) change = true;
+    }
+    await definirReglage('retroNetatmoLe', auj);
+    if (change && etat.date !== auj) rendre();
+  } catch (err) {
+    console.warn('Rattrapage Netatmo :', err);
+    if (err.code === 'netatmo_config') await definirReglage('retroNetatmoLe', auj);
   }
 }
 
@@ -478,6 +592,29 @@ const ctx = {
   get meteo() { return meteoEtat.date === etat.date ? meteoEtat : { etat: 'repos' }; },
   /** Tendances de pression et durées du jour gardées sur le téléphone, pour une date. */
   meteoExtra: (date) => extrasMeteo()[date] || {},
+  get aujourdhui() { return etat.aujourdhui; },
+  get netatmo() { return etat.date === etat.aujourdhui ? netatmoEtat : { etat: 'repos' }; },
+  releverMaison: () => netatmoAutomatique(true),
+  bois: {
+    liste: () => TMDB.tout('bois'),
+    async ajouter(date, steres) {
+      if (simulationActive()) { afficherMessage('Simulation : rien n’est enregistré'); return; }
+      const existante = await TMDB.lire('bois', date);
+      await TMDB.ecrireEnregistrement('bois', { date, steres: Math.round(((Number(existante?.steres) || 0) + steres) * 10) / 10 });
+      planifier();
+    },
+    async supprimer(date) {
+      if (simulationActive()) return;
+      await TMDB.supprimerEnregistrement('bois', date);
+      planifier();
+    },
+    async stockVide(e) {
+      if (simulationActive()) return 'Simulation : rien n’est enregistré.';
+      const texte = await signalerStockVide(e, etat.aujourdhui);
+      planifier();
+      return texte;
+    },
+  },
   actualiserMeteo: () => actualiserMeteo(etat.date),
   photo: {
     affichable: (champ) => photoAffichable(etat.date, champ, etat.fiche[champ]),
@@ -618,6 +755,7 @@ function changerOnglet(id) {
   rendre();
   window.scrollTo({ top: 0 });
   meteoAutomatique();
+  netatmoAutomatique();
 }
 
 function ongletSelonHeure() {
@@ -769,7 +907,7 @@ async function apresSynchro(resultat) {
     redessiner = true;
   }
   if (resultat.marchesModifiees && etat.onglet === 'journee') redessiner = true;
-  if ((resultat.tentationsModifiees || resultat.defisModifies) && etat.onglet === 'whatsup') redessiner = true;
+  if ((resultat.tentationsModifiees || resultat.defisModifies || resultat.boisModifie) && etat.onglet === 'whatsup') redessiner = true;
   if (resultat.penseesModifiees && etat.onglet === 'matin') redessiner = true;
   if (resultat.reglagesModifies) redessiner = true;
   if (redessiner) rendre();
@@ -854,19 +992,19 @@ async function demarrer() {
   // D'abord relire le Sheet (la météo et la pensée du jour y sont peut-être déjà), puis la météo
   // automatique. La pensée n'attend la synchro que 3 s au plus, pour s'afficher dès l'ouverture.
   const premiereSynchro = synchroComplete();
-  premiereSynchro.finally(() => { meteoAutomatique(); completerHistorique(); });
+  premiereSynchro.finally(() => { meteoAutomatique(); netatmoAutomatique(); completerHistorique().then(completerNetatmo); });
   // Ouverture par un partage ou un raccourci : pas de pensée en plein écran (elle viendra à la prochaine ouverture).
   if (!ouvertParPartage && !raccourci) {
     Promise.race([premiereSynchro, new Promise((r) => setTimeout(r, 3000))]).then(penseeDuJour).then(bilanDuDimanche).then(resultatsDefis);
   }
   // Voyants et passage de 18 h (ou de l'heure de bascule) pendant que l'app reste ouverte.
   // Le relevé de 8 h (ou 16 h) arrive aussi si l'onglet est déjà ouvert quand l'heure passe.
-  setInterval(() => { verifierChangementDeJour(); majVoyants(); meteoAutomatique(); }, 60 * 1000);
+  setInterval(() => { verifierChangementDeJour(); majVoyants(); meteoAutomatique(); netatmoAutomatique(); }, 60 * 1000);
 
   // Les copies locales des photos de plus de 60 jours sont effacées (elles restent sur Drive).
   TMDB.purgerPhotos(decaler(etat.aujourdhui, -60)).catch(() => {});
 
-  window.addEventListener('online', () => { meteoTentees.clear(); synchroComplete(); meteoAutomatique(); });
+  window.addEventListener('online', () => { meteoTentees.clear(); netatmoEssais.clear(); synchroComplete(); meteoAutomatique(); netatmoAutomatique(); });
   window.addEventListener('offline', () => synchroniser());
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
@@ -876,7 +1014,7 @@ async function demarrer() {
     } else {
       const nouveauJour = verifierChangementDeJour();
       meteoTentees.clear();
-      synchroComplete().finally(completerHistorique);
+      synchroComplete().finally(() => { netatmoAutomatique(); completerHistorique().then(completerNetatmo); });
       meteoAutomatique();
       majVoyants();
       if (nouveauJour || reglage('penseeAfficheeLe') !== etat.aujourdhui) penseeDuJour().then(bilanDuDimanche).then(resultatsDefis);
